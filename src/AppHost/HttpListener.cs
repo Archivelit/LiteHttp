@@ -8,26 +8,34 @@ public class HttpListener(
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-        socket.Bind(new IPEndPoint(IPAddress.Any, 8080));
+        var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        socket.Bind(new IPEndPoint(new IPAddress([192, 168, 1, 102]), 30000));
         socket.Listen();
         
         #pragma warning disable CA2014
         while (!stoppingToken.IsCancellationRequested)
         {
-            var connection = await socket.AcceptAsync(stoppingToken);
-
-            Span<byte> buffer = stackalloc byte[4096];
-
-            int received = connection.Receive(buffer, SocketFlags.None);
-
-            if (received > 0)
+            Socket? connection = null;
+            try
             {
-                var requestMessage = Encoding.UTF8.GetString(buffer.Slice(0, received));
-                logger.LogInformation(requestMessage);
-            }
+                connection = await socket.AcceptAsync(stoppingToken);
 
-            connection.Close();
+                Span<byte> buffer = stackalloc byte[4096];
+
+                int received = connection.Receive(buffer, SocketFlags.None);
+
+                if (received > 0)
+                {
+                    var requestMessage = Encoding.UTF8.GetString(buffer.Slice(0, received));
+                    logger.LogInformation(requestMessage);
+                }
+            }
+            finally
+            {
+                if (connection is not null) 
+                    connection.Close();
+                socket.Close();
+            }
         }
         #pragma warning restore
     }
