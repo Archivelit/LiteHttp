@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/AppHost/AppHost.csproj" />
+    <Project Path="src/HttpListener/HttpListener.csproj" />
   </Folder>
 </Solution>
