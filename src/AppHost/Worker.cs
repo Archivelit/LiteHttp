@@ -8,9 +8,6 @@ public class Worker(
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            await listener.ListenAsync(stoppingToken);
-        }    
+        await listener.ListenAsync(stoppingToken);
     }
 }

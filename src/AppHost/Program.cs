@@ -1,7 +1,9 @@
-using AppHost;
-
 var builder = Host.CreateApplicationBuilder(args);
-builder.Services.AddHostedService<HttpListener>();
+
+LoggerInitializer.Initialize();
+builder.Logging.AddSerilog();
+
+builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();
 host.Run();

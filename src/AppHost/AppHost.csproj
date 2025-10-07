@@ -11,4 +11,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0-rc.1.25451.107" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HttpListener\HttpListener.csproj" />
+  </ItemGroup>
 </Project>
