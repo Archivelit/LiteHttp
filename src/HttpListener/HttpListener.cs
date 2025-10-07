@@ -13,9 +13,19 @@ public class HttpListener : IHttpListener
         _logger = logger;    
     }
 
+    public HttpListener(ILogger<HttpListener> logger, IPEndPoint endPoint) 
+        : this(logger)
+    {
+        _socket.Bind(endPoint);
+    }
+
     public async Task ListenAsync(CancellationToken stoppingToken)
     {
-        _socket.Bind(new IPEndPoint(new IPAddress([192, 168, 1, 102]), 30000));
+        if (!_socket.IsBound)
+        {
+            BindDefault();
+        }
+
         _socket.Listen();
 
 #pragma warning disable CA2014
@@ -45,4 +55,10 @@ public class HttpListener : IHttpListener
         }
 #pragma warning restore
     }
+
+    private void BindSocket(IPEndPoint endPoint) => 
+        _socket.Bind(endPoint);
+
+    private void BindDefault() =>
+        BindSocket(new IPEndPoint(new IPAddress([192, 168, 1, 102]), 30000));
 }
