@@ -1,6 +1,6 @@
-﻿namespace HttpListener;
+﻿namespace LiteHttp.HttpListener;
 
 public interface IHttpListener
 {
-    Task ListenAsync(CancellationToken ct);
+    Task StartListen(CancellationToken ct);
 }

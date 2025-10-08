@@ -1,4 +1,4 @@
-﻿namespace HttpListener;
+﻿namespace LiteHttp.HttpListener;
 
 #pragma warning disable CS8618, CA2014
 public class HttpListener : IHttpListener, IDisposable
@@ -10,6 +10,7 @@ public class HttpListener : IHttpListener, IDisposable
     private IPAddress _IPV4Address;
     private IPEndPoint _endPoint;
     private Socket _socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+    private ListenerState _listenerState = ListenerState.Stopped;
 
     public HttpListener() =>
         Initialize();
@@ -26,31 +27,37 @@ public class HttpListener : IHttpListener, IDisposable
     public HttpListener(IPAddress address, int port) =>
         Initialize(address, port);
 
-    public async Task ListenAsync(CancellationToken stoppingToken)
+    public async Task StartListen(CancellationToken stoppingToken)
     {
-        if (!_socket.IsBound
-            && _endPoint is not null)
+        if (_endPoint is null)
+        {
+            throw new ArgumentNullException("Listener socket unbound");
+        }
+
+        if (!_socket.IsBound)
         {
             BindSocket();
         }
 
         _socket.Listen();
 
+        _listenerState = ListenerState.Listening;
+
         while (!stoppingToken.IsCancellationRequested)
         {
-            using(var connection = await _socket.AcceptAsync(stoppingToken))
+            using var connection = await _socket.AcceptAsync(stoppingToken);
+            
+            Span<byte> buffer = stackalloc byte[4096];
+
+            int received = connection.Receive(buffer, SocketFlags.None);
+
+            if (received > 0)
             {
-                Span<byte> buffer = stackalloc byte[4096];
-
-                int received = connection.Receive(buffer, SocketFlags.None);
-
-                if (received > 0)
-                {
-                    var requestMessage = Encoding.UTF8.GetString(buffer.Slice(0, received));
-                }
+                var requestMessage = Encoding.UTF8.GetString(buffer.Slice(0, received));
             }
         }
-        Dispose();
+
+        _listenerState = ListenerState.Stopped;
     }
 
     public void Dispose() =>
@@ -67,6 +74,11 @@ public class HttpListener : IHttpListener, IDisposable
 
     private void Initialize(IPAddress iPAddress, int port)
     {
+        if (_listenerState == ListenerState.Listening)
+        {
+            return;
+        }
+
         _IPV4Address = iPAddress;
         _serverPort = port;
 
