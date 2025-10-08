@@ -2,6 +2,7 @@
 
 public static class LoggerInitializer
 {
+    [ModuleInitializer]
     public static void Initialize() =>
         Initialize(new LoggerConfiguration()
             .WriteTo.Console());

@@ -1,37 +1,40 @@
 ﻿namespace HttpListener;
 
+#pragma warning disable CS8618, CA2014
 public class HttpListener : IHttpListener, IDisposable
 {
     public Socket Socket { get => _socket; }
-    public int DefaultPort { get => _defaultPort; }
+    public int ListenerPort { get => _serverPort; }
 
-    private readonly ILogger<HttpListener> _logger;
-    private readonly int _defaultPort = 30000;
-    
-    private Socket _socket;
+    private int _serverPort;
+    private IPAddress _IPV4Address;
+    private IPEndPoint _endPoint;
+    private Socket _socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-    public HttpListener(ILogger<HttpListener> logger)
-    {
-        _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        _logger = logger;    
-    }
+    public HttpListener() =>
+        Initialize();
 
-    public HttpListener(ILogger<HttpListener> logger, IPEndPoint endPoint) 
-        : this(logger)
-    {
-        _socket.Bind(endPoint);
-    }
+    public HttpListener(IPEndPoint endPoint) =>
+        Initialize(endPoint.Address, endPoint.Port);
+
+    public HttpListener(int port) =>
+        Initialize(port);
+
+    public HttpListener(IPAddress address) =>
+        Initialize(address);
+
+    public HttpListener(IPAddress address, int port) =>
+        Initialize(address, port);
 
     public async Task ListenAsync(CancellationToken stoppingToken)
     {
         if (!_socket.IsBound)
         {
-            BindDefault();
+            BindSocket();
         }
 
         _socket.Listen();
 
-#pragma warning disable CA2014
         while (!stoppingToken.IsCancellationRequested)
         {
             using(var connection = await _socket.AcceptAsync(stoppingToken))
@@ -43,20 +46,39 @@ public class HttpListener : IHttpListener, IDisposable
                 if (received > 0)
                 {
                     var requestMessage = Encoding.UTF8.GetString(buffer.Slice(0, received));
-                    _logger.LogInformation(requestMessage);
                 }
             }
         }
-#pragma warning restore
         Dispose();
     }
 
     public void Dispose() =>
         _socket.Dispose();
 
-    private void BindSocket(IPEndPoint endPoint) => 
-        _socket.Bind(endPoint);
+    private void BindSocket() => 
+        _socket.Bind(_endPoint);
 
-    private void BindDefault() =>
-        BindSocket(new IPEndPoint(new IPAddress([192, 168, 1, 102]), _defaultPort));
+    private void UpdateListenerEndPoint() =>
+        _endPoint = new(_IPV4Address, _serverPort);
+
+    private void Initialize() =>
+        Initialize(new([192, 168, 1, 102]), 30000);
+
+    private void Initialize(IPAddress iPAddress) =>
+        Initialize(iPAddress, _serverPort);
+
+    private void Initialize(int port) =>
+        Initialize(_IPV4Address, port);
+
+    private void Initialize(IPAddress iPAddress, int port)
+    {
+        OnEndPointUpdate += UpdateListenerEndPoint;
+
+        _IPV4Address = iPAddress;
+        _serverPort = port;
+
+        OnEndPointUpdate.Invoke();
+    }
+
+    private event Action OnEndPointUpdate;
 }
