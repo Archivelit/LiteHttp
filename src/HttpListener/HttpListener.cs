@@ -14,21 +14,22 @@ public class HttpListener : IHttpListener, IDisposable
     public HttpListener() =>
         Initialize();
 
+    public HttpListener(int port)
+        : this(AddressConstants.IPV4_LOOPBACK, port) { }
+
+    public HttpListener(IPAddress address) 
+        : this(address, AddressConstants.DEFAULT_SERVER_PORT) { }
+
     public HttpListener(IPEndPoint endPoint) =>
         Initialize(endPoint.Address, endPoint.Port);
-
-    public HttpListener(int port) =>
-        Initialize(port);
-
-    public HttpListener(IPAddress address) =>
-        Initialize(address);
 
     public HttpListener(IPAddress address, int port) =>
         Initialize(address, port);
 
     public async Task ListenAsync(CancellationToken stoppingToken)
     {
-        if (!_socket.IsBound)
+        if (!_socket.IsBound
+            && _endPoint is not null)
         {
             BindSocket();
         }
@@ -62,23 +63,13 @@ public class HttpListener : IHttpListener, IDisposable
         _endPoint = new(_IPV4Address, _serverPort);
 
     private void Initialize() =>
-        Initialize(new([192, 168, 1, 102]), 30000);
-
-    private void Initialize(IPAddress iPAddress) =>
-        Initialize(iPAddress, _serverPort);
-
-    private void Initialize(int port) =>
-        Initialize(_IPV4Address, port);
+        Initialize(AddressConstants.IPV4_LOOPBACK, AddressConstants.DEFAULT_SERVER_PORT);
 
     private void Initialize(IPAddress iPAddress, int port)
     {
-        OnEndPointUpdate += UpdateListenerEndPoint;
-
         _IPV4Address = iPAddress;
         _serverPort = port;
 
-        OnEndPointUpdate.Invoke();
+        UpdateListenerEndPoint();
     }
-
-    private event Action OnEndPointUpdate;
 }
