@@ -31,26 +31,23 @@ public class HttpListener : IHttpListener, IDisposable
 
         _socket.Listen();
 
-        Socket? connection = null;
-
 #pragma warning disable CA2014
         while (!stoppingToken.IsCancellationRequested)
         {
-            connection = await _socket.AcceptAsync(stoppingToken);
-
-            Span<byte> buffer = stackalloc byte[4096];
-
-            int received = connection.Receive(buffer, SocketFlags.None);
-
-            if (received > 0)
+            using(var connection = await _socket.AcceptAsync(stoppingToken))
             {
-                var requestMessage = Encoding.UTF8.GetString(buffer.Slice(0, received));
-                _logger.LogInformation(requestMessage);
+                Span<byte> buffer = stackalloc byte[4096];
+
+                int received = connection.Receive(buffer, SocketFlags.None);
+
+                if (received > 0)
+                {
+                    var requestMessage = Encoding.UTF8.GetString(buffer.Slice(0, received));
+                    _logger.LogInformation(requestMessage);
+                }
             }
         }
 #pragma warning restore
-
-        connection?.Dispose();
         Dispose();
     }
 
