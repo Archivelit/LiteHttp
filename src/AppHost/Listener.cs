@@ -1,12 +1,10 @@
 namespace AppHost;
 
-using LiteHttp.Listener;
-
-public class Worker : BackgroundService
+public class Listener : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var listener = new Listener();
+        var listener = new LiteHttp.Listener.Listener();
         await listener.StartListen(stoppingToken);
     }
 }
