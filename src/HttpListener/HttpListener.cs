@@ -1,7 +1,7 @@
 ﻿namespace LiteHttp.HttpListener;
 
 #pragma warning disable CS8618, CA2014
-public class HttpListener : IHttpListener, IDisposable
+public sealed partial class HttpListener : IHttpListener, IDisposable
 {
     public Socket Socket { get => _socket; }
     public int ListenerPort { get => _serverPort; }
@@ -35,7 +35,7 @@ public class HttpListener : IHttpListener, IDisposable
 
         if (!_socket.IsBound)
             BindSocket();
-
+        
         _socket.Listen();
         _listenerState = ListenerState.Listening;
 
@@ -96,6 +96,8 @@ public class HttpListener : IHttpListener, IDisposable
         if (received > 0)
         {
             var request = Encoding.UTF8.GetString(buffer.Slice(0, received));
+
+            Task.Run(() => RaiseRequestReceived(request));
         }
     }
 
