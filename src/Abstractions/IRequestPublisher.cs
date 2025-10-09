@@ -2,8 +2,8 @@
 
 public interface IRequestPublisher
 {
-    event Action<string>? OnRequestReceived;
-    void RaiseRequestReceived(string context);
-    void SubscribeToRequestReceived(Action<string> handler);
-    void UnsubscribeFromRequestReceived(Action<string> handler);
+    event Action<Socket>? OnRequestReceived;
+    void RaiseRequestReceived(Socket context);
+    void SubscribeToRequestReceived(Action<Socket> handler);
+    void UnsubscribeFromRequestReceived(Action<Socket> handler);
 }

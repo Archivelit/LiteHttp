@@ -2,6 +2,6 @@
   <Folder Name="/src/">
     <Project Path="src/Abstractions/Abstractions.csproj" Id="af03fbf4-6b36-4ff9-860f-3927b4c00171" />
     <Project Path="src/AppHost/AppHost.csproj" />
-    <Project Path="src/HttpListener/HttpListener.csproj" />
+    <Project Path="src/HttpListener/Listener.csproj" />
   </Folder>
 </Solution>

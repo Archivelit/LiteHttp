@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Abstractions;
 
-public interface IHttpListener
+public interface IListener
 {
     Task StartListen(CancellationToken ct);
 }

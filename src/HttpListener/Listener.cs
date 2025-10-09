@@ -1,7 +1,7 @@
-﻿namespace LiteHttp.HttpListener;
+﻿namespace LiteHttp.Listener;
 
 #pragma warning disable CS8618, CA2014
-public sealed partial class HttpListener : IHttpListener, IDisposable
+public sealed partial class Listener : IListener, IDisposable
 {
     public Socket Socket { get => _socket; }
     public int ListenerPort { get => _serverPort; }
@@ -13,19 +13,19 @@ public sealed partial class HttpListener : IHttpListener, IDisposable
     private IPEndPoint _endPoint;
     private ListenerState _listenerState = ListenerState.Stopped;
 
-    public HttpListener() =>
+    public Listener() =>
         Initialize();
 
-    public HttpListener(int port)
+    public Listener(int port)
         : this(AddressConstants.IPV4_LOOPBACK, port) { }
 
-    public HttpListener(IPAddress address) 
+    public Listener(IPAddress address) 
         : this(address, AddressConstants.DEFAULT_SERVER_PORT) { }
 
-    public HttpListener(IPEndPoint endPoint) =>
+    public Listener(IPEndPoint endPoint) =>
         Initialize(endPoint.Address, endPoint.Port);
 
-    public HttpListener(IPAddress address, int port) =>
+    public Listener(IPAddress address, int port) =>
         Initialize(address, port);
 
     public async Task StartListen(CancellationToken stoppingToken)
@@ -43,7 +43,7 @@ public sealed partial class HttpListener : IHttpListener, IDisposable
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                using var connection = await _socket.AcceptAsync(stoppingToken);
+                var connection = await _socket.AcceptAsync(stoppingToken);
 
                 ProcessRequest(connection);
             }
@@ -64,7 +64,7 @@ public sealed partial class HttpListener : IHttpListener, IDisposable
     public void Dispose() =>
         _socket.Dispose();
     
-    public HttpListener SetIpAddress(IPAddress address)
+    public Listener SetIpAddress(IPAddress address)
     {
         if (IsListening())
             throw new InvalidOperationException("Ip address cannot be changed while server listening");
@@ -75,7 +75,7 @@ public sealed partial class HttpListener : IHttpListener, IDisposable
         return this;
     }
     
-    public HttpListener SetPort(int port)
+    public Listener SetPort(int port)
     {
         if (IsListening())
             throw new InvalidOperationException("Port cannot be changed while server listening");
@@ -86,19 +86,9 @@ public sealed partial class HttpListener : IHttpListener, IDisposable
         return this;
     }
 
-    [SkipLocalsInit]
     private void ProcessRequest(Socket connection)
     {
-        Span<byte> buffer = stackalloc byte[4096];
-
-        int received = connection.Receive(buffer, SocketFlags.None);
-        
-        if (received > 0)
-        {
-            var request = Encoding.UTF8.GetString(buffer.Slice(0, received));
-
-            Task.Run(() => RaiseRequestReceived(request));
-        }
+        Task.Run(() => RaiseRequestReceived(connection));
     }
 
     private void BindSocket() => 
@@ -112,9 +102,6 @@ public sealed partial class HttpListener : IHttpListener, IDisposable
     
     private void Initialize(IPAddress iPAddress, int port)
     {
-        if (IsListening())
-            return;
-
         _ipv4Address = iPAddress;
         _serverPort = port;
 

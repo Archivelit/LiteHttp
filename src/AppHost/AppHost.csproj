@@ -16,6 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HttpListener\HttpListener.csproj" />
+    <ProjectReference Include="..\HttpListener\Listener.csproj" />
   </ItemGroup>
 </Project>

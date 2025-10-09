@@ -1,4 +1,4 @@
-﻿namespace LiteHttp.HttpListener;
+﻿namespace LiteHttp.Listener;
 
 public enum ListenerState
 {
