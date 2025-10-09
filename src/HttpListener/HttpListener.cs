@@ -5,11 +5,12 @@ public class HttpListener : IHttpListener, IDisposable
 {
     public Socket Socket { get => _socket; }
     public int ListenerPort { get => _serverPort; }
+    public IPAddress ListenerAddress { get => _ipv4Address; }
 
+    private Socket _socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
     private int _serverPort;
     private IPAddress _ipv4Address;
     private IPEndPoint _endPoint;
-    private Socket _socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
     private ListenerState _listenerState = ListenerState.Stopped;
 
     public HttpListener() =>
@@ -26,28 +27,30 @@ public class HttpListener : IHttpListener, IDisposable
 
     public HttpListener(IPAddress address, int port) =>
         Initialize(address, port);
-    
+
     public async Task StartListen(CancellationToken stoppingToken)
     {
         if (_endPoint is null)
-        {
             throw new ArgumentNullException("Listener socket unbound");
-        }
 
         if (!_socket.IsBound)
-        {
             BindSocket();
-        }
 
         _socket.Listen();
-
         _listenerState = ListenerState.Listening;
 
-        while (!stoppingToken.IsCancellationRequested)
+        try
         {
-            using var connection = await _socket.AcceptAsync(stoppingToken);
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                using var connection = await _socket.AcceptAsync(stoppingToken);
 
-            ProcessRequest(connection);
+                ProcessRequest(connection);
+            }
+        }
+        catch (OperationCanceledException ex)
+        {
+            Log.Logger.Debug("Stopping listening");
         }
 
         _listenerState = ListenerState.Stopped;
@@ -56,22 +59,26 @@ public class HttpListener : IHttpListener, IDisposable
     public void Dispose() =>
         _socket.Dispose();
     
-    public void SetIpAddress(IPAddress address)
+    public HttpListener SetIpAddress(IPAddress address)
     {
         if (IsListening())
             throw new InvalidOperationException("Ip address cannot be changed while server listening");
 
         _ipv4Address = address;
         UpdateListenerEndPoint();
+
+        return this;
     }
     
-    public void SetPort(int port)
+    public HttpListener SetPort(int port)
     {
         if (IsListening())
             throw new InvalidOperationException("Port cannot be changed while server listening");
 
         _serverPort = port;
         UpdateListenerEndPoint();
+
+        return this;
     }
 
     [SkipLocalsInit]
@@ -80,8 +87,6 @@ public class HttpListener : IHttpListener, IDisposable
         Span<byte> buffer = stackalloc byte[4096];
 
         int received = connection.Receive(buffer, SocketFlags.None);
-        
-        Console.WriteLine(buffer.ToString());
         
         if (received > 0)
         {
@@ -101,9 +106,7 @@ public class HttpListener : IHttpListener, IDisposable
     private void Initialize(IPAddress iPAddress, int port)
     {
         if (IsListening())
-        {
             return;
-        }
 
         _ipv4Address = iPAddress;
         _serverPort = port;

@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventsTest", "EventsTest\EventsTest.csproj", "{5DE88EF9-A188-47AC-8AD9-39250BE5349F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestLib", "TestLib\TestLib.csproj", "{EDBB1CAD-BE90-4FF2-96F8-31DA9D5196ED}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5DE88EF9-A188-47AC-8AD9-39250BE5349F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DE88EF9-A188-47AC-8AD9-39250BE5349F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DE88EF9-A188-47AC-8AD9-39250BE5349F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DE88EF9-A188-47AC-8AD9-39250BE5349F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDBB1CAD-BE90-4FF2-96F8-31DA9D5196ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDBB1CAD-BE90-4FF2-96F8-31DA9D5196ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDBB1CAD-BE90-4FF2-96F8-31DA9D5196ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDBB1CAD-BE90-4FF2-96F8-31DA9D5196ED}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
