@@ -7,7 +7,7 @@ public class HttpListener : IHttpListener, IDisposable
     public int ListenerPort { get => _serverPort; }
 
     private int _serverPort;
-    private IPAddress _IPV4Address;
+    private IPAddress _ipv4Address;
     private IPEndPoint _endPoint;
     private Socket _socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
     private ListenerState _listenerState = ListenerState.Stopped;
@@ -26,7 +26,7 @@ public class HttpListener : IHttpListener, IDisposable
 
     public HttpListener(IPAddress address, int port) =>
         Initialize(address, port);
-
+    
     public async Task StartListen(CancellationToken stoppingToken)
     {
         if (_endPoint is null)
@@ -46,15 +46,8 @@ public class HttpListener : IHttpListener, IDisposable
         while (!stoppingToken.IsCancellationRequested)
         {
             using var connection = await _socket.AcceptAsync(stoppingToken);
-            
-            Span<byte> buffer = stackalloc byte[4096];
 
-            int received = connection.Receive(buffer, SocketFlags.None);
-
-            if (received > 0)
-            {
-                var requestMessage = Encoding.UTF8.GetString(buffer.Slice(0, received));
-            }
+            ProcessRequest(connection);
         }
 
         _listenerState = ListenerState.Stopped;
@@ -62,26 +55,61 @@ public class HttpListener : IHttpListener, IDisposable
 
     public void Dispose() =>
         _socket.Dispose();
+    
+    public void SetIpAddress(IPAddress address)
+    {
+        if (IsListening())
+            throw new InvalidOperationException("Ip address cannot be changed while server listening");
+
+        _ipv4Address = address;
+        UpdateListenerEndPoint();
+    }
+    
+    public void SetPort(int port)
+    {
+        if (IsListening())
+            throw new InvalidOperationException("Port cannot be changed while server listening");
+
+        _serverPort = port;
+        UpdateListenerEndPoint();
+    }
+
+    [SkipLocalsInit]
+    private void ProcessRequest(Socket connection)
+    {
+        Span<byte> buffer = stackalloc byte[4096];
+
+        int received = connection.Receive(buffer, SocketFlags.None);
+        
+        Console.WriteLine(buffer.ToString());
+        
+        if (received > 0)
+        {
+            var request = Encoding.UTF8.GetString(buffer.Slice(0, received));
+        }
+    }
 
     private void BindSocket() => 
         _socket.Bind(_endPoint);
 
     private void UpdateListenerEndPoint() =>
-        _endPoint = new(_IPV4Address, _serverPort);
+        _endPoint = new(_ipv4Address, _serverPort);
 
     private void Initialize() =>
         Initialize(AddressConstants.IPV4_LOOPBACK, AddressConstants.DEFAULT_SERVER_PORT);
-
+    
     private void Initialize(IPAddress iPAddress, int port)
     {
-        if (_listenerState == ListenerState.Listening)
+        if (IsListening())
         {
             return;
         }
 
-        _IPV4Address = iPAddress;
+        _ipv4Address = iPAddress;
         _serverPort = port;
 
         UpdateListenerEndPoint();
     }
+    
+    private bool IsListening() => _listenerState == ListenerState.Listening;
 }
