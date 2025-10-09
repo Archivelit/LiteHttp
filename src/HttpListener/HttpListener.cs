@@ -48,9 +48,14 @@ public class HttpListener : IHttpListener, IDisposable
                 ProcessRequest(connection);
             }
         }
-        catch (OperationCanceledException ex)
+        catch (OperationCanceledException)
         {
             Log.Logger.Debug("Stopping listening");
+        }
+        catch (Exception ex)
+        {
+            Log.Logger.Error(ex, "An error occurred while listening for incoming connections");
+            throw;
         }
 
         _listenerState = ListenerState.Stopped;
