@@ -1,9 +1,10 @@
 ﻿namespace RequestProcessors;
 
-public class RequestParser
+public class RequestParser : IRequestParser
 {
-    public void Parse(string request)
+    public HttpContext Parse(string request)
     {
-        
+        // TODO: Add implementation
+        throw new NotImplementedException();
     }
 }

@@ -1,15 +1,15 @@
 ﻿namespace LiteHttp.Listener;
 
-public sealed partial class Listener : IRequestPublisher
+public sealed partial class Listener : IRequestReceiver
 {
-    public event Action<Socket>? OnRequestReceived;
+    public event Action<RequestReceivedEvent>? OnRequestReceived;
 
-    public void RaiseRequestReceived(Socket connection) =>
+    public void RaiseRequestReceived(RequestReceivedEvent connection) =>
         OnRequestReceived?.Invoke(connection);
 
-    public void SubscribeToRequestReceived(Action<Socket> handler) =>
+    public void SubscribeToRequestReceived(Action<RequestReceivedEvent> handler) =>
         OnRequestReceived += handler;
 
-    public void UnsubscribeFromRequestReceived(Action<Socket> handler) =>
+    public void UnsubscribeFromRequestReceived(Action<RequestReceivedEvent> handler) =>
         OnRequestReceived -= handler;
 }
