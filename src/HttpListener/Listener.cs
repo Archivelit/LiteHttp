@@ -45,7 +45,7 @@ public sealed partial class Listener : IListener, IDisposable
             {
                 var connection = await _socket.AcceptAsync(stoppingToken);
 
-                ProcessRequest(connection);
+                await Task.Run(() => RaiseRequestReceived(new RequestReceivedEvent(connection)));
             }
         }
         catch (OperationCanceledException)
@@ -84,11 +84,6 @@ public sealed partial class Listener : IListener, IDisposable
         UpdateListenerEndPoint();
 
         return this;
-    }
-
-    private void ProcessRequest(Socket connection)
-    {
-        Task.Run(() => RaiseRequestReceived(connection));
     }
 
     private void BindSocket() => 

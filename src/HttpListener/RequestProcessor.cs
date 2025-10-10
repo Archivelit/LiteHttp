@@ -1,11 +1,22 @@
 ﻿namespace LiteHttp.HttpListener;
 
-public class RequestProcessor
+public class RequestProcessor(IRequestParser parser)
 {
-    public RequestProcessor() { }
-    
-    public void ProcessConnection(Socket connection)
+    public async Task ProcessConnection(Socket connection, CancellationToken ct)
     {
+        var request = await GetRequestContext(connection, ct);
+
+        parser.Parse(request);
+    }
+
+    [SkipLocalsInit]
+    private async Task<string> GetRequestContext(Socket connection, CancellationToken ct)
+    {
+        using var owner = MemoryPool<byte>.Shared.Rent(4096);
+        var buffer = owner.Memory;
         
+        var receivedLength = await connection.ReceiveAsync(buffer, ct);
+
+        return buffer.Slice(0, receivedLength).ToString();
     }
 }

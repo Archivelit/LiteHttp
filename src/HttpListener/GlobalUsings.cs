@@ -1,6 +1,7 @@
 ﻿global using System.Net.Sockets;
 global using System.Net;
 global using System.Text;
+global using System.Buffers;
 global using System.Runtime.CompilerServices;
 global using LiteHttp.Abstractions;
 global using LiteHttp.Models.Events;
