@@ -1,21 +1,25 @@
 ﻿using System.Collections.Concurrent;
 using LiteHttp.Abstractions;
 using LiteHttp.Models.Events;
+using Microsoft.Extensions.Logging;
 
-namespace EventBus;
+namespace LiteHttp.EventBus;
 
-public abstract class RequestEventBus : IEventBus<RequestReceivedEvent>
+public sealed class RequestEventBus(
+    ILogger<RequestEventBus> logger
+    ) : IEventBus<RequestReceivedEvent>
 {
     private ConcurrentQueue<RequestReceivedEvent> _queue = new();
     
     public void Publish(RequestReceivedEvent @event)
     {
         _queue.Enqueue(@event);
+        logger.LogDebug($"RequestReceivedEvent published");
     }
     
-    // TODO: Add event consuming logic
-    public RequestReceivedEvent Consume()
+    public RequestReceivedEvent? Consume()
     {
-        throw new NotImplementedException();
+        logger.LogDebug("RequestReceivedEvent consumed");
+        return _queue.TryDequeue(out var @event) ? @event : null;
     }
 }

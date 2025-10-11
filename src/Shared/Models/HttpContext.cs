@@ -1,4 +1,4 @@
-﻿namespace Shared.Models;
+﻿namespace LiteHttp.Models;
 
 public class HttpContext
 {

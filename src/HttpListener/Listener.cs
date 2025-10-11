@@ -31,13 +31,18 @@ public sealed partial class Listener : IListener, IDisposable
     public async Task StartListen(CancellationToken stoppingToken)
     {
         if (_endPoint is null)
-            throw new ArgumentNullException("Listener socket unbound");
+            throw new ArgumentNullException("Listener endpoint cannot be null");
 
         if (!_socket.IsBound)
+        {
             BindSocket();
-        
-        _socket.Listen();
+            Log.Logger.Debug("Socket bound");
+        }
+
+    _socket.Listen();
         _listenerState = ListenerState.Listening;
+
+        Log.Logger.Information($"Listening at {_endPoint.ToString()}"); 
 
         try
         {
@@ -45,12 +50,15 @@ public sealed partial class Listener : IListener, IDisposable
             {
                 var connection = await _socket.AcceptAsync(stoppingToken);
 
-                await Task.Run(() => RaiseRequestReceived(new RequestReceivedEvent(connection)));
+                Log.Logger.Debug("Request accepted");
+
+                Task.Run(() => RaiseRequestReceived(new RequestReceivedEvent(connection)), stoppingToken);
             }
         }
         catch (OperationCanceledException)
         {
             Log.Logger.Debug("Stopping listening");
+            Dispose();
         }
         catch (Exception ex)
         {
