@@ -1,6 +1,8 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-public class RequestProcessor(IRequestParser parser) : IRequestProcessor
+public class RequestProcessor(
+    IRequestParser parser
+    ) : IRequestProcessor
 {
     public async Task ProcessConnection(Socket connection, CancellationToken ct)
     {
@@ -17,6 +19,6 @@ public class RequestProcessor(IRequestParser parser) : IRequestProcessor
         
         var receivedLength = await connection.ReceiveAsync(buffer, ct);
 
-        return buffer.Slice(0, receivedLength).ToString();
+        return Encoding.UTF8.GetString(buffer.Span.Slice(0, receivedLength));
     }
 }
