@@ -1,15 +1,9 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-public class RequestProcessor(
-    IRequestParser parser
-    ) : IRequestProcessor
+public class RequestSerializer : IRequestSerializer
 {
-    public async Task ProcessConnection(Socket connection, CancellationToken ct)
-    {
-        var request = await GetRequestContext(connection, ct);
-
-        parser.Parse(request);
-    }
+    public async Task DeserializeFromConnectionAsync(Socket connection, CancellationToken ct) =>
+        await GetRequestContext(connection, ct);
 
     [SkipLocalsInit]
     private async Task<string> GetRequestContext(Socket connection, CancellationToken ct)

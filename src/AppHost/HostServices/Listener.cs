@@ -1,4 +1,4 @@
-namespace AppHost;
+namespace AppHost.HostServices;
 
 public class Listener(
     IEventBus<RequestReceivedEvent> eventBus
