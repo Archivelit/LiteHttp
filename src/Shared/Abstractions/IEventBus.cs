@@ -3,6 +3,6 @@
 public interface IEventBus<TEvent> 
     where TEvent : IEvent
 {
-    void Publish(TEvent @event);
-    TEvent? Consume();
+    Task PublishAsync(TEvent @event, CancellationToken ct = default);
+    Task<TEvent> ConsumeAsync(CancellationToken ct = default);
 }

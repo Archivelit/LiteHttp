@@ -1,25 +1,16 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Threading.Channels;
 using LiteHttp.Abstractions;
 using LiteHttp.Models.Events;
-using Microsoft.Extensions.Logging;
 
 namespace LiteHttp.EventBus;
 
-public sealed class RequestEventBus(
-    ILogger<RequestEventBus> logger
-    ) : IEventBus<RequestReceivedEvent>
+public sealed class RequestEventBus : IEventBus<RequestReceivedEvent>
 {
-    private ConcurrentQueue<RequestReceivedEvent> _queue = new();
-    
-    public void Publish(RequestReceivedEvent @event)
-    {
-        _queue.Enqueue(@event);
-        logger.LogDebug($"RequestReceivedEvent published");
-    }
-    
-    public RequestReceivedEvent? Consume()
-    {
-        logger.LogDebug("RequestReceivedEvent consumed");
-        return _queue.TryDequeue(out var @event) ? @event : null;
-    }
+    private Channel<RequestReceivedEvent> _channel = Channel.CreateUnbounded<RequestReceivedEvent>();
+
+    public async Task PublishAsync(RequestReceivedEvent @event, CancellationToken ct = default) =>
+        await _channel.Writer.WriteAsync(@event, ct);
+
+    public async Task<RequestReceivedEvent> ConsumeAsync(CancellationToken ct = default) =>
+        await _channel.Reader.ReadAsync(ct);
 }

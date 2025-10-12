@@ -8,7 +8,7 @@ public class Listener(
     {
         var listener = new LiteHttp.Listener.Listener();
 
-        listener.SubscribeToRequestReceived(eventBus.Publish);
+        listener.SubscribeToRequestReceived(eventBus.PublishAsync);
         
         await listener.StartListen(stoppingToken);
     }

@@ -1,6 +1,6 @@
-﻿namespace LiteHttp.HttpListener;
+﻿namespace LiteHttp.RequestProcessors;
 
-public class RequestProcessor(IRequestParser parser)
+public class RequestProcessor(IRequestParser parser) : IRequestProcessor
 {
     public async Task ProcessConnection(Socket connection, CancellationToken ct)
     {

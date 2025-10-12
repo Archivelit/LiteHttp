@@ -2,14 +2,14 @@
 
 public sealed partial class Listener : IRequestReceiver
 {
-    public event Action<RequestReceivedEvent>? OnRequestReceived;
+    public event Func<RequestReceivedEvent, CancellationToken, Task>? OnRequestReceived;
 
-    public void RaiseRequestReceived(RequestReceivedEvent connection) =>
-        OnRequestReceived?.Invoke(connection);
+    public void RaiseRequestReceived(RequestReceivedEvent connection, CancellationToken ct) =>
+        OnRequestReceived?.Invoke(connection, ct);
 
-    public void SubscribeToRequestReceived(Action<RequestReceivedEvent> handler) =>
+    public void SubscribeToRequestReceived(Func<RequestReceivedEvent, CancellationToken, Task> handler) =>
         OnRequestReceived += handler;
 
-    public void UnsubscribeFromRequestReceived(Action<RequestReceivedEvent> handler) =>
+    public void UnsubscribeFromRequestReceived(Func<RequestReceivedEvent, CancellationToken, Task> handler) =>
         OnRequestReceived -= handler;
 }

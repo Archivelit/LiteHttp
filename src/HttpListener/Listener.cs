@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Listener;
 
-#pragma warning disable CS8618, CA2014
+#pragma warning disable CS8618, CS4014, CA2014
 public sealed partial class Listener : IListener, IDisposable
 {
     public Socket Socket { get => _socket; }
@@ -39,7 +39,7 @@ public sealed partial class Listener : IListener, IDisposable
             Log.Logger.Debug("Socket bound");
         }
 
-    _socket.Listen();
+        _socket.Listen();
         _listenerState = ListenerState.Listening;
 
         Log.Logger.Information($"Listening at {_endPoint.ToString()}"); 
@@ -52,7 +52,7 @@ public sealed partial class Listener : IListener, IDisposable
 
                 Log.Logger.Debug("Request accepted");
 
-                Task.Run(() => RaiseRequestReceived(new RequestReceivedEvent(connection)), stoppingToken);
+                Task.Run(() => RaiseRequestReceived(new RequestReceivedEvent(connection), stoppingToken), stoppingToken);
             }
         }
         catch (OperationCanceledException)
@@ -69,9 +69,12 @@ public sealed partial class Listener : IListener, IDisposable
         _listenerState = ListenerState.Stopped;
     }
 
-    public void Dispose() =>
+    public void Dispose()
+    {
         _socket.Dispose();
-    
+        GC.SuppressFinalize(this);
+    }
+
     public Listener SetIpAddress(IPAddress address)
     {
         if (IsListening())
