@@ -7,7 +7,10 @@ public class ServerWorker(
 {
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        var @event = await eventBus.ConsumeAsync(ct);
-        await processor.DeserializeFromConnectionAsync(@event.Connection ,ct);
+        while (!ct.IsCancellationRequested)
+        {
+            var @event = await eventBus.ConsumeAsync(ct);
+            var contextString = await processor.DeserializeFromConnectionAsync(@event.Connection, ct);
+        }
     }
 }

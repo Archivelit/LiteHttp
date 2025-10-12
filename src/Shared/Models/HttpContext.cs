@@ -1,7 +1,5 @@
 ﻿namespace LiteHttp.Models;
 
-public class HttpContext
-{
-    public Dictionary<string, string> Headers;
-    public string Body;
-}
+public record struct HttpContext(
+    Dictionary<string, string> Headers,
+    string Body);

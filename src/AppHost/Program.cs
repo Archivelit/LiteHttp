@@ -11,6 +11,5 @@ builder.Services.AddHostedService(sp => new ServerWorker(
     sp.GetRequiredService<IEventBus<RequestReceivedEvent>>()
     ));
 
-
 var host = builder.Build();
 host.Run();

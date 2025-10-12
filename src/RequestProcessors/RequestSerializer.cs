@@ -2,7 +2,7 @@
 
 public class RequestSerializer : IRequestSerializer
 {
-    public async Task DeserializeFromConnectionAsync(Socket connection, CancellationToken ct) =>
+    public async Task<string> DeserializeFromConnectionAsync(Socket connection, CancellationToken ct) =>
         await GetRequestContext(connection, ct);
 
     [SkipLocalsInit]
