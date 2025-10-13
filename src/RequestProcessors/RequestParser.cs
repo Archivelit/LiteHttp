@@ -4,31 +4,50 @@ public sealed class RequestParser : IRequestParser
 {
     public HttpContext Parse(string request)
     {
-        var splitedRequest = GetSplitedRequest(request);
-        var headers = splitedRequest[0];
-        var body = splitedRequest[1];
-
-        return new HttpContext(ParseHeadersToDictionary(headers), body);
+        var requestParts = SplitRequest(request);
+        
+        var headers = MapHeaders(requestParts[0]);
+        var body = requestParts[1];
+        
+        var firstLine = GetFirstLine(requestParts[0]);
+        var method = GetMethod(firstLine);
+        var path = GetPath(firstLine);
+        
+        return new HttpContext(method, path, headers, body);
     }
 
-    private string[] GetSplitedRequest(string request) =>
+    private string GetPath(string firstRequestLine)
+    {
+        var firstTabIndex = firstRequestLine.IndexOf(' ', StringComparison.Ordinal);
+        var lastTabIndex = firstRequestLine.LastIndexOf(' ');
+
+        return firstRequestLine[firstTabIndex..lastTabIndex];
+    }
+
+    private string GetFirstLine(string request) =>
+        request[..request.IndexOf('\r', StringComparison.Ordinal)];
+
+    private string GetMethod(string request) =>
+        request[..request.IndexOf(' ', StringComparison.Ordinal)];
+
+    private string[] SplitRequest(string request) =>
         request.Split("\r\n\r\n", 2);
 
     [SkipLocalsInit]
-    private Dictionary<string, string> ParseHeadersToDictionary(string headers)
+    private Dictionary<string, string> MapHeaders(string headers)
     {
-        var splitedHeaders = headers.Split("\r\n");
-        var headersDictionary = new Dictionary<string, string>(splitedHeaders.Length, StringComparer.OrdinalIgnoreCase);
+        var headerLines = headers.Split("\r\n");
+        var headersDictionary = new Dictionary<string, string>(headerLines.Length, StringComparer.OrdinalIgnoreCase);
         
-        for (int i = 0; i < splitedHeaders.Length; i++)
+        for (var i = 0; i < headerLines.Length; i++)
         {
-            var index = splitedHeaders[i].IndexOf(':');
+            var index = headerLines[i].IndexOf(':');
 
             if (index == -1)
                 throw new FormatException("Headers must contain ':' symbol");
 
-            var key = headers[..index].Trim();
-            var value= headers[(index+1)..].Trim();
+            var key = headerLines[i][..index].Trim();
+            var value= headerLines[i][(index+1)..].Trim();
             
             headersDictionary.Add(key, value);
         }
