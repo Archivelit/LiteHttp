@@ -1,4 +1,4 @@
-﻿namespace LiteHttp.Listener;
+﻿namespace LiteHttp.Constants;
 
 public static class AddressConstants
 {

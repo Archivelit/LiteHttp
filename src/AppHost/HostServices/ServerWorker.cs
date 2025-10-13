@@ -3,6 +3,7 @@
 public class ServerWorker(
     IRequestSerializer serializer,
     IRequestParser requestParser,
+    IRouteResolver routeResolver,
     IEventBus<RequestReceivedEvent> eventBus
     ) : BackgroundService
 {
@@ -14,6 +15,8 @@ public class ServerWorker(
             
             var contextString = await serializer.DeserializeFromConnectionAsync(@event.Connection, ct);
             var context = requestParser.Parse(contextString);
+            
+            var action = routeResolver.GetAction(context.Path, context.Method);
         }
     }
 }
