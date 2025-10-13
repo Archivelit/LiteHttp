@@ -1,7 +1,9 @@
 ﻿namespace AppHost.HostServices;
 
 public class ServerWorker(
-    IRequestSerializer processor,
+    IRequestSerializer serializer,
+    IRequestParser requestParser,
+    IRouteResolver routeResolver,
     IEventBus<RequestReceivedEvent> eventBus
     ) : BackgroundService
 {
@@ -10,7 +12,11 @@ public class ServerWorker(
         while (!ct.IsCancellationRequested)
         {
             var @event = await eventBus.ConsumeAsync(ct);
-            var contextString = await processor.DeserializeFromConnectionAsync(@event.Connection, ct);
+
+            var contextString = await serializer.DeserializeFromConnectionAsync(@event.Connection, ct);
+            var context = requestParser.Parse(contextString);
+            
+            var action = routeResolver.GetAction(context.Path, context.Method);
         }
     }
 }

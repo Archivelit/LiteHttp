@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Listener;
 
-#pragma warning disable CS8618, CS4014, CA2014
+#pragma warning disable CS8618
 public sealed partial class Listener : IListener, IDisposable
 {
     public Socket Socket { get => _socket; }
@@ -52,7 +52,7 @@ public sealed partial class Listener : IListener, IDisposable
 
                 Log.Logger.Debug("Request accepted");
 
-                Task.Run(() => RaiseRequestReceived(new RequestReceivedEvent(connection), stoppingToken), stoppingToken);
+                RaiseRequestReceived(new RequestReceivedEvent(connection), stoppingToken);
             }
         }
         catch (OperationCanceledException)
