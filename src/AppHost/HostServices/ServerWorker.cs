@@ -1,9 +1,11 @@
 ﻿namespace AppHost.HostServices;
 
+#nullable disable
 public class ServerWorker(
     IRequestSerializer serializer,
     IRequestParser parser,
     IRouter router,
+    IResponseGenerator responseGenerator,
     IEventBus<RequestReceivedEvent> eventBus
     ) : BackgroundService
 {
@@ -25,6 +27,15 @@ public class ServerWorker(
             }
 
             var actionResult = await action();
+
+            string response;
+
+            if (actionResult is IActionResult<object> result)
+                response = responseGenerator.Generate(actionResult, "HTTP\\1.1", result.Result.ToString());
+            else
+                responseGenerator.Generate(actionResult, "HTTP\\1.1");
+
+
         }
     }
 }

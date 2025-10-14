@@ -5,12 +5,12 @@ public class ResponseGenerator : IResponseGenerator
     private readonly string _newLine = "\r\n";
 
     [SkipLocalsInit]
-    public string Generate(IActionResult actionResult, string httpVersion, string responseBody)
+    public string Generate(IActionResult actionResult, string httpVersion, string? responseBody = null)
     {
-        var resultBuilder = new StringBuilder(64);
+        var responseBuilder = new StringBuilder(64);
 
-        resultBuilder.Append(httpVersion);
-        resultBuilder.Append(
+        responseBuilder.Append(httpVersion);
+        responseBuilder.Append(
             actionResult.ResponseCode switch
             {
                 Enums.ResponseCode.Ok => $" 200 OK{_newLine}",
@@ -23,11 +23,12 @@ public class ResponseGenerator : IResponseGenerator
         // TODO: Implement request headers generation
         // resultBuilder.Append(GetHeaders());
 
-        resultBuilder.Append(_newLine);
-        resultBuilder.Append(_newLine);
+        responseBuilder.Append(_newLine);
+        responseBuilder.Append(_newLine);
 
-        resultBuilder.Append(responseBody);
+        if (responseBody is not null)
+            responseBuilder.Append(responseBody);
 
-        return resultBuilder.ToString();
+        return responseBuilder.ToString();
     }
 }
