@@ -1,8 +1,6 @@
-﻿using Shared.Abstractions;
+﻿namespace LiteHttp.Abstractions;
 
-namespace LiteHttp.Abstractions;
-
-public interface IRouteResolver
+public interface IRouter
 {
     Func<Task<IActionResult>>? GetAction(string path, string method);
     void RegisterAction(string path, string requestMethod, Func<Task<IActionResult>> action);

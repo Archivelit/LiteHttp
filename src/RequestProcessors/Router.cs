@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-public class RouteResolver : IRouteResolver
+public class Router : IRouter
 {
     private Dictionary<(string, string), Func<Task<IActionResult>>> MethodMap = new();
 

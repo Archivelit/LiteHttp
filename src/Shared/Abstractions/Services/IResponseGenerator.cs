@@ -1,6 +1,6 @@
-﻿namespace Shared.Abstractions.Services;
+﻿namespace LiteHttp.Abstractions;
 
 public interface IResponseGenerator
 {
-    void Generate(IActionResult actionResult);
+    string Generate(IActionResult actionResult, string httpVersion, string responeBody);
 }

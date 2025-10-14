@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-public class RequestSerializer : IRequestSerializer
+public sealed class RequestSerializer : IRequestSerializer
 {
     public async Task<string> DeserializeFromConnectionAsync(Socket connection, CancellationToken ct) =>
         await GetRequestContext(connection, ct);

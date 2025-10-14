@@ -2,9 +2,8 @@
 
 public class ServerWorker(
     IRequestSerializer serializer,
-    IRequestParser requestParser,
-    IRouteResolver routeResolver,
-    IResponseGenerator responseGenerator,
+    IRequestParser parser,
+    IRouter router,
     IEventBus<RequestReceivedEvent> eventBus
     ) : BackgroundService
 {
@@ -15,9 +14,9 @@ public class ServerWorker(
             var @event = await eventBus.ConsumeAsync(ct);
 
             var contextString = await serializer.DeserializeFromConnectionAsync(@event.Connection, ct);
-            var context = requestParser.Parse(contextString);
+            var context = parser.Parse(contextString);
             
-            var action = routeResolver.GetAction(context.Path, context.Method);
+            var action = router.GetAction(context.Path, context.Method);
             
             if (action is null)
             {
@@ -26,8 +25,6 @@ public class ServerWorker(
             }
 
             var actionResult = await action();
-            
-            var response = 
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-public sealed class RequestParser : IRequestParser
+public class RequestParser : IRequestParser
 {
     public HttpContext Parse(string request)
     {
