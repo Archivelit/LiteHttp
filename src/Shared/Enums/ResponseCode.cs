@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Enums;
 
-public enum ResponseCodes
+public enum ResponseCode
 {
     Ok,
     BadRequest,

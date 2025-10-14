@@ -1,4 +1,6 @@
-﻿namespace LiteHttp.Abstractions;
+﻿using Shared.Abstractions;
+
+namespace LiteHttp.Abstractions;
 
 public interface IRouteResolver
 {

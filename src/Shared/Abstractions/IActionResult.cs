@@ -1,3 +1,6 @@
 ﻿namespace LiteHttp.Abstractions;
 
-public interface IActionResult;
+public interface IActionResult
+{
+    ResponseCode ResponseCode { get; init; }
+}

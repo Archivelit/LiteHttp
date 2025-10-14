@@ -4,6 +4,7 @@ public class ServerWorker(
     IRequestSerializer serializer,
     IRequestParser requestParser,
     IRouteResolver routeResolver,
+    IResponseGenerator responseGenerator,
     IEventBus<RequestReceivedEvent> eventBus
     ) : BackgroundService
 {
@@ -17,6 +18,16 @@ public class ServerWorker(
             var context = requestParser.Parse(contextString);
             
             var action = routeResolver.GetAction(context.Path, context.Method);
+            
+            if (action is null)
+            {
+                continue;
+                // TODO: rework behavior to create response with 404 status code
+            }
+
+            var actionResult = await action();
+            
+            var response = 
         }
     }
 }
