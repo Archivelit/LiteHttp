@@ -6,6 +6,7 @@ public class ServerWorker(
     IRequestParser parser,
     IRouter router,
     IResponseGenerator responseGenerator,
+    IResponder responder,
     IEventBus<RequestReceivedEvent> eventBus
     ) : BackgroundService
 {
@@ -33,9 +34,9 @@ public class ServerWorker(
             if (actionResult is IActionResult<object> result)
                 response = responseGenerator.Generate(actionResult, "HTTP\\1.1", result.Result.ToString());
             else
-                responseGenerator.Generate(actionResult, "HTTP\\1.1");
+                response = responseGenerator.Generate(actionResult, "HTTP\\1.1");
 
-
+            await responder.SendResponse(@event.Connection, response);
         }
     }
 }

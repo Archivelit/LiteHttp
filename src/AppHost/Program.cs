@@ -7,6 +7,7 @@ builder.Services.AddSingleton<IRouter, Router>();
 builder.Services.AddTransient<IRequestSerializer, RequestSerializer>();
 builder.Services.AddTransient<IRequestParser, RequestParser>();
 builder.Services.AddTransient<IResponseGenerator, ResponseGenerator>();
+builder.Services.AddTransient<IResponder, Responder>();
 
 builder.Services.AddHostedService(sp => new Listener(sp.GetRequiredService<IEventBus<RequestReceivedEvent>>()));
 builder.Services.AddHostedService(sp => new ServerWorker(
@@ -14,6 +15,7 @@ builder.Services.AddHostedService(sp => new ServerWorker(
     sp.GetRequiredService<IRequestParser>(),
     sp.GetRequiredService<IRouter>(),
     sp.GetRequiredService<IResponseGenerator>(),
+    sp.GetRequiredService<IResponder>(),
     sp.GetRequiredService<IEventBus<RequestReceivedEvent>>()
     ));
 
