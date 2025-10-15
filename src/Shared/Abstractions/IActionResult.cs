@@ -2,12 +2,11 @@
 
 public interface IActionResult
 {
-    ResponseCode ResponseCode { get; init; }
+    ResponseCode ResponseCode { get; }
 }
 
 public interface IActionResult<TResult> 
-    : IActionResult 
-    where TResult : class
+    : IActionResult
 {
     TResult Result { get; }
 }

@@ -12,14 +12,13 @@ public class ServerWorker(
 {
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
+        router.RegisterAction("/", "GET", Example.Foo);
+        
         while (!ct.IsCancellationRequested)
         {
             var @event = await eventBus.ConsumeAsync(ct);
 
             var contextString = await serializer.DeserializeFromConnectionAsync(@event.Connection, ct);
-
-            Log.Logger.Information(contextString);
-            
             var context = parser.Parse(contextString);
             
             var action = router.GetAction(context.Path, context.Method);
@@ -31,7 +30,7 @@ public class ServerWorker(
                 continue;
             }
 
-            var actionResult = await action();
+            var actionResult = action();
 
             string response;
 
