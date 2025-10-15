@@ -20,8 +20,7 @@ public class ResponseGenerator : IResponseGenerator
                 _ => throw new FormatException("Unknown response code")
             });
 
-        // TODO: Implement request headers generation
-        // resultBuilder.Append(GetHeaders());
+        responseBuilder.Append(GetHeaders(responseBody ?? string.Empty));
 
         responseBuilder.Append(_newLine);
         responseBuilder.Append(_newLine);
@@ -30,5 +29,20 @@ public class ResponseGenerator : IResponseGenerator
             responseBuilder.Append(responseBody);
 
         return responseBuilder.ToString();
+    }
+
+    [SkipLocalsInit]
+    private string GetHeaders(string body)
+    {
+        var headersBuilder = new StringBuilder(64);
+
+        headersBuilder.Append($"Content-Type: text/plain");
+
+        if (body.Length != 0)
+        {
+            headersBuilder.AppendLine($"Content-Length: {body.Length}");
+        }
+
+        return headersBuilder.ToString();
     }
 }

@@ -35,11 +35,14 @@ public class ServerWorker(
             string response;
 
             if (actionResult is IActionResult<object> result)
-                response = responseGenerator.Generate(actionResult, "HTTP\\1.1", result.Result.ToString());
+                response = responseGenerator.Generate(result, "HTTP/1.0", result.ToString());
             else
-                response = responseGenerator.Generate(actionResult, "HTTP\\1.1");
+                response = responseGenerator.Generate(actionResult, "HTTP/1.0");
 
             await responder.SendResponse(@event.Connection, response);
+
+            @event.Connection.Close();
+            @event.Connection.Dispose();
         }
     }
 }
