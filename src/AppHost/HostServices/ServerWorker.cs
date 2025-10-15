@@ -17,14 +17,18 @@ public class ServerWorker(
             var @event = await eventBus.ConsumeAsync(ct);
 
             var contextString = await serializer.DeserializeFromConnectionAsync(@event.Connection, ct);
+
+            Log.Logger.Information(contextString);
+            
             var context = parser.Parse(contextString);
             
             var action = router.GetAction(context.Path, context.Method);
             
             if (action is null)
             {
-                continue;
                 // TODO: rework behavior to create response with 404 status code
+                Log.Logger.Debug("Unrecognized action");
+                continue;
             }
 
             var actionResult = await action();

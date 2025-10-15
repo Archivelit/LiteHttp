@@ -4,17 +4,17 @@ public class RequestParser : IRequestParser
 {
     public HttpContext Parse(string request)
     {
-        var splitedRequest = SplitRequest(request);
-        if (splitedRequest.Length < 2)
+        var requestParts = SplitRequest(request);
+        if (requestParts.Length < 2)
             throw new ArgumentException("The request has unsupported or incorrect format");
 
-        var firstRequestLine = GetFirstLine(splitedRequest[0]);
+        var firstRequestLine = GetFirstLine(requestParts[0]);
 
         var method = GetMethod(firstRequestLine);
         var path = GetPath(firstRequestLine);
         
-        var headers = splitedRequest[0];
-        var body = splitedRequest[1];
+        var headers = requestParts[0][firstRequestLine.Length..]; // First line of request does not contain any header
+        var body = requestParts[1];
 
         return new(method, path, MapHeaders(headers), body);
     }
@@ -39,18 +39,21 @@ public class RequestParser : IRequestParser
     [SkipLocalsInit]
     private Dictionary<string, string> MapHeaders(string headers)
     {
-        var headerLines = headers.Split("\r\n");
+        var headerLines = headers.Split('\n');
         var headersDictionary = new Dictionary<string, string>(headerLines.Length, StringComparer.OrdinalIgnoreCase);
         
         for (var i = 0; i < headerLines.Length; i++)
         {
-            var index = headerLines[i].IndexOf(':');
+            if (string.IsNullOrEmpty(headerLines[i].Trim()))
+                continue;
+            
+            var colonIndex = headerLines[i].IndexOf(':');
 
-            if (index == -1)
+            if (colonIndex == -1)
                 throw new FormatException("Headers must contain ':' symbol");
 
-            var key = headerLines[i][..index].Trim();
-            var value= headerLines[i][(index+1)..].Trim();
+            var key = headerLines[i][(colonIndex+1)..].Trim(); 
+            var value= headerLines[i][..colonIndex].Trim();
 
             headersDictionary.Add(key, value);
         }
