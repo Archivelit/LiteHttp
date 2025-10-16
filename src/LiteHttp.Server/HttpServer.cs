@@ -12,11 +12,13 @@ public sealed class HttpServer : IServer
     private readonly IResponder _responder;
     private readonly IEventBus<RequestReceivedEvent> _eventBus;
     private readonly ILogger<HttpServer> _logger;
+    private readonly IActionResultFabric _actionResultFabric;
     private readonly Dictionary<(string, string), Func<IActionResult>> _endpoints = new();
     
     public HttpServer(IListener listener, IRequestSerializer serializer,  
         IRequestParser parser, IRouter router, IResponseGenerator responseGenerator, 
-        IResponder responder, IEventBus<RequestReceivedEvent> eventBus, ILogger<HttpServer> logger)
+        IResponder responder, IEventBus<RequestReceivedEvent> eventBus, ILogger<HttpServer> logger, 
+        IActionResultFabric actionResultFabric)
     {
         _listener = listener;
         _serializer = serializer;
@@ -26,6 +28,7 @@ public sealed class HttpServer : IServer
         _responder = responder;
         _eventBus = eventBus;
         _logger = logger;
+        _actionResultFabric = actionResultFabric;
 
         Initialize();
     }
@@ -47,7 +50,7 @@ public sealed class HttpServer : IServer
             {
                 _logger.LogDebug("Unrecognized action");
                 
-                var notFoundResponse = _responseGenerator.Generate(new ActionResult(ResponseCode.NotFound), "HTTP/1.0");
+                var notFoundResponse = _responseGenerator.Generate(_actionResultFabric.NotFound(), "HTTP/1.0");
                 await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse);
                 
                 continue;
