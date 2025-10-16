@@ -1,4 +1,6 @@
-﻿namespace AppHost.HostServices;
+﻿using LiteHttp.Constants;
+
+namespace AppHost.HostServices;
 
 #nullable disable
 public class ServerWorker(
@@ -12,7 +14,7 @@ public class ServerWorker(
 {
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        router.RegisterAction("/", "GET", Example.Foo);
+        router.RegisterAction("/", RequestMethods.Get, Example.Foo);
         
         while (!ct.IsCancellationRequested)
         {

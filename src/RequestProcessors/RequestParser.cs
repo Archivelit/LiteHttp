@@ -10,8 +10,8 @@ public class RequestParser : IRequestParser
 
         var firstRequestLine = GetFirstLine(requestParts[0]);
 
-        var method = GetMethod(firstRequestLine).Trim();
-        var path = GetPath(firstRequestLine).Trim();
+        var method = GetMethod(firstRequestLine);
+        var path = GetPath(firstRequestLine);
         
         var headers = requestParts[0][firstRequestLine.Length..]; // First line of request does not contain any header
         var body = requestParts[1];
@@ -21,10 +21,10 @@ public class RequestParser : IRequestParser
 
     private string GetPath(string firstRequestLine)
     {
-        var firstTabIndex = firstRequestLine.IndexOf(' ', StringComparison.Ordinal);
-        var lastTabIndex = firstRequestLine.LastIndexOf(' ');
+        var firstSpaceIndex = firstRequestLine.IndexOf(' ', StringComparison.Ordinal);
+        var lastSpaceIndex = firstRequestLine.LastIndexOf(' ');
 
-        return firstRequestLine[firstTabIndex..lastTabIndex];
+        return firstRequestLine[(firstSpaceIndex+1)..(lastSpaceIndex-1)]; // space index +- 1 to get first/last symbol
     }
 
     private string GetFirstLine(string request) =>
