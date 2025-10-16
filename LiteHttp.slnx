@@ -5,6 +5,7 @@
     <Project Path="src/HttpListener/Listener.csproj" />
     <Project Path="src/RequestProcessors/RequestProcessors.csproj" />
     <Project Path="src/Shared/Shared.csproj" />
+    <Project Path="src\Server\Server.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/UnitTests/UnitTests.csproj" />

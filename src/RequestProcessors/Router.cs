@@ -2,11 +2,14 @@
 
 public class Router : IRouter
 {
-    private Dictionary<(string, string), Func<IActionResult>> MethodMap = new();
+    private Dictionary<(string, string), Func<IActionResult>> _endpoints = new();
 
     public Func<IActionResult>? GetAction(string path, string method) => 
-        MethodMap.GetValueOrDefault((path, method));
+        _endpoints.GetValueOrDefault((path, method));
 
     public void RegisterAction(string path, string requestMethod, Func<IActionResult> method) =>
-        MethodMap.Add((path, requestMethod), method);
+        _endpoints.Add((path, requestMethod), method);
+
+    public void SetMap(Dictionary<(string, string), Func<IActionResult>> map) =>
+        _endpoints = map;
 }

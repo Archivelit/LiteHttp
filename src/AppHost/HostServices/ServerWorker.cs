@@ -1,4 +1,5 @@
-﻿using LiteHttp.Constants;
+﻿using System.Net.Sockets;
+using LiteHttp.Constants;
 
 namespace AppHost.HostServices;
 
@@ -27,8 +28,11 @@ public class ServerWorker(
             
             if (action is null)
             {
-                // TODO: rework behavior to create response with 404 status code
                 Log.Logger.Debug("Unrecognized action");
+                
+                var notFoundResponse = responseGenerator.Generate(new ActionResult(ResponseCode.NotFound), "HTTP/1.0");
+                await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse);
+                
                 continue;
             }
 
@@ -41,10 +45,15 @@ public class ServerWorker(
             else
                 response = responseGenerator.Generate(actionResult, "HTTP/1.0");
 
-            await responder.SendResponse(@event.Connection, response);
+            await SendResponseAndDisposeConnection(@event.Connection, response);
+        }
 
-            @event.Connection.Close();
-            @event.Connection.Dispose();
+        async Task SendResponseAndDisposeConnection(Socket connection, string response)
+        {
+            await responder.SendResponse(connection, response);
+            
+            connection.Close();
+            connection.Dispose();            
         }
     }
 }

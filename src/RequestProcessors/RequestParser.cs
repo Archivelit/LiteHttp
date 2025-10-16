@@ -10,8 +10,8 @@ public class RequestParser : IRequestParser
 
         var firstRequestLine = GetFirstLine(requestParts[0]);
 
-        var method = GetMethod(firstRequestLine);
-        var path = GetPath(firstRequestLine);
+        var method = GetMethod(firstRequestLine).Trim();
+        var path = GetPath(firstRequestLine).Trim();
         
         var headers = requestParts[0][firstRequestLine.Length..]; // First line of request does not contain any header
         var body = requestParts[1];
