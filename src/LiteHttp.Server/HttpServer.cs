@@ -1,4 +1,6 @@
-﻿namespace LiteHttp.Server;
+﻿using LiteHttp.Constants;
+
+namespace LiteHttp.Server;
 
 public sealed class HttpServer : IServer
 {
@@ -71,6 +73,21 @@ public sealed class HttpServer : IServer
             connection.Dispose();            
         }
     }
+
+    public void MapGet(string route, Func<IActionResult> action) =>
+        _endpoints.Add((route, RequestMethods.Get), action);
+    
+    public void MapDelete(string route, Func<IActionResult> action) =>
+        _endpoints.Add((route, RequestMethods.Delete), action);
+
+    public void MapPost(string route, Func<IActionResult> action) =>
+        _endpoints.Add((route, RequestMethods.Post), action);
+
+    public void MapPut(string route, Func<IActionResult> action) =>
+        _endpoints.Add((route, RequestMethods.Put), action);
+    
+    public void MapPatch(string route, Func<IActionResult> action) =>
+        _endpoints.Add((route, RequestMethods.Patch), action);
 
     private void Initialize()
     {
