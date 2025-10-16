@@ -2,5 +2,5 @@
 
 public interface IServer
 {
-    Task Start(CancellationToken ct);
+    Task Start(CancellationToken cancellationToken);
 }

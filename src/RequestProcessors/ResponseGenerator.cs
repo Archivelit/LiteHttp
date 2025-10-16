@@ -16,7 +16,7 @@ public class ResponseGenerator : IResponseGenerator
                 Enums.ResponseCode.Ok => $" 200 OK{_newLine}",
                 Enums.ResponseCode.BadRequest => $" 400 Bad Request{_newLine}",
                 Enums.ResponseCode.NotFound => $" 404 Not Found{_newLine}",
-                Enums.ResponseCode.InternalServerError => $" 500 Internal Server Error{_newLine}",
+                Enums.ResponseCode.InternalServerError => $" 500 Internal LiteHttp.Server Error{_newLine}",
                 _ => throw new FormatException("Unknown response code")
             });
 
