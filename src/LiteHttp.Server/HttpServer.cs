@@ -7,26 +7,37 @@ public sealed class HttpServer : IServer
     private readonly IEventBus<RequestReceivedEvent> _eventBus;
     private readonly ILogger<HttpServer> _logger;
 	private readonly IEndpointProvider _endpointProvider;
+    private readonly IReverseProxy<RequestReceivedEvent> _reverseProxy;
     
     public HttpServer(Listener.Listener listener, IEventBus<RequestReceivedEvent> eventBus, 
-        ILogger<HttpServer> logger, IEndpointProvider endpointProvider, int workersCount = 1)
+        ILogger<HttpServer> logger, IEndpointProvider endpointProvider, 
+        IReverseProxy<RequestReceivedEvent> reverseProxy, int workersCount = 1) 
+        : this(listener, eventBus, logger, endpointProvider, reverseProxy)
+    {
+        _workerPool = new IServerWorker[workersCount];
+
+        Initialize();
+    }
+
+    public HttpServer(Listener.Listener listener, IEventBus<RequestReceivedEvent> eventBus, 
+        ILogger<HttpServer> logger, IEndpointProvider endpointProvider, 
+        IReverseProxy<RequestReceivedEvent> reverseProxy)
     {
         _listener = listener;
         _eventBus = eventBus;
         _logger = logger;
         _endpointProvider = endpointProvider;
-        _workerPool = new IServerWorker[workersCount];
-
-        Initialize();
+        _reverseProxy = reverseProxy;
     }
     
     public async Task Start(CancellationToken cancellationToken)
     {
-        await _listener.StartListen(cancellationToken);
+        _listener.StartListen(cancellationToken);
         
         while (!cancellationToken.IsCancellationRequested)
         {
-            
+            var @event = await _eventBus.ConsumeAsync(cancellationToken);
+            _reverseProxy.Proxy(@event, cancellationToken);
         }
     }
 
