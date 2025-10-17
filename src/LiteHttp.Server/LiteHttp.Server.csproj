@@ -7,6 +7,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\AppHost\AppHost.csproj" />
+      <ProjectReference Include="..\EventBus\EventBus.csproj" />
+      <ProjectReference Include="..\HttpListener\Listener.csproj" />
+      <ProjectReference Include="..\RequestProcessors\RequestProcessors.csproj" />
       <ProjectReference Include="..\Shared\Shared.csproj" />
     </ItemGroup>
 

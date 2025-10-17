@@ -15,8 +15,6 @@ public class ServerWorker(
 {
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        router.RegisterAction("/", RequestMethods.Get, Example.Foo);
-        
         while (!ct.IsCancellationRequested)
         {
             var @event = await eventBus.ConsumeAsync(ct);
