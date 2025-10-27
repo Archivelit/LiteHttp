@@ -1,35 +1,40 @@
 ﻿namespace LiteHttp.Server;
 
-public class ServerWorker(
-    IActionResultFabric actionResultFabric,
-    IResponder responder,
-    IResponseGenerator responseGenerator,
-    IRouter router,
-    IRequestParser parser,
-    IRequestSerializer serializer)
-    : IServerWorker
+public class ServerWorker : IServerWorker
 {
+    private readonly ActionResultFabric _actionResultFabric = new();
+    private readonly Responder _responder = new();
+    private readonly ResponseGenerator _responseGenerator = new();
+    private readonly Router _router = new();
+    private readonly RequestParser _parser = new();
+    private readonly RequestSerializer _serializer = new();
+
     public WorkerStatus Status { get; private set; } = WorkerStatus.Waiting;
-        
+    
+    public ServerWorker(IEndpointProvider endpointProvider) =>
+        Initialize(endpointProvider);
+    
     public void Initialize(IEndpointProvider endpointProvider)
     {
-        router.SetProvider(endpointProvider);
+        _router.SetProvider(endpointProvider);
     }
     
     public async Task HandleEvent(RequestReceivedEvent @event, CancellationToken ct)
     {
         Status = WorkerStatus.Working;
         
-        var contextString = await serializer.DeserializeFromConnectionAsync(@event.Connection, ct);
-        var context = parser.Parse(contextString);
+        var contextString = await _serializer.DeserializeFromConnectionAsync(@event.Connection, ct);
+        var context = _parser.Parse(contextString);
 
-        var action = router.GetAction(context.Path, context.Method);
+        var action = _router.GetAction(context.Path, context.Method);
 
         if (action is null)
         {
-            var notFoundResponse = responseGenerator.Generate(actionResultFabric.NotFound(), "HTTP/1.0");
+            var notFoundResponse = _responseGenerator.Generate(_actionResultFabric.NotFound(), "HTTP/1.0");
             await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse);
-
+            
+            Status = WorkerStatus.Waiting;
+            
             return;
         }
 
@@ -38,9 +43,9 @@ public class ServerWorker(
         string response;
 
         if (actionResult is IActionResult<object> result)
-            response = responseGenerator.Generate(result, "HTTP/1.0", result.ToString());
+            response = _responseGenerator.Generate(result, "HTTP/1.0", result.ToString());
         else
-            response = responseGenerator.Generate(actionResult, "HTTP/1.0");
+            response = _responseGenerator.Generate(actionResult, "HTTP/1.0");
 
         await SendResponseAndDisposeConnection(@event.Connection, response);
         
@@ -49,7 +54,7 @@ public class ServerWorker(
 
     private async Task SendResponseAndDisposeConnection(Socket connection, string response)
     {
-        await responder.SendResponse(connection, response);
+        await _responder.SendResponse(connection, response);
 
         connection.Close();
         connection.Dispose();

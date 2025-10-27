@@ -1,35 +1,27 @@
-﻿namespace LiteHttp.Server;
+﻿using LiteHttp.EventBus;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
+
+namespace LiteHttp.Server;
 
 public sealed class HttpServer : IServer
 {
-    private readonly Listener.Listener _listener;
-    private readonly IServerWorker[] _workerPool;
-    private readonly IEventBus<RequestReceivedEvent> _eventBus;
-    private readonly ILogger<HttpServer> _logger;
-	private readonly IEndpointProvider _endpointProvider;
-    private readonly IReverseProxy<RequestReceivedEvent> _reverseProxy;
+    private readonly Listener.Listener _listener = new();
+    private readonly RequestEventBus _eventBus = new();
+	private readonly EndpointProvider _endpointProvider = new();
     
-    public HttpServer(Listener.Listener listener, IEventBus<RequestReceivedEvent> eventBus, 
-        ILogger<HttpServer> logger, IEndpointProvider endpointProvider, 
-        IReverseProxy<RequestReceivedEvent> reverseProxy, int workersCount = 1) 
-        : this(listener, eventBus, logger, endpointProvider, reverseProxy)
-    {
-        _workerPool = new IServerWorker[workersCount];
+    private ReverseProxy _reverseProxy;
+    private ServerWorker[]? _workerPool;
+    
+    public HttpServer() =>
+        Initialize();
 
+    public HttpServer(int workersCount)
+    {
+        _workerPool = new ServerWorker[workersCount];
+        
         Initialize();
     }
 
-    public HttpServer(Listener.Listener listener, IEventBus<RequestReceivedEvent> eventBus, 
-        ILogger<HttpServer> logger, IEndpointProvider endpointProvider, 
-        IReverseProxy<RequestReceivedEvent> reverseProxy)
-    {
-        _listener = listener;
-        _eventBus = eventBus;
-        _logger = logger;
-        _endpointProvider = endpointProvider;
-        _reverseProxy = reverseProxy;
-    }
-    
     public async Task Start(CancellationToken cancellationToken)
     {
         _listener.StartListen(cancellationToken);
@@ -60,7 +52,13 @@ public sealed class HttpServer : IServer
     {
         _listener.SubscribeToRequestReceived(_eventBus.PublishAsync);
 
-        foreach (var worker in _workerPool)
-            worker.Initialize(_endpointProvider);
+        _workerPool ??= new ServerWorker[1];
+        
+        for (int i = 0; i < _workerPool.Length; i++)
+        {
+            _workerPool[i] = new(_endpointProvider);
+        }
+
+        _reverseProxy = new ReverseProxy(_workerPool);
     }
 }

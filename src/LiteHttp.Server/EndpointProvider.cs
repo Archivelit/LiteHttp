@@ -4,6 +4,8 @@ public class EndpointProvider(
     ConcurrentDictionary<(string, string), Func<IActionResult>> endpoints
     ) : IEndpointProvider
 {
+    public EndpointProvider() : this(new()) { }
+
     public Func<IActionResult>? GetEndpoint(string path, string method) =>
         endpoints.GetValueOrDefault((path, method));
 

@@ -3,7 +3,7 @@
 using LiteHttp.Models.Events;
 
 public class ReverseProxy(
-    IServerWorker[] workerPool
+    ServerWorker[] workerPool
     ) : IReverseProxy<RequestReceivedEvent>
 {
     public void Proxy(RequestReceivedEvent @event, CancellationToken ct)

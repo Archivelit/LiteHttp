@@ -1,11 +1,11 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/AppHost/AppHost.csproj" />
     <Project Path="src/EventBus/EventBus.csproj" />
+    <Project Path="src/ExampleApp/ExampleApp.csproj" />
     <Project Path="src/HttpListener/Listener.csproj" />
     <Project Path="src/RequestProcessors/RequestProcessors.csproj" />
     <Project Path="src/Shared/Shared.csproj" />
-    <Project Path="src\LiteHttp.Server\LiteHttp.Server.csproj" Type="Classic C#" />
+    <Project Path="src\LiteHttp.Server\LiteHttp.Server.csproj" Type="C#" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/UnitTests/UnitTests.csproj" />
