@@ -56,9 +56,7 @@ public class ServerWorker : IServerWorker
         {
             // TODO: add exception logging
 
-            var result = _actionResultFactory.InternalServerError();
-            var response = _responseGenerator.Generate(result, HttpVersions.HTTP_1_1);
-
+            var response = _responseGenerator.Generate(_actionResultFactory.InternalServerError(), HttpVersions.HTTP_1_1);
             await SendResponseAndDisposeConnection(@event.Connection, response);
         }
         finally
