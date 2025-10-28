@@ -54,7 +54,7 @@ public sealed class HttpServer : IServer
         
         for (int i = 0; i < _workerPool.Length; i++)
         {
-            _workerPool[i] = new(_endpointProvider);
+            _workerPool[i] = new(_endpointProvider, _listener.ListenerAddress.ToString(), _listener.ListenerPort);
         }
 
         _reverseProxy = new ReverseProxy(_workerPool);

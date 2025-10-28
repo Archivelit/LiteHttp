@@ -8,3 +8,5 @@ global using LiteHttp.Abstractions.Factories;
 global using LiteHttp.RequestProcessors;
 global using System.Net.Sockets;
 global using System.Collections.Concurrent;
+global using Shared.Constants;
+global using System.Runtime.CompilerServices;
