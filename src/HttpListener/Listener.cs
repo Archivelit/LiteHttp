@@ -48,7 +48,7 @@ public sealed partial class Listener : IListener, IDisposable
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var connection = await _socket.AcceptAsync(stoppingToken);
+                var connection = await _socket.AcceptAsync(stoppingToken).ConfigureAwait(false);
 
                 Log.Logger.Debug("Request accepted");
 

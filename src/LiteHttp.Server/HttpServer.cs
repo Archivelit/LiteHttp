@@ -30,7 +30,7 @@ public sealed class HttpServer : IServer, IDisposable
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                var @event = await _eventBus.ConsumeAsync(cancellationToken);
+                var @event = await _eventBus.ConsumeAsync(cancellationToken).ConfigureAwait(false);
                 _reverseProxy.Proxy(@event, cancellationToken);
             }
         }

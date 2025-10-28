@@ -6,6 +6,6 @@ public sealed class Responder : IResponder
     {
         var encodedResponse = Encoding.UTF8.GetBytes(response);
 
-        await connection.SendAsync(encodedResponse);
+        await connection.SendAsync(encodedResponse).ConfigureAwait(false);
     }
 }

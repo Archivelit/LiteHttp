@@ -30,7 +30,7 @@ public class ServerWorker : IServerWorker
         
         try
         {
-            var contextString = await _serializer.DeserializeFromConnectionAsync(@event.Connection, ct);
+            var contextString = await _serializer.DeserializeFromConnectionAsync(@event.Connection, ct).ConfigureAwait(false);
             var context = _parser.Parse(contextString);
 
             var action = _router.GetAction(context.Path, context.Method);
@@ -38,7 +38,7 @@ public class ServerWorker : IServerWorker
             if (action is null)
             {
                 var notFoundResponse = _responseGenerator.Generate(_actionResultFactory.NotFound(), HttpVersions.HTTP_1_1);
-                await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse);
+                await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse).ConfigureAwait(false);
 
                 return;
             }
@@ -52,14 +52,14 @@ public class ServerWorker : IServerWorker
             else
                 response = _responseGenerator.Generate(actionResult, HttpVersions.HTTP_1_1);
 
-            await SendResponseAndDisposeConnection(@event.Connection, response);
+            await SendResponseAndDisposeConnection(@event.Connection, response).ConfigureAwait(false);
         }
         catch (Exception)
         {
             // TODO: add exception logging
 
             var response = _responseGenerator.Generate(_actionResultFactory.InternalServerError(), HttpVersions.HTTP_1_1);
-            await SendResponseAndDisposeConnection(@event.Connection, response);
+            await SendResponseAndDisposeConnection(@event.Connection, response).ConfigureAwait(false);
         }
         finally
         {
@@ -69,7 +69,7 @@ public class ServerWorker : IServerWorker
 
     private async Task SendResponseAndDisposeConnection(Socket connection, string response)
     {
-        await _responder.SendResponse(connection, response);
+        await _responder.SendResponse(connection, response).ConfigureAwait(false);
 
         connection.Close();
         connection.Dispose();
