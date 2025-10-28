@@ -81,7 +81,7 @@ public sealed class HttpServer : IServer, IDisposable
     { 
         _listener.SetPort(port);
         
-        foreach(var worker in _workerPool)
+        foreach(var worker in _workerPool!)
         {
             worker.SetHostPort(port);
         }
