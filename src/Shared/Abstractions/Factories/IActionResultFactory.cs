@@ -1,6 +1,6 @@
-﻿namespace LiteHttp.Abstractions.Fabrics;
+﻿namespace LiteHttp.Abstractions.Factories;
 
-public interface IActionResultFabric
+public interface IActionResultFactory
 {
     IActionResult Ok();
     IActionResult BadRequest();

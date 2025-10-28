@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Server;
 
-public class ActionResultFabric : IActionResultFabric
+public class ActionResultFabric : IActionResultFactory
 {
     public IActionResult Ok() => 
         new ActionResult(ResponseCode.Ok);

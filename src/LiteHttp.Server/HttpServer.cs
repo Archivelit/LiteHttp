@@ -1,8 +1,6 @@
-﻿using LiteHttp.EventBus;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
+﻿namespace LiteHttp.Server;
 
-namespace LiteHttp.Server;
-
+#pragma warning disable CS8618, CS4014
 public sealed class HttpServer : IServer
 {
     private readonly Listener.Listener _listener = new();
@@ -24,7 +22,7 @@ public sealed class HttpServer : IServer
 
     public async Task Start(CancellationToken cancellationToken)
     {
-        _listener.StartListen(cancellationToken);
+        Task.Run(() =>_listener.StartListen(cancellationToken));
         
         while (!cancellationToken.IsCancellationRequested)
         {

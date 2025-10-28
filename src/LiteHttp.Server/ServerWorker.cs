@@ -1,8 +1,10 @@
-﻿namespace LiteHttp.Server;
+﻿using System.Runtime.CompilerServices;
+
+namespace LiteHttp.Server;
 
 public class ServerWorker : IServerWorker
 {
-    private readonly ActionResultFabric _actionResultFabric = new();
+    private readonly ActionResultFabric _actionResultFactory = new();
     private readonly Responder _responder = new();
     private readonly ResponseGenerator _responseGenerator = new();
     private readonly Router _router = new();
@@ -18,7 +20,8 @@ public class ServerWorker : IServerWorker
     {
         _router.SetProvider(endpointProvider);
     }
-    
+
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public async Task HandleEvent(RequestReceivedEvent @event, CancellationToken ct)
     {
         Status = WorkerStatus.Working;
@@ -30,7 +33,7 @@ public class ServerWorker : IServerWorker
 
         if (action is null)
         {
-            var notFoundResponse = _responseGenerator.Generate(_actionResultFabric.NotFound(), "HTTP/1.0");
+            var notFoundResponse = _responseGenerator.Generate(_actionResultFactory.NotFound(), "HTTP/1.0");
             await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse);
             
             Status = WorkerStatus.Waiting;

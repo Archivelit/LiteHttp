@@ -2,8 +2,9 @@
 global using LiteHttp.Models.Events;
 global using LiteHttp.Enums;
 global using LiteHttp.Models;
-global using LiteHttp.Abstractions.Fabrics;
 global using LiteHttp.Constants;
+global using LiteHttp.EventBus;
+global using LiteHttp.Abstractions.Factories;
+global using LiteHttp.RequestProcessors;
 global using System.Net.Sockets;
 global using System.Collections.Concurrent;
-global using LiteHttp.RequestProcessors;
