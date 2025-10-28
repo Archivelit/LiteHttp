@@ -1,16 +1,29 @@
-﻿using LiteHttp.Constants;
-using System.Net;
-
-namespace LiteHttp.RequestProcessors;
+﻿namespace LiteHttp.RequestProcessors;
 
 public class ResponseGenerator : IResponseGenerator
 {
     private readonly string _newLine = "\r\n";
-    private string Host { get; set; }
 
-    public ResponseGenerator(string address, int port) =>
-        Host = $"{address}:{port}";       
+    public int Port { get; set; }
+    public string Address
+    {
+        get;
 
+        set
+        {
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(value, nameof(value));
+            
+            field = value;
+        }
+    }
+    
+    private string _host => $"{Address}:{Port}";
+
+    public ResponseGenerator()
+    {
+        Address = AddressConstants.IPV4_LOOPBACK.ToString();
+        Port = AddressConstants.DEFAULT_SERVER_PORT;
+    }
 
     [SkipLocalsInit]
     public string Generate(IActionResult actionResult, string httpVersion, string? responseBody = null)
@@ -43,7 +56,7 @@ public class ResponseGenerator : IResponseGenerator
 
         if (httpVersion == HttpVersions.HTTP_1_1)
         {
-            headersBuilder.Append($"Host: {Host}{_newLine}");
+            headersBuilder.Append($"Host: {_host}{_newLine}");
         }
 
         headersBuilder.Append($"Content-Type: text/plain{_newLine}");

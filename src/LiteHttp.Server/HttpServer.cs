@@ -70,19 +70,34 @@ public sealed class HttpServer : IServer, IDisposable
             throw new InvalidOperationException($"Address {address} wrong formatted");
 
         _listener.SetIpAddress(iPAddress!);
+
+        foreach(var worker in _workerPool)
+        {
+            worker.SetHostAddress(address);
+        }
     }
 
-    public void SetPort(int port) =>
+    public void SetPort(int port)
+    { 
         _listener.SetPort(port);
+        
+        foreach(var worker in _workerPool)
+        {
+            worker.SetHostPort(port);
+        }
+    }
 
-    private void Initialize() =>
+    private void Initialize()
+    {
         _listener.SubscribeToRequestReceived(_eventBus.PublishAsync);
+        InitializeWorkers();
+    }
 
     private void InitializeWorkers()
     {
         _workerPool ??= new ServerWorker[1];
 
-        for (int i = 0; i < _workerPool.Length; i++)
+        for (var i = 0; i < _workerPool.Length; i++)
         {
             _workerPool[i] = new(_endpointProvider, _listener.ListenerAddress.ToString(), _listener.ListenerPort);
         }

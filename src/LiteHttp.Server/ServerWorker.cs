@@ -7,19 +7,21 @@ public class ServerWorker : IServerWorker
     private readonly Router _router = new();
     private readonly RequestParser _parser = new();
     private readonly RequestSerializer _serializer = new();
-    private readonly ResponseGenerator _responseGenerator;
+    private readonly ResponseGenerator _responseGenerator = new();
 
     public WorkerStatus Status { get; private set; } = WorkerStatus.Waiting;
     
-    public ServerWorker(IEndpointProvider endpointProvider, string address, int port)
-    {
-        _responseGenerator = new(address, port);
-
+    public ServerWorker(IEndpointProvider endpointProvider, string address, int port) =>
         Initialize(endpointProvider);
-    }
     
     public void Initialize(IEndpointProvider endpointProvider) =>
         _router.SetProvider(endpointProvider);
+
+    public void SetHostPort(int port) =>
+        _responseGenerator.Port = port;
+
+    public void SetHostAddress(string address) =>
+        _responseGenerator.Address = address;
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public async Task HandleEvent(RequestReceivedEvent @event, CancellationToken ct)
