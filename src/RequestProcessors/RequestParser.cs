@@ -24,7 +24,7 @@ public class RequestParser : IRequestParser
         var firstSpaceIndex = firstRequestLine.IndexOf(' ', StringComparison.Ordinal);
         var lastSpaceIndex = firstRequestLine.LastIndexOf(' ');
 
-        return firstRequestLine[(firstSpaceIndex+1)..(lastSpaceIndex-1)]; // space index +- 1 to get first/last symbol
+        return firstRequestLine[(firstSpaceIndex+1)..lastSpaceIndex].Trim(); // space index + 1 to get first symbol
     }
 
     private string GetFirstLine(string request) =>
