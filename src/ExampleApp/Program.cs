@@ -6,4 +6,4 @@ var server = new HttpServer();
 
 server.MapGet("/", () => new ActionResult(ResponseCode.Ok));
 
-await server.Start(CancellationToken.None);
+await server.Start();

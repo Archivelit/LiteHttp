@@ -1,4 +1,4 @@
-﻿using Shared.Constants;
+﻿using LiteHttp.Constants;
 using System.Net;
 
 namespace LiteHttp.RequestProcessors;

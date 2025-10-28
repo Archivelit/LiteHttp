@@ -1,7 +1,7 @@
 ﻿namespace LiteHttp.Server;
 
 #pragma warning disable CS8618, CS4014
-public sealed class HttpServer : IServer
+public sealed class HttpServer : IServer, IDisposable
 {
     private readonly Listener.Listener _listener = new();
     private readonly RequestEventBus _eventBus = new();
@@ -20,15 +20,29 @@ public sealed class HttpServer : IServer
         Initialize();
     }
 
-    public async Task Start(CancellationToken cancellationToken)
+    public async Task Start(CancellationToken cancellationToken = default)
     {
-        Task.Run(() =>_listener.StartListen(cancellationToken));
-        
-        while (!cancellationToken.IsCancellationRequested)
+        try
         {
-            var @event = await _eventBus.ConsumeAsync(cancellationToken);
-            _reverseProxy.Proxy(@event, cancellationToken);
+            InitializeWorkers();
+
+            Task.Run(() => _listener.StartListen(cancellationToken));
+
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                var @event = await _eventBus.ConsumeAsync(cancellationToken);
+                _reverseProxy.Proxy(@event, cancellationToken);
+            }
         }
+        catch(OperationCanceledException)
+        {
+            Dispose();
+        }
+    }
+
+    public void Dispose()
+    {
+        _listener.Dispose();
     }
 
     public void MapGet(string route, Func<IActionResult> action) =>
@@ -46,12 +60,28 @@ public sealed class HttpServer : IServer
     public void MapPatch(string route, Func<IActionResult> action) =>
         _endpointProvider.AddEndpoint(route, RequestMethods.Patch, action);
 
-    private void Initialize()
+    public void SetAddress(string address)
     {
+        ArgumentNullException.ThrowIfNullOrEmpty(address, nameof(address));
+        
+        var success = IPAddress.TryParse(address, out var iPAddress);
+        
+        if (!success)
+            throw new InvalidOperationException($"Address {address} wrong formatted");
+
+        _listener.SetIpAddress(iPAddress!);
+    }
+
+    public void SetPort(int port) =>
+        _listener.SetPort(port);
+
+    private void Initialize() =>
         _listener.SubscribeToRequestReceived(_eventBus.PublishAsync);
 
+    private void InitializeWorkers()
+    {
         _workerPool ??= new ServerWorker[1];
-        
+
         for (int i = 0; i < _workerPool.Length; i++)
         {
             _workerPool[i] = new(_endpointProvider, _listener.ListenerAddress.ToString(), _listener.ListenerPort);

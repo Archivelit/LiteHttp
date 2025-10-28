@@ -1,4 +1,4 @@
-﻿namespace Shared.Constants;
+﻿namespace LiteHttp.Constants;
 
 public static class HttpVersions
 {

@@ -55,11 +55,6 @@ public sealed partial class Listener : IListener, IDisposable
                 RaiseRequestReceived(new RequestReceivedEvent(connection), stoppingToken);
             }
         }
-        catch (OperationCanceledException)
-        {
-            Log.Logger.Debug("Stopping listening");
-            Dispose();
-        }
         catch (Exception ex)
         {
             Log.Logger.Error(ex, "An error occurred while listening for incoming connections");
