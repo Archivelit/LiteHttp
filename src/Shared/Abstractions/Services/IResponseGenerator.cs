@@ -2,5 +2,5 @@
 
 public interface IResponseGenerator
 {
-    string Generate(IActionResult actionResult, string httpVersion, string? responseBody = null);
+    string Generate(IActionResult actionResult, string? responseBody = null);
 }
