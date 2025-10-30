@@ -1,23 +1,18 @@
 ﻿namespace LiteHttp.Server;
 
-using LiteHttp.Models.Events;
-
 public class ReverseProxy(
     ServerWorker[] workerPool
     ) : IReverseProxy<RequestReceivedEvent>
 {
-    public void Proxy(RequestReceivedEvent @event, CancellationToken ct)
+    public readonly Channel<ServerWorker> _availableWorkers = Channel.CreateBounded<ServerWorker>(workerPool.Length);
+
+    public async Task Proxy(RequestReceivedEvent @event, CancellationToken ct)
     {
-        while (true)
-        {
-            for (int i = 0; i < workerPool.Length; i++)
-            {
-                if (workerPool[i].Status == WorkerStatus.Waiting)
-                {
-                    workerPool[i].HandleEvent(@event, ct);
-                    return;
-                }
-            }
-        }
+        var worker = await _availableWorkers.Reader.ReadAsync(ct).ConfigureAwait(false);
+
+        worker?.HandleEvent(@event, ct);
     }
+
+    public async Task PublishWorker(ServerWorker worker) =>
+        await _availableWorkers.Writer.WriteAsync(worker).ConfigureAwait(false);
 }

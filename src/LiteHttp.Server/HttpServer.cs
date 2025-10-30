@@ -103,5 +103,11 @@ public sealed class HttpServer : IServer, IDisposable
         }
 
         _reverseProxy = new ReverseProxy(_workerPool);
+
+        foreach(var worker in _workerPool)
+        { 
+            worker.WorkCompleted += _reverseProxy.PublishWorker;
+            _reverseProxy.PublishWorker(worker);
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿namespace LiteHttp.Server;
 
+#pragma warning disable CS8618
 public class ServerWorker : IServerWorker
 {
     private readonly ActionResultFactory _actionResultFactory = new();
@@ -9,8 +10,6 @@ public class ServerWorker : IServerWorker
     private readonly RequestSerializer _serializer = new();
     private readonly ResponseGenerator _responseGenerator = new();
 
-    public WorkerStatus Status { get; private set; } = WorkerStatus.Waiting;
-    
     public ServerWorker(IEndpointProvider endpointProvider, string address, int port) =>
         Initialize(endpointProvider);
     
@@ -26,8 +25,6 @@ public class ServerWorker : IServerWorker
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public async Task HandleEvent(RequestReceivedEvent @event, CancellationToken ct)
     {
-        Status = WorkerStatus.Working;
-        
         try
         {
             var contextString = await _serializer.DeserializeFromConnectionAsync(@event.Connection, ct).ConfigureAwait(false);
@@ -63,7 +60,7 @@ public class ServerWorker : IServerWorker
         }
         finally
         {
-            Status = WorkerStatus.Waiting;
+            await WorkCompleted.Invoke(this);
         }
     }
 
@@ -74,4 +71,6 @@ public class ServerWorker : IServerWorker
         connection.Close();
         connection.Dispose();
     }
+
+    public event Func<ServerWorker, Task> WorkCompleted;
 }

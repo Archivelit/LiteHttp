@@ -8,6 +8,7 @@ public sealed class RequestSerializer : IRequestSerializer
     [SkipLocalsInit]
     private async Task<string> GetRequestContext(Socket connection, CancellationToken ct)
     {
+        // TODO: refactor to handle large requests and prevent unexpected errors
         using var owner = MemoryPool<byte>.Shared.Rent(4096);
         var buffer = owner.Memory;
         
