@@ -1,14 +1,17 @@
-﻿namespace LiteHttp.Server;
+﻿using System.Text;
+
+namespace LiteHttp.Server;
 
 #pragma warning disable CS8618
-public class ServerWorker : IServerWorker
+public class ServerWorker : IServerWorker, IDisposable
 {
     private readonly ActionResultFactory _actionResultFactory = new();
     private readonly Responder _responder = new();
     private readonly Router _router = new();
-    private readonly RequestParser _parser = new();
-    private readonly RequestSerializer _serializer = new();
+    private readonly Parser _parser = new();
+    private readonly Reciever _serializer = new();
     private readonly ResponseGenerator _responseGenerator = new();
+    // TODO: refactor to handle large requests and prevent unexpected errors
 
     public ServerWorker(IEndpointProvider endpointProvider, string address, int port) =>
         Initialize(endpointProvider);
@@ -27,11 +30,7 @@ public class ServerWorker : IServerWorker
     {
         try
         {
-            // TODO: refactor to handle large requests and prevent unexpected errors
-            using var owner = MemoryPool<byte>.Shared.Rent(4096);
-            var buffer = owner.Memory;
-            
-            var contextBytes = await _serializer.DeserializeFromConnectionAsync(@event.Connection, buffer, ct).ConfigureAwait(false);
+            var contextBytes = await _serializer.RecieveFromConnection(@event.Connection, ct).ConfigureAwait(false);
             var context = _parser.Parse(contextBytes);
 
             var action = _router.GetAction(context);
@@ -39,6 +38,7 @@ public class ServerWorker : IServerWorker
             if (action is null)
             {
                 var notFoundResponse = _responseGenerator.Generate(_actionResultFactory.NotFound());
+                
                 await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse).ConfigureAwait(false);
 
                 return;
@@ -47,9 +47,9 @@ public class ServerWorker : IServerWorker
             var actionResult = action();
 
             ReadOnlyMemory<byte> response;
-            
+
             // TODO: add action execute module which will do work below
-            
+
             if (actionResult is IActionResult<object> result)
                 response = _responseGenerator.Generate(result, Encoding.UTF8.GetBytes(result.Result.ToString() ?? string.Empty));
             else
@@ -57,11 +57,11 @@ public class ServerWorker : IServerWorker
 
             await SendResponseAndDisposeConnection(@event.Connection, response).ConfigureAwait(false);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             // TODO: add exception logging
-
             var response = _responseGenerator.Generate(_actionResultFactory.InternalServerError());
+            
             await SendResponseAndDisposeConnection(@event.Connection, response).ConfigureAwait(false);
         }
         finally
@@ -70,9 +70,14 @@ public class ServerWorker : IServerWorker
         }
     }
 
+    public void Dispose()
+    {
+        _responseGenerator.Dispose();
+    }
+
     private async Task SendResponseAndDisposeConnection(Socket connection, ReadOnlyMemory<byte> response)
     {
-        await _responder.SendResponse(connection, response).ConfigureAwait(false);
+        var bytesSent = await connection.SendAsync(response, SocketFlags.None).ConfigureAwait(false);
 
         connection.Close();
         connection.Dispose();

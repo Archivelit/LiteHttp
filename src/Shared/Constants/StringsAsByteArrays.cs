@@ -33,7 +33,7 @@ public static class HeadersAsBytes
 
 public static class HeaderValuesAsBytes
 {
-    public static readonly byte[] ContentTextPlain = ByteParseHelper.StringAsBytes(" text/plain");
+    public static readonly byte[] ContentTextPlain = ByteParseHelper.StringAsBytes("text/plain\r\n");
 }
 
 public static class ResponseCodesAsBytes

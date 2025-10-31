@@ -1,11 +1,23 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-public class RequestParser : IRequestParser
+public class Parser : IParser
 {
     public HttpContext Parse(Memory<byte> request)
     {
         var requestParts = SplitRequest(request);
         
+        if (requestParts is null)
+        {
+            var firstLine = GetFirstLine(request);
+
+            var method1 = GetMethod(firstLine);
+            var path1 = GetPath(firstLine);
+
+            var headersSection = request[firstLine.Length..]; // First line of request does not contain any header
+            
+            return new(method1, path1, MapHeaders(headersSection), null);
+        }
+
         var firstRequestLine = GetFirstLine(requestParts[0]);
 
         var method = GetMethod(firstRequestLine);
@@ -31,12 +43,12 @@ public class RequestParser : IRequestParser
     private Memory<byte> GetMethod(Memory<byte> request) =>
         request[..request.Span.IndexOf(RequestSymbolsAsBytes.Space)];
 
-    private Memory<byte>[] SplitRequest(Memory<byte> request)
+    private Memory<byte>[]? SplitRequest(Memory<byte> request)
     {
         var splitterIndex = request.Span.IndexOf(RequestSymbolsAsBytes.RequestSplitter);
-        
+
         if (splitterIndex == -1)
-            throw new ArgumentException("The request has unsupported format");
+            return null;
         
         return [ request[..splitterIndex], request[splitterIndex..] ];
     }
@@ -48,20 +60,21 @@ public class RequestParser : IRequestParser
         
         while(true)
         {
-            var eol = headers.Span.IndexOf(RequestSymbolsAsBytes.NewLine);
+            var trimmed = headers.Trim((byte)' ');
+            var eol = trimmed.Span.IndexOf(RequestSymbolsAsBytes.NewLine);
             if (eol == -1)
                 break;
 
-            var colon = headers.Span.IndexOf(RequestSymbolsAsBytes.Colon);
+            var colon = trimmed.Span[..eol].IndexOf(RequestSymbolsAsBytes.Colon);
             if (colon == -1)
-                continue;
+                break;
             
-            var key = headers[..colon];
-            var value = headers[colon..eol];
+            var key = trimmed[..colon];
+            var value = trimmed[colon..eol];
             
             headersDictionary.Add(key, value);
 
-            headers = headers[eol..];
+            headers = trimmed[eol..];
         }
 
         return headersDictionary;

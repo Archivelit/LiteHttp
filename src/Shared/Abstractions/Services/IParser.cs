@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Abstractions;
 
-public interface IRequestParser
+public interface IParser
 {
     HttpContext Parse(Memory<byte> request);
 }

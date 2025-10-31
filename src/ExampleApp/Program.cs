@@ -2,7 +2,7 @@
 using LiteHttp.Models;
 using LiteHttp.Server;
 
-var server = new HttpServer(8);
+var server = new HttpServer();
 
 server.MapGet("/", () => new ActionResult(ResponseCode.Ok));
 

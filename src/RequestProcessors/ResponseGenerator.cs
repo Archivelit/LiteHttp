@@ -3,8 +3,7 @@
 #pragma warning disable CS8618
 public class ResponseGenerator : IResponseGenerator, IDisposable
 {
-    private readonly IMemoryOwner<byte> _owner = MemoryPool<byte>.Shared.Rent(512);
-    private int _current = 0;
+    private readonly IMemoryOwner<byte> _owner = MemoryPool<byte>.Shared.Rent(4096);
     private int _length = 0;
     
     public int Port
@@ -50,15 +49,14 @@ public class ResponseGenerator : IResponseGenerator, IDisposable
         var memory = _owner.Memory;
 
         Append(HttpVersionsAsBytes.Http_1_1);
-        
         Append(actionResult.ResponseCode.AsByteString());
         
         GenerateHeaders(responseBody);
-        
+
+        Append(RequestSymbolsAsBytes.NewRequestLine);
+
         if (responseBody is not null)
-        {
             Append(responseBody.Value);
-        }
         
         return memory[.._length];
     }
@@ -70,22 +68,22 @@ public class ResponseGenerator : IResponseGenerator, IDisposable
         Append(HeadersAsBytes.Host);
 
         Append(_host);
-        
-        if (body is not null && body.Value.Length > 0)
+
+        if (body is not null)
         {
+            Append(RequestSymbolsAsBytes.NewRequestLine);
+
             Append(HeadersAsBytes.ContentType);
 
             Append(HeaderValuesAsBytes.ContentTextPlain);
 
-            Append(RequestSymbolsAsBytes.NewRequestLine);
-            
             Append(HeadersAsBytes.ContentLength);
 
             if (body.Value.Length.TryFormat(memory.Span[_length..], out var written))
                 _length += written;
-
-            Append(RequestSymbolsAsBytes.NewRequestLine);
         }
+
+        Append(RequestSymbolsAsBytes.NewRequestLine);
     }
 
     private void Append(byte[] bytes)
