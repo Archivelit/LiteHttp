@@ -4,7 +4,7 @@
 public class ResponseGenerator : IResponseGenerator
 {
     private readonly string _newLine = "\r\n";
-
+    private readonly StringBuilder _responseBuilder = new StringBuilder(1024);
     public int Port
     {
         get;
@@ -41,40 +41,38 @@ public class ResponseGenerator : IResponseGenerator
     [SkipLocalsInit]
     public string Generate(IActionResult actionResult, string? responseBody = null)
     {
-        var bodyLength = responseBody?.Length ?? 0;
-
-        var responseBuilder = new StringBuilder(128 + bodyLength);
-
-        responseBuilder
+        _responseBuilder.Clear();
+        
+        _responseBuilder
             .Append(HttpVersions.HTTP_1_1)
             .Append(actionResult.ResponseCode.AsString());
         
-        GenerateHeaders(responseBuilder, responseBody ?? string.Empty);
+        GenerateHeaders(responseBody ?? string.Empty);
         
         if (!string.IsNullOrEmpty(responseBody))
-            responseBuilder
+            _responseBuilder
                 .Append(_newLine)
                 .Append(responseBody);
 
-        return responseBuilder.ToString();
+        return _responseBuilder.ToString();
     }
 
 
     [SkipLocalsInit]
-    private StringBuilder GenerateHeaders(StringBuilder responseBuilder, string body)
+    private StringBuilder GenerateHeaders(string body)
     {
-        responseBuilder
+        _responseBuilder
             .Append($"Host: {_host}{_newLine}")
             .Append($"Content-Type: text/plain{_newLine}");
 
         if (!string.IsNullOrEmpty(body))
         {
-            responseBuilder.Append($"Content-Length: {body.Length}{_newLine}");
+            _responseBuilder.Append($"Content-Length: {body.Length}{_newLine}");
         }
 
-        responseBuilder.Append(_newLine);
+        _responseBuilder.Append(_newLine);
 
-        return responseBuilder;
+        return _responseBuilder;
     }
 
     private void UpdateHost() => _host = $"{Address}:{Port}";
