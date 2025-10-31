@@ -1,10 +1,12 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
 #pragma warning disable CS8618
-public class ResponseGenerator : IResponseGenerator
+public class ResponseGenerator : IResponseGenerator, IDisposable
 {
-    private readonly string _newLine = "\r\n";
-    private readonly StringBuilder _responseBuilder = new StringBuilder(1024);
+    private readonly IMemoryOwner<byte> _owner = MemoryPool<byte>.Shared.Rent(512);
+    private int _current = 0;
+    private int _length = 0;
+    
     public int Port
     {
         get;
@@ -30,7 +32,7 @@ public class ResponseGenerator : IResponseGenerator
         }
     }
     
-    private string _host;
+    private ReadOnlyMemory<byte> _host;
 
     public ResponseGenerator()
     {
@@ -38,42 +40,73 @@ public class ResponseGenerator : IResponseGenerator
         Port = AddressConstants.DEFAULT_SERVER_PORT;
     }
 
-    [SkipLocalsInit]
-    public string Generate(IActionResult actionResult, string? responseBody = null)
+    public void Dispose() => 
+        _owner.Dispose();
+    
+    public ReadOnlyMemory<byte> Generate(IActionResult actionResult, ReadOnlyMemory<byte>? responseBody = null)
     {
-        _responseBuilder.Clear();
+        ResetMessage();
+
+        var memory = _owner.Memory;
+
+        Append(HttpVersionsAsBytes.Http_1_1);
         
-        _responseBuilder
-            .Append(HttpVersions.HTTP_1_1)
-            .Append(actionResult.ResponseCode.AsString());
+        Append(actionResult.ResponseCode.AsByteString());
         
-        GenerateHeaders(responseBody ?? string.Empty);
+        GenerateHeaders(responseBody);
         
-        if (!string.IsNullOrEmpty(responseBody))
-            _responseBuilder
-                .Append(_newLine)
-                .Append(responseBody);
-
-        return _responseBuilder.ToString();
-    }
-
-
-    [SkipLocalsInit]
-    private StringBuilder GenerateHeaders(string body)
-    {
-        _responseBuilder
-            .Append($"Host: {_host}{_newLine}")
-            .Append($"Content-Type: text/plain{_newLine}");
-
-        if (!string.IsNullOrEmpty(body))
+        if (responseBody is not null)
         {
-            _responseBuilder.Append($"Content-Length: {body.Length}{_newLine}");
+            Append(responseBody.Value);
         }
-
-        _responseBuilder.Append(_newLine);
-
-        return _responseBuilder;
+        
+        return memory[.._length];
     }
 
-    private void UpdateHost() => _host = $"{Address}:{Port}";
+    private void GenerateHeaders(ReadOnlyMemory<byte>? body)
+    {
+        var memory = _owner.Memory;
+        
+        Append(HeadersAsBytes.Host);
+
+        Append(_host);
+        
+        if (body is not null && body.Value.Length > 0)
+        {
+            Append(HeadersAsBytes.ContentType);
+
+            Append(HeaderValuesAsBytes.ContentTextPlain);
+
+            Append(RequestSymbolsAsBytes.NewRequestLine);
+            
+            Append(HeadersAsBytes.ContentLength);
+
+            if (body.Value.Length.TryFormat(memory.Span[_length..], out var written))
+                _length += written;
+
+            Append(RequestSymbolsAsBytes.NewRequestLine);
+        }
+    }
+
+    private void Append(byte[] bytes)
+    {
+        bytes.CopyTo(_owner.Memory[_length..]);
+        _length += bytes.Length;
+    }
+
+    private void Append(ReadOnlySpan<byte> bytes)
+    {
+        bytes.CopyTo(_owner.Memory.Span[_length..]);
+        _length += bytes.Length;
+    }
+
+    private void Append(ReadOnlyMemory<byte> bytes)
+    {
+        bytes.CopyTo(_owner.Memory[_length..]);
+        _length += bytes.Length;
+    }
+    
+    private void UpdateHost() => _host = Encoding.UTF8.GetBytes($"{Address}:{Port}");
+
+    private void ResetMessage() => _length = 0;
 }

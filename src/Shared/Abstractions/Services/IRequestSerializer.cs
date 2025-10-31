@@ -2,5 +2,5 @@
 
 public interface IRequestSerializer
 {
-    Task<string> DeserializeFromConnectionAsync(Socket connection, CancellationToken ct);
+    Task<Memory<byte>> DeserializeFromConnectionAsync(Socket connection, Memory<byte> buffer, CancellationToken ct);
 }

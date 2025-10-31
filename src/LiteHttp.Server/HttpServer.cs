@@ -46,20 +46,20 @@ public sealed class HttpServer : IServer, IDisposable
     }
 
     public void MapGet(string route, Func<IActionResult> action) =>
-        _endpointProvider.AddEndpoint(route, RequestMethods.Get, action);
+        _endpointProvider.AddEndpoint(AsMemoryByteArray(route), RequestMethodsAsBytes.Get, action);
     
     public void MapDelete(string route, Func<IActionResult> action) =>
-        _endpointProvider.AddEndpoint(route, RequestMethods.Delete, action);
+        _endpointProvider.AddEndpoint(AsMemoryByteArray(route), RequestMethodsAsBytes.Delete, action);
 
     public void MapPost(string route, Func<IActionResult> action) =>
-        _endpointProvider.AddEndpoint(route, RequestMethods.Post, action);
+        _endpointProvider.AddEndpoint(AsMemoryByteArray(route), RequestMethodsAsBytes.Post, action);
 
     public void MapPut(string route, Func<IActionResult> action) =>
-        _endpointProvider.AddEndpoint(route, RequestMethods.Put, action);
+        _endpointProvider.AddEndpoint(AsMemoryByteArray(route), RequestMethodsAsBytes.Put, action);
     
     public void MapPatch(string route, Func<IActionResult> action) =>
-        _endpointProvider.AddEndpoint(route, RequestMethods.Patch, action);
-
+        _endpointProvider.AddEndpoint(AsMemoryByteArray(route), RequestMethodsAsBytes.Patch, action);
+    
     public void SetAddress(string address)
     {
         ArgumentNullException.ThrowIfNullOrEmpty(address, nameof(address));
@@ -86,13 +86,22 @@ public sealed class HttpServer : IServer, IDisposable
             worker.SetHostPort(port);
         }
     }
+    
+    private static ReadOnlyMemory<byte> AsMemoryByteArray(string s)
+    {
+        if (string.IsNullOrEmpty(s))
+            return ReadOnlyMemory<byte>.Empty;
 
+        var bytes = Encoding.UTF8.GetBytes(s);
+        return new(bytes);
+    }
+    
     private void Initialize()
     {
         _listener.SubscribeToRequestReceived(_eventBus.PublishAsync);
         InitializeWorkers();
     }
-
+    
     private void InitializeWorkers()
     {
         _workerPool ??= new ServerWorker[1];

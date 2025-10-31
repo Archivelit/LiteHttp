@@ -27,10 +27,14 @@ public class ServerWorker : IServerWorker
     {
         try
         {
-            var contextString = await _serializer.DeserializeFromConnectionAsync(@event.Connection, ct).ConfigureAwait(false);
-            var context = _parser.Parse(contextString);
+            // TODO: refactor to handle large requests and prevent unexpected errors
+            using var owner = MemoryPool<byte>.Shared.Rent(4096);
+            var buffer = owner.Memory;
+            
+            var contextBytes = await _serializer.DeserializeFromConnectionAsync(@event.Connection, buffer, ct).ConfigureAwait(false);
+            var context = _parser.Parse(contextBytes);
 
-            var action = _router.GetAction(context.Path, context.Method);
+            var action = _router.GetAction(context);
 
             if (action is null)
             {
@@ -42,10 +46,12 @@ public class ServerWorker : IServerWorker
 
             var actionResult = action();
 
-            string response;
-
+            ReadOnlyMemory<byte> response;
+            
+            // TODO: add action execute module which will do work below
+            
             if (actionResult is IActionResult<object> result)
-                response = _responseGenerator.Generate(result, result.Result.ToString());
+                response = _responseGenerator.Generate(result, Encoding.UTF8.GetBytes(result.Result.ToString() ?? string.Empty));
             else
                 response = _responseGenerator.Generate(actionResult);
 
@@ -64,7 +70,7 @@ public class ServerWorker : IServerWorker
         }
     }
 
-    private async Task SendResponseAndDisposeConnection(Socket connection, string response)
+    private async Task SendResponseAndDisposeConnection(Socket connection, ReadOnlyMemory<byte> response)
     {
         await _responder.SendResponse(connection, response).ConfigureAwait(false);
 

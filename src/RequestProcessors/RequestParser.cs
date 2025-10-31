@@ -2,16 +2,14 @@
 
 public class RequestParser : IRequestParser
 {
-    public HttpContext Parse(string request)
+    public HttpContext Parse(Memory<byte> request)
     {
         var requestParts = SplitRequest(request);
-        if (requestParts.Length < 2)
-            throw new ArgumentException("The request has unsupported or incorrect format");
-
+        
         var firstRequestLine = GetFirstLine(requestParts[0]);
 
-        var method = GetMethod(firstRequestLine).Trim();
-        var path = GetPath(firstRequestLine).Trim();
+        var method = GetMethod(firstRequestLine);
+        var path = GetPath(firstRequestLine);
         
         var headers = requestParts[0][firstRequestLine.Length..]; // First line of request does not contain any header
         var body = requestParts[1];
@@ -19,45 +17,73 @@ public class RequestParser : IRequestParser
         return new(method, path, MapHeaders(headers), body);
     }
 
-    private string GetPath(string firstRequestLine)
+    private Memory<byte> GetPath(Memory<byte> firstRequestLine)
     {
-        var firstSpaceIndex = firstRequestLine.IndexOf(' ', StringComparison.Ordinal);
-        var lastSpaceIndex = firstRequestLine.LastIndexOf(' ');
+        var firstSpaceIndex = firstRequestLine.Span.IndexOf(RequestSymbolsAsBytes.Space);
+        var lastSpaceIndex = firstRequestLine.Span.LastIndexOf(RequestSymbolsAsBytes.Space);
 
-        return firstRequestLine[(firstSpaceIndex+1)..lastSpaceIndex].Trim(); // space index + 1 to get first symbol
+        return firstRequestLine[(firstSpaceIndex+1)..lastSpaceIndex]; // space index + 1 to get first symbol of path
     }
 
-    private string GetFirstLine(string request) =>
-        request[..request.IndexOf('\r', StringComparison.Ordinal)];
+    private Memory<byte> GetFirstLine(Memory<byte> request) =>
+        request[..request.Span.IndexOf(RequestSymbolsAsBytes.CarriageReturnSymbol)];
 
-    private string GetMethod(string request) =>
-        request[..request.IndexOf(' ', StringComparison.Ordinal)];
+    private Memory<byte> GetMethod(Memory<byte> request) =>
+        request[..request.Span.IndexOf(RequestSymbolsAsBytes.Space)];
 
-    private string[] SplitRequest(string request) =>
-        request.Split("\r\n\r\n", 2);
-
-    [SkipLocalsInit]
-    private Dictionary<string, string> MapHeaders(string headers)
+    private Memory<byte>[] SplitRequest(Memory<byte> request)
     {
-        var headerLines = headers.Split('\n');
-        var headersDictionary = new Dictionary<string, string>(headerLines.Length, StringComparer.OrdinalIgnoreCase);
+        var splitterIndex = request.Span.IndexOf(RequestSymbolsAsBytes.RequestSplitter);
         
-        for (var i = 0; i < headerLines.Length; i++)
+        if (splitterIndex == -1)
+            throw new ArgumentException("The request has unsupported format");
+        
+        return [ request[..splitterIndex], request[splitterIndex..] ];
+    }
+    
+    [SkipLocalsInit]
+    private Dictionary<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>> MapHeaders(Memory<byte> headers)
+    {
+        var headersDictionary = new Dictionary<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>>(8);
+        
+        while(true)
         {
-            if (string.IsNullOrEmpty(headerLines[i].Trim()))
+            var eol = headers.Span.IndexOf(RequestSymbolsAsBytes.NewLine);
+            if (eol == -1)
+                break;
+
+            var colon = headers.Span.IndexOf(RequestSymbolsAsBytes.Colon);
+            if (colon == -1)
                 continue;
             
-            var colonIndex = headerLines[i].IndexOf(':');
-
-            if (colonIndex == -1)
-                throw new FormatException("Headers must contain ':' symbol");
-
-            var key = headerLines[i][(colonIndex+1)..].Trim(); 
-            var value= headerLines[i][..colonIndex].Trim();
-
+            var key = headers[..colon];
+            var value = headers[colon..eol];
+            
             headersDictionary.Add(key, value);
+
+            headers = headers[eol..];
         }
 
         return headersDictionary;
+    }
+    
+    [Obsolete("In new versions server works with bytes directly, so working strings are deprecated. " +
+              "I decided to let it to reuse logic in new MapHeaders realisation")]
+    private (string key, string value)? PerformOnString(ReadOnlySpan<byte> headerLine)
+    {
+        var lineAsString = Encoding.UTF8.GetString(headerLine);
+            
+        if (string.IsNullOrEmpty(lineAsString.Trim()))
+            return null;
+            
+        var colonIndex = lineAsString.IndexOf(':');
+
+        if (colonIndex == -1)
+            throw new FormatException("Headers must contain ':' symbol");
+
+        var key = lineAsString[..colonIndex].Trim(); 
+        var value = lineAsString[(colonIndex + 1)..].Trim();
+
+        return (key, value);
     }
 }

@@ -2,5 +2,5 @@
 
 public interface IResponseGenerator
 {
-    string Generate(IActionResult actionResult, string? responseBody = null);
+    ReadOnlyMemory<byte> Generate(IActionResult actionResult, ReadOnlyMemory<byte>? responseBody = null);
 }

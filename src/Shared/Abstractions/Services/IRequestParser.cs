@@ -2,5 +2,5 @@
 
 public interface IRequestParser
 {
-    HttpContext Parse(string request);
+    HttpContext Parse(Memory<byte> request);
 }

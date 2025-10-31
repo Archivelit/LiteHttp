@@ -2,6 +2,6 @@
 
 public interface IRouter
 {
-    Func<IActionResult>? GetAction(string path, string method);
+    Func<IActionResult>? GetAction(HttpContext context);
     void SetProvider(IEndpointProvider endpointProvider);
 }

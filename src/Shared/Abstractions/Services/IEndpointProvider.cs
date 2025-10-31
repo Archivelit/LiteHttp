@@ -2,6 +2,6 @@
 
 public interface IEndpointProvider
 {
-    Func<IActionResult>? GetEndpoint(string path, string method);
-    void AddEndpoint(string path, string method, Func<IActionResult> action);
+    Func<IActionResult>? GetEndpoint(ReadOnlyMemory<byte> path, ReadOnlyMemory<byte> method);
+    void AddEndpoint(ReadOnlyMemory<byte> spath, ReadOnlyMemory<byte> method, Func<IActionResult> action);
 }

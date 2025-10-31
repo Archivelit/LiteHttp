@@ -1,14 +1,14 @@
 ﻿namespace LiteHttp.Server;
 
-public class EndpointProvider(
-    ConcurrentDictionary<(string, string), Func<IActionResult>> endpoints
+public sealed class EndpointProvider(
+    ConcurrentDictionary<Endpoint, Func<IActionResult>> endpoints
     ) : IEndpointProvider
 {
-    public EndpointProvider() : this(new()) { }
+    public EndpointProvider() : this(new(new EndpointComparer())) { }
 
-    public Func<IActionResult>? GetEndpoint(string path, string method) =>
-        endpoints.GetValueOrDefault((path, method));
+    public Func<IActionResult>? GetEndpoint(ReadOnlyMemory<byte> path, ReadOnlyMemory<byte> method) =>
+        endpoints.GetValueOrDefault(new(path, method));
 
-    public void AddEndpoint(string path, string method, Func<IActionResult> action) =>
-        endpoints.TryAdd((path, method), action);
+    public void AddEndpoint(ReadOnlyMemory<byte> path, ReadOnlyMemory<byte> method, Func<IActionResult> action) =>
+        endpoints.TryAdd(new(path, method), action);
 }
