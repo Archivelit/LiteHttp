@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Models;
 
-public record struct ActionResult(ResponseCode responseCode) : IActionResult
+public readonly struct ActionResult(ResponseCode responseCode) : IActionResult
 {
     public ResponseCode ResponseCode { get; } = responseCode;
 }

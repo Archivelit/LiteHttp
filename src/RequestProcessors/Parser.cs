@@ -6,29 +6,17 @@ public class Parser : IParser
     {
         var requestParts = SplitRequest(request);
         
-        if (requestParts is null)
-        {
-            var firstLine = GetFirstLine(request);
+        var firstLine = GetFirstLine(requestParts.Headers);
 
-            var method1 = GetMethod(firstLine);
-            var path1 = GetPath(firstLine);
+        var method = GetMethod(firstLine);
+        var path = GetPath(firstLine);
 
-            var headersSection = request[firstLine.Length..]; // First line of request does not contain any header
-            
-            return new(method1, path1, MapHeaders(headersSection), null);
-        }
+        var headers = requestParts.Headers[firstLine.Length..]; // First line of request does not contain any header
 
-        var firstRequestLine = GetFirstLine(requestParts[0]);
-
-        var method = GetMethod(firstRequestLine);
-        var path = GetPath(firstRequestLine);
-        
-        var headers = requestParts[0][firstRequestLine.Length..]; // First line of request does not contain any header
-        var body = requestParts[1];
-
-        return new(method, path, MapHeaders(headers), body);
+        return new(method, path, MapHeaders(headers), requestParts.Body);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Memory<byte> GetPath(Memory<byte> firstRequestLine)
     {
         var firstSpaceIndex = firstRequestLine.Span.IndexOf(RequestSymbolsAsBytes.Space);
@@ -37,20 +25,23 @@ public class Parser : IParser
         return firstRequestLine[(firstSpaceIndex+1)..lastSpaceIndex]; // space index + 1 to get first symbol of path
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Memory<byte> GetFirstLine(Memory<byte> request) =>
         request[..request.Span.IndexOf(RequestSymbolsAsBytes.CarriageReturnSymbol)];
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Memory<byte> GetMethod(Memory<byte> request) =>
         request[..request.Span.IndexOf(RequestSymbolsAsBytes.Space)];
 
-    private Memory<byte>[]? SplitRequest(Memory<byte> request)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private (Memory<byte> Headers, Memory<byte>? Body) SplitRequest(Memory<byte> request)
     {
         var splitterIndex = request.Span.IndexOf(RequestSymbolsAsBytes.RequestSplitter);
 
         if (splitterIndex == -1)
-            return null;
+            return (request, null);
         
-        return [ request[..splitterIndex], request[splitterIndex..] ];
+        return (request[..splitterIndex], request[splitterIndex..]);
     }
     
     [SkipLocalsInit]
@@ -61,6 +52,7 @@ public class Parser : IParser
         while(true)
         {
             var trimmed = headers.Trim((byte)' ');
+
             var eol = trimmed.Span.IndexOf(RequestSymbolsAsBytes.NewLine);
             if (eol == -1)
                 break;
@@ -69,8 +61,10 @@ public class Parser : IParser
             if (colon == -1)
                 break;
             
+            Debug.Assert(colon > eol);
+
             var key = trimmed[..colon];
-            var value = trimmed[colon..eol];
+            var value = trimmed[(colon + 2)..eol]; // 2 symbols are colon and space between value and colon
             
             headersDictionary.Add(key, value);
 

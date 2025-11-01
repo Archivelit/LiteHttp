@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Abstractions;
 
-public interface IReciever
+public interface IReceiver
 {
     Task<Memory<byte>> RecieveFromConnection(Socket connection, CancellationToken ct);
 }

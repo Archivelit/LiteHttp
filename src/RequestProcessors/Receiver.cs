@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-public sealed class Reciever: IReciever
+public sealed class Receiver: IReceiver
 {
     public async Task<Memory<byte>> RecieveFromConnection(Socket connection, CancellationToken ct)
     {

@@ -1,7 +1,7 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
 #pragma warning disable CS8618
-public class ResponseGenerator : IResponseGenerator, IDisposable
+public class ResponseBuilder : IResponseBuilder, IDisposable
 {
     private readonly IMemoryOwner<byte> _owner = MemoryPool<byte>.Shared.Rent(4096);
     private int _length = 0;
@@ -33,7 +33,7 @@ public class ResponseGenerator : IResponseGenerator, IDisposable
     
     private ReadOnlyMemory<byte> _host;
 
-    public ResponseGenerator()
+    public ResponseBuilder()
     {
         Address = AddressConstants.IPV4_LOOPBACK.ToString();
         Port = AddressConstants.DEFAULT_SERVER_PORT;
@@ -42,7 +42,7 @@ public class ResponseGenerator : IResponseGenerator, IDisposable
     public void Dispose() => 
         _owner.Dispose();
     
-    public ReadOnlyMemory<byte> Generate(IActionResult actionResult, ReadOnlyMemory<byte>? responseBody = null)
+    public ReadOnlyMemory<byte> Build(IActionResult actionResult, ReadOnlyMemory<byte>? responseBody = null)
     {
         ResetMessage();
 
@@ -51,7 +51,7 @@ public class ResponseGenerator : IResponseGenerator, IDisposable
         Append(HttpVersionsAsBytes.Http_1_1);
         Append(actionResult.ResponseCode.AsByteString());
         
-        GenerateHeaders(responseBody);
+        BuildHeaders(responseBody);
 
         Append(RequestSymbolsAsBytes.NewRequestLine);
 
@@ -61,7 +61,7 @@ public class ResponseGenerator : IResponseGenerator, IDisposable
         return memory[.._length];
     }
 
-    private void GenerateHeaders(ReadOnlyMemory<byte>? body)
+    private void BuildHeaders(ReadOnlyMemory<byte>? body)
     {
         var memory = _owner.Memory;
         
@@ -86,25 +86,36 @@ public class ResponseGenerator : IResponseGenerator, IDisposable
         Append(RequestSymbolsAsBytes.NewRequestLine);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Append(byte[] bytes)
     {
+        Debug.Assert(bytes.Length <= _owner.Memory.Length - _length);
+
         bytes.CopyTo(_owner.Memory[_length..]);
         _length += bytes.Length;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Append(ReadOnlySpan<byte> bytes)
     {
+        Debug.Assert(bytes.Length <= _owner.Memory.Length - _length);
+
         bytes.CopyTo(_owner.Memory.Span[_length..]);
         _length += bytes.Length;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Append(ReadOnlyMemory<byte> bytes)
     {
+        Debug.Assert(bytes.Length <= _owner.Memory.Length - _length);
+
         bytes.CopyTo(_owner.Memory[_length..]);
         _length += bytes.Length;
     }
-    
+
+    [SkipLocalsInit]
     private void UpdateHost() => _host = Encoding.UTF8.GetBytes($"{Address}:{Port}");
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ResetMessage() => _length = 0;
 }

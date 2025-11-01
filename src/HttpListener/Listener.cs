@@ -31,7 +31,7 @@ public sealed partial class Listener : IListener, IDisposable
     public async Task StartListen(CancellationToken stoppingToken)
     {
         if (_endPoint is null)
-            throw new ArgumentNullException("Listener endpoint cannot be null");
+            throw new ArgumentNullException(nameof(_endPoint), "Listener endpoint cannot be null");
 
         if (!_socket.IsBound)
         {
@@ -40,6 +40,7 @@ public sealed partial class Listener : IListener, IDisposable
         }
 
         _socket.Listen();
+
         _listenerState = ListenerState.Listening;
 
         Log.Logger.Information($"Listening at {_endPoint.ToString()}"); 

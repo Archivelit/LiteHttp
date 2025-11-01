@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace LiteHttp.Server;
+﻿namespace LiteHttp.Server;
 
 #pragma warning disable CS8618
 public class ServerWorker : IServerWorker, IDisposable
@@ -9,8 +7,8 @@ public class ServerWorker : IServerWorker, IDisposable
     private readonly Responder _responder = new();
     private readonly Router _router = new();
     private readonly Parser _parser = new();
-    private readonly Reciever _serializer = new();
-    private readonly ResponseGenerator _responseGenerator = new();
+    private readonly Receiver _serializer = new();
+    private readonly ResponseBuilder _responseGenerator = new();
     // TODO: refactor to handle large requests and prevent unexpected errors
 
     public ServerWorker(IEndpointProvider endpointProvider, string address, int port) =>
@@ -37,7 +35,7 @@ public class ServerWorker : IServerWorker, IDisposable
 
             if (action is null)
             {
-                var notFoundResponse = _responseGenerator.Generate(_actionResultFactory.NotFound());
+                var notFoundResponse = _responseGenerator.Build(_actionResultFactory.NotFound());
                 
                 await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse).ConfigureAwait(false);
 
@@ -51,16 +49,16 @@ public class ServerWorker : IServerWorker, IDisposable
             // TODO: add action execute module which will do work below
 
             if (actionResult is IActionResult<object> result)
-                response = _responseGenerator.Generate(result, Encoding.UTF8.GetBytes(result.Result.ToString() ?? string.Empty));
+                response = _responseGenerator.Build(result, Encoding.UTF8.GetBytes(result.Result.ToString() ?? string.Empty));
             else
-                response = _responseGenerator.Generate(actionResult);
+                response = _responseGenerator.Build(actionResult);
 
             await SendResponseAndDisposeConnection(@event.Connection, response).ConfigureAwait(false);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // TODO: add exception logging
-            var response = _responseGenerator.Generate(_actionResultFactory.InternalServerError());
+            var response = _responseGenerator.Build(_actionResultFactory.InternalServerError());
             
             await SendResponseAndDisposeConnection(@event.Connection, response).ConfigureAwait(false);
         }
@@ -75,9 +73,10 @@ public class ServerWorker : IServerWorker, IDisposable
         _responseGenerator.Dispose();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private async Task SendResponseAndDisposeConnection(Socket connection, ReadOnlyMemory<byte> response)
     {
-        var bytesSent = await connection.SendAsync(response, SocketFlags.None).ConfigureAwait(false);
+        await _responder.SendResponse(connection, response).ConfigureAwait(false);
 
         connection.Close();
         connection.Dispose();

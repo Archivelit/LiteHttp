@@ -1,3 +1,6 @@
 ﻿namespace LiteHttp.Models.Events;
 
-public record RequestReceivedEvent(Socket Connection) : IEvent;
+public readonly record struct RequestReceivedEvent(Socket Connection) : IEvent
+{
+    public readonly Socket Connection = Connection;
+}
