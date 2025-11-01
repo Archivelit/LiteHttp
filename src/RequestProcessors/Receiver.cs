@@ -2,7 +2,7 @@
 
 public sealed class Receiver: IReceiver
 {
-    public async Task<Memory<byte>> RecieveFromConnection(Socket connection, CancellationToken ct)
+    public async ValueTask<Memory<byte>> RecieveFromConnection(Socket connection, CancellationToken ct)
     {
         using var owner = MemoryPool<byte>.Shared.Rent(4096);
         var buffer = owner.Memory;

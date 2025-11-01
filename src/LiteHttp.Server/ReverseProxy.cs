@@ -6,13 +6,13 @@ public class ReverseProxy(
 {
     public readonly Channel<ServerWorker> _availableWorkers = Channel.CreateBounded<ServerWorker>(workerPool.Length);
 
-    public async Task Proxy(RequestReceivedEvent @event, CancellationToken ct)
+    public async ValueTask Proxy(RequestReceivedEvent @event, CancellationToken ct)
     {
         var worker = await _availableWorkers.Reader.ReadAsync(ct).ConfigureAwait(false);
 
         worker?.HandleEvent(@event, ct);
     }
 
-    public async Task PublishWorker(ServerWorker worker) =>
-        await _availableWorkers.Writer.WriteAsync(worker).ConfigureAwait(false);
+    public ValueTask PublishWorker(ServerWorker worker) =>
+        _availableWorkers.Writer.WriteAsync(worker);
 }

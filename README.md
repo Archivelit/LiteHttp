@@ -1,4 +1,4 @@
-# LiteHttp ![version](https://img.shields.io/badge/version-1.0.6-blue.svg) ![license](https://img.shields.io/badge/license-MIT-green.svg)
+# LiteHttp ![version](https://img.shields.io/badge/version-1.0.7-blue.svg) ![license](https://img.shields.io/badge/license-MIT-green.svg)
 
 - Lightweight and dependency-free (except Serilog)
 - Built with System.* only
@@ -20,7 +20,7 @@ await server.Start();
 
 You can also find it in `src/ExampleApp/Program.cs`
 
-**Important that default server address is localhost:30000 (can be easily changed using `server.SetHostAddress()` and `server.SetHostPort()`)**
+**Important that default server address is localhost:30000 (can be easily changed using `server.SetAddress()` and `server.SetPort()`)**
 
 ```csharp
 var factory = new ActionResultFactory();

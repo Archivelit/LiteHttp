@@ -28,7 +28,7 @@ public sealed partial class Listener : IListener, IDisposable
     public Listener(IPAddress address, int port) =>
         Initialize(address, port);
 
-    public async Task StartListen(CancellationToken stoppingToken)
+    public async ValueTask StartListen(CancellationToken stoppingToken)
     {
         if (_endPoint is null)
             throw new ArgumentNullException(nameof(_endPoint), "Listener endpoint cannot be null");

@@ -2,9 +2,9 @@
 
 public interface IListener
 {
-    Task StartListen(CancellationToken ct);
-    event Func<RequestReceivedEvent, CancellationToken, Task>? OnRequestReceived;
+    ValueTask StartListen(CancellationToken ct);
+    event Func<RequestReceivedEvent, CancellationToken, ValueTask>? OnRequestReceived;
     void RaiseRequestReceived(RequestReceivedEvent @event, CancellationToken ct);
-    void SubscribeToRequestReceived(Func<RequestReceivedEvent, CancellationToken, Task> handler);
-    void UnsubscribeFromRequestReceived(Func<RequestReceivedEvent, CancellationToken, Task> handler);
+    void SubscribeToRequestReceived(Func<RequestReceivedEvent, CancellationToken, ValueTask> handler);
+    void UnsubscribeFromRequestReceived(Func<RequestReceivedEvent, CancellationToken, ValueTask> handler);
 }

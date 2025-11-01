@@ -24,7 +24,7 @@ public class ServerWorker : IServerWorker, IDisposable
         _responseGenerator.Address = address;
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    public async Task HandleEvent(RequestReceivedEvent @event, CancellationToken ct)
+    public async ValueTask HandleEvent(RequestReceivedEvent @event, CancellationToken ct)
     {
         try
         {
@@ -64,7 +64,7 @@ public class ServerWorker : IServerWorker, IDisposable
         }
         finally
         {
-            await WorkCompleted.Invoke(this);
+            WorkCompleted.Invoke(this);
         }
     }
 
@@ -74,13 +74,13 @@ public class ServerWorker : IServerWorker, IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private async Task SendResponseAndDisposeConnection(Socket connection, ReadOnlyMemory<byte> response)
+    private async ValueTask SendResponseAndDisposeConnection(Socket connection, ReadOnlyMemory<byte> response)
     {
-        await _responder.SendResponse(connection, response).ConfigureAwait(false);
+        _ = await _responder.SendResponse(connection, response).ConfigureAwait(false);
 
         connection.Close();
         connection.Dispose();
     }
 
-    public event Func<ServerWorker, Task> WorkCompleted;
+    public event Func<ServerWorker, ValueTask> WorkCompleted;
 }

@@ -2,5 +2,5 @@
 
 public interface IReverseProxy<TEvent> where TEvent : IEvent
 {
-    Task Proxy(TEvent @event, CancellationToken ct);
+    ValueTask Proxy(TEvent @event, CancellationToken ct);
 }

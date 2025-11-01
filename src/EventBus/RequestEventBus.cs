@@ -8,9 +8,9 @@ public sealed class RequestEventBus : IEventBus<RequestReceivedEvent>
 {
     private Channel<RequestReceivedEvent> _channel = Channel.CreateUnbounded<RequestReceivedEvent>();
 
-    public async Task PublishAsync(RequestReceivedEvent @event, CancellationToken ct = default) =>
-        await _channel.Writer.WriteAsync(@event, ct).ConfigureAwait(false);
+    public ValueTask PublishAsync(RequestReceivedEvent @event, CancellationToken ct = default) =>
+        _channel.Writer.WriteAsync(@event, ct);
 
-    public async Task<RequestReceivedEvent> ConsumeAsync(CancellationToken ct = default) =>
-        await _channel.Reader.ReadAsync(ct).ConfigureAwait(false);
+    public ValueTask<RequestReceivedEvent> ConsumeAsync(CancellationToken ct = default) =>
+        _channel.Reader.ReadAsync(ct);
 }

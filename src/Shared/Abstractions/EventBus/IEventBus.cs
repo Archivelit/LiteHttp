@@ -3,6 +3,6 @@
 public interface IEventBus<TEvent> 
     where TEvent : IEvent
 {
-    Task PublishAsync(TEvent @event, CancellationToken ct = default);
-    Task<TEvent> ConsumeAsync(CancellationToken ct = default);
+    ValueTask PublishAsync(TEvent @event, CancellationToken ct = default);
+    ValueTask<TEvent> ConsumeAsync(CancellationToken ct = default);
 }

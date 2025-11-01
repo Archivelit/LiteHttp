@@ -2,5 +2,5 @@
 
 public interface IReceiver
 {
-    Task<Memory<byte>> RecieveFromConnection(Socket connection, CancellationToken ct);
+    ValueTask<Memory<byte>> RecieveFromConnection(Socket connection, CancellationToken ct);
 }
