@@ -1,4 +1,4 @@
-# LiteHttp ![version](https://img.shields.io/badge/version-1.0.7-blue.svg) ![license](https://img.shields.io/badge/license-MIT-green.svg)
+# LiteHttp ![version](https://img.shields.io/badge/version-1.0.8-blue.svg) ![license](https://img.shields.io/badge/license-MIT-green.svg)
 
 - Lightweight and dependency-free (except Serilog)
 - Built with System.* only

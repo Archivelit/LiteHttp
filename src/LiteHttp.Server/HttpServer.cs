@@ -24,8 +24,6 @@ public sealed class HttpServer : IServer, IDisposable
     {
         try
         {
-            InitializeWorkers();
-
             Task.Run(() => _listener.StartListen(cancellationToken));
 
             while (!cancellationToken.IsCancellationRequested)
@@ -46,20 +44,20 @@ public sealed class HttpServer : IServer, IDisposable
     }
 
     public void MapGet(string route, Func<IActionResult> action) =>
-        _endpointProvider.AddEndpoint(AsMemoryByteArray(route), RequestMethodsAsBytes.Get, action);
+        _endpointProvider.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Get, action);
     
     public void MapDelete(string route, Func<IActionResult> action) =>
-        _endpointProvider.AddEndpoint(AsMemoryByteArray(route), RequestMethodsAsBytes.Delete, action);
+        _endpointProvider.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Delete, action);
 
     public void MapPost(string route, Func<IActionResult> action) =>
-        _endpointProvider.AddEndpoint(AsMemoryByteArray(route), RequestMethodsAsBytes.Post, action);
+        _endpointProvider.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Post, action);
 
     public void MapPut(string route, Func<IActionResult> action) =>
-        _endpointProvider.AddEndpoint(AsMemoryByteArray(route), RequestMethodsAsBytes.Put, action);
-    
+        _endpointProvider.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Put, action);
+
     public void MapPatch(string route, Func<IActionResult> action) =>
-        _endpointProvider.AddEndpoint(AsMemoryByteArray(route), RequestMethodsAsBytes.Patch, action);
-    
+        _endpointProvider.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Patch, action);
+
     public void SetAddress(string address)
     {
         ArgumentNullException.ThrowIfNullOrEmpty(address, nameof(address));
@@ -85,15 +83,6 @@ public sealed class HttpServer : IServer, IDisposable
         {
             worker.SetHostPort(port);
         }
-    }
-    
-    private static ReadOnlyMemory<byte> AsMemoryByteArray(string s)
-    {
-        if (string.IsNullOrEmpty(s))
-            return ReadOnlyMemory<byte>.Empty;
-
-        var bytes = Encoding.UTF8.GetBytes(s);
-        return new(bytes);
     }
     
     private void Initialize()

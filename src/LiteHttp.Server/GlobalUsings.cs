@@ -12,3 +12,4 @@ global using System.Net.Sockets;
 global using System.Collections.Concurrent;
 global using System.Runtime.CompilerServices;
 global using System.Threading.Channels;
+global using LiteHttp.Extensions;

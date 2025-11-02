@@ -17,6 +17,6 @@ public class RequestEventBusTests
 
         // Assert
         receivedEvent.Should().NotBeNull();
-        //receivedEvent.Result.Connection.Should().BeEquivalentTo(@event.Connection);
+        receivedEvent.Result.Result.Connection.Should().BeEquivalentTo(@event.Connection);
     }
 }

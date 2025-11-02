@@ -1,6 +1,5 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-#pragma warning disable CS8618
 public class ResponseBuilder : IResponseBuilder, IDisposable
 {
     private readonly IMemoryOwner<byte> _owner = MemoryPool<byte>.Shared.Rent(4096);

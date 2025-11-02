@@ -1,31 +1,63 @@
-﻿namespace LiteHttp.Server;
+﻿using Shared.Constants;
+using System.Numerics;
 
-public class EndpointComparer : IEqualityComparer<Endpoint>
+namespace LiteHttp.Server
 {
-    public bool Equals(Endpoint first, Endpoint second) => 
-        first.Method.Length == second.Method.Length 
-        && first.Path.Length == second.Path.Length
-        && first.Method.Span.SequenceEqual(second.Method.Span)
-        && first.Path.Span.SequenceEqual(second.Path.Span);
-
-    public int GetHashCode(Endpoint endpoint)
+    public class EndpointComparer : IEqualityComparer<Endpoint>
     {
-        // REVIEW: algorithm can be stronger and vectorized
-        var hash = new HashCode();
+        public bool Equals(Endpoint first, Endpoint second) =>
+            first.Method.Length == second.Method.Length
+            && first.Path.Length == second.Path.Length
+            && first.Method.Span.SequenceEqual(second.Method.Span)
+            && first.Path.Span.SequenceEqual(second.Path.Span);
 
-        AddSpan(ref hash, endpoint.Method.Span);
-        AddSpan(ref hash, endpoint.Path.Span);
-        
-        return hash.ToHashCode();
-    }
+        public int GetHashCode(Endpoint endpoint)
+        {
+            var hash = new HashCode();
+            
+            hash.Add(16843025);
 
-    private HashCode AddSpan(ref HashCode hash, ReadOnlySpan<byte> span)
-    {
-        hash.Add(span.Length);
+            AddSpan(ref hash, endpoint.Method.Span);
+            AddSpan(ref hash, endpoint.Path.Span);
+            
+            return hash.ToHashCode();
+        }
 
-        foreach (var val in span)
-            hash.Add(val);
+        private HashCode AddSpan(ref HashCode hash, ReadOnlySpan<byte> span)
+        {
+            hash.Add(span.Length);
 
-        return hash;
+            if (!Vector.IsHardwareAccelerated)
+            {
+                for (var i = 0; i < span.Length; i++)
+                    HashFunction(ref hash, span[i], span.Length);
+
+                return hash;
+            }
+
+            int vectorWidth = Vector<byte>.Count;
+            int index = 0;
+            int remaining = span.Length % vectorWidth;
+
+            for (; index + vectorWidth <= span.Length; index += vectorWidth)
+            {
+                var vector = new Vector<byte>(span.Slice(index, vectorWidth));
+                var uintVector = Vector.AsVectorUInt32(vector);
+
+                uintVector = unchecked(((uintVector << span.Length % 16) ^ (uintVector * 0x9E3779B1) ^ (uintVector >> 3)) & VectorConstants.HashVector);
+
+                for (int i = 0; i < vectorWidth; i++)
+                    hash.Add(uintVector[i]);
+            }
+
+            for (; index < span.Length; index++)
+                HashFunction(ref hash, span[index], span.Length);
+
+            return hash;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void HashFunction(ref HashCode hash, byte @byte, int spanLength) =>
+            hash.Add(unchecked(((@byte << spanLength % 16) ^ (@byte * 0x9E3779B1) ^ (@byte >> 3)) & 0x9e3779b9));
     }
 }
