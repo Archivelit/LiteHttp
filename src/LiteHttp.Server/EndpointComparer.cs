@@ -1,63 +1,59 @@
-﻿using Shared.Constants;
-using System.Numerics;
+﻿namespace LiteHttp.Server;    
 
-namespace LiteHttp.Server
+public class EndpointComparer : IEqualityComparer<Endpoint>
 {
-    public class EndpointComparer : IEqualityComparer<Endpoint>
+    public bool Equals(Endpoint first, Endpoint second) =>
+        first.Method.Length == second.Method.Length
+        && first.Path.Length == second.Path.Length
+        && first.Method.Span.SequenceEqual(second.Method.Span)
+        && first.Path.Span.SequenceEqual(second.Path.Span);
+
+    public int GetHashCode(Endpoint endpoint)
     {
-        public bool Equals(Endpoint first, Endpoint second) =>
-            first.Method.Length == second.Method.Length
-            && first.Path.Length == second.Path.Length
-            && first.Method.Span.SequenceEqual(second.Method.Span)
-            && first.Path.Span.SequenceEqual(second.Path.Span);
-
-        public int GetHashCode(Endpoint endpoint)
-        {
-            var hash = new HashCode();
+        var hash = new HashCode();
             
-            hash.Add(16843025);
+        hash.Add(16843025);
 
-            AddSpan(ref hash, endpoint.Method.Span);
-            AddSpan(ref hash, endpoint.Path.Span);
+        AddSpan(ref hash, endpoint.Method.Span);
+        AddSpan(ref hash, endpoint.Path.Span);
             
-            return hash.ToHashCode();
-        }
+        return hash.ToHashCode();
+    }
 
-        private HashCode AddSpan(ref HashCode hash, ReadOnlySpan<byte> span)
+    private HashCode AddSpan(ref HashCode hash, ReadOnlySpan<byte> span)
+    {
+        hash.Add(span.Length);
+
+        if (!Vector.IsHardwareAccelerated)
         {
-            hash.Add(span.Length);
-
-            if (!Vector.IsHardwareAccelerated)
-            {
-                for (var i = 0; i < span.Length; i++)
-                    HashFunction(ref hash, span[i], span.Length);
-
-                return hash;
-            }
-
-            int vectorWidth = Vector<byte>.Count;
-            int index = 0;
-            int remaining = span.Length % vectorWidth;
-
-            for (; index + vectorWidth <= span.Length; index += vectorWidth)
-            {
-                var vector = new Vector<byte>(span.Slice(index, vectorWidth));
-                var uintVector = Vector.AsVectorUInt32(vector);
-
-                uintVector = unchecked(((uintVector << span.Length % 16) ^ (uintVector * 0x9E3779B1) ^ (uintVector >> 3)) & VectorConstants.HashVector);
-
-                for (int i = 0; i < vectorWidth; i++)
-                    hash.Add(uintVector[i]);
-            }
-
-            for (; index < span.Length; index++)
-                HashFunction(ref hash, span[index], span.Length);
+            for (var i = 0; i < span.Length; i++)
+                HashFunction(ref hash, span[i], span.Length);
 
             return hash;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void HashFunction(ref HashCode hash, byte @byte, int spanLength) =>
-            hash.Add(unchecked(((@byte << spanLength % 16) ^ (@byte * 0x9E3779B1) ^ (@byte >> 3)) & 0x9e3779b9));
+        int vectorWidth = Vector<byte>.Count;
+        int index = 0;
+        int remaining = span.Length % vectorWidth;
+
+        for (; index + vectorWidth <= span.Length; index += vectorWidth)
+        {
+            var vector = new Vector<byte>(span.Slice(index, vectorWidth));
+            var uintVector = Vector.AsVectorUInt32(vector);
+
+            uintVector = unchecked(((uintVector << span.Length % 16) ^ (uintVector * 0x9E3779B1) ^ (uintVector >> 3)) & VectorConstants.HashVector);
+
+            for (int i = 0; i < vectorWidth; i++)
+                hash.Add(uintVector[i]);
+        }
+
+        for (; index < span.Length; index++)
+            HashFunction(ref hash, span[index], span.Length);
+
+        return hash;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void HashFunction(ref HashCode hash, byte @byte, int spanLength) =>
+        hash.Add(unchecked(((@byte << spanLength % 16) ^ (@byte * 0x9E3779B1) ^ (@byte >> 3)) & 0x9e3779b9));
 }

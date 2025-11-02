@@ -6,4 +6,5 @@ global using System.Text;
 global using System.Buffers;
 global using System.Diagnostics;
 global using System.Net.Sockets;
+global using System.IO.Pipelines;
 global using System.Runtime.CompilerServices;

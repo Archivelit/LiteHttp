@@ -7,7 +7,7 @@ public class ServerWorker : IServerWorker, IDisposable
     private readonly Responder _responder = new();
     private readonly Router _router = new();
     private readonly Parser _parser = new();
-    private readonly Receiver _serializer = new();
+    private readonly Receiver _receiver = new();
     private readonly ResponseBuilder _responseGenerator = new();
     // TODO: refactor to handle large requests and prevent unexpected errors
 
@@ -24,11 +24,13 @@ public class ServerWorker : IServerWorker, IDisposable
         _responseGenerator.Address = address;
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    public async ValueTask HandleEvent(RequestReceivedEvent @event, CancellationToken ct)
+    public async ValueTask HandleEvent(RequestReceivedEvent @event, CancellationToken cancellationToken)
     {
         try
         {
-            var contextBytes = await _serializer.RecieveFromConnection(@event.Connection, ct).ConfigureAwait(false);
+            // var contextBytes = await _serializer.RecieveFromConnection(@event.Connection, ct).ConfigureAwait(false);
+            var contextBytes = await _receiver.RecieveFromConnection(@event.Connection, cancellationToken).ConfigureAwait(false);
+            
             var context = _parser.Parse(contextBytes);
 
             var action = _router.GetAction(context);
@@ -37,7 +39,7 @@ public class ServerWorker : IServerWorker, IDisposable
             {
                 var notFoundResponse = _responseGenerator.Build(_actionResultFactory.NotFound());
                 
-                await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse).ConfigureAwait(false);
+                await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse, cancellationToken).ConfigureAwait(false);
 
                 return;
             }
@@ -53,18 +55,18 @@ public class ServerWorker : IServerWorker, IDisposable
             else
                 response = _responseGenerator.Build(actionResult);
 
-            await SendResponseAndDisposeConnection(@event.Connection, response).ConfigureAwait(false);
+            await SendResponseAndDisposeConnection(@event.Connection, response, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception)
         {
             // TODO: add exception logging
             var response = _responseGenerator.Build(_actionResultFactory.InternalServerError());
             
-            await SendResponseAndDisposeConnection(@event.Connection, response).ConfigureAwait(false);
+            await SendResponseAndDisposeConnection(@event.Connection, response, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
-            WorkCompleted.Invoke(this);
+            WorkCompleted?.Invoke(this);
         }
     }
 
@@ -74,7 +76,7 @@ public class ServerWorker : IServerWorker, IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private async ValueTask SendResponseAndDisposeConnection(Socket connection, ReadOnlyMemory<byte> response)
+    private async ValueTask SendResponseAndDisposeConnection(Socket connection, ReadOnlyMemory<byte> response, CancellationToken ct)
     {
         _ = await _responder.SendResponse(connection, response).ConfigureAwait(false);
 
