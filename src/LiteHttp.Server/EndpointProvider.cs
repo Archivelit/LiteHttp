@@ -4,7 +4,7 @@ public sealed class EndpointProvider(
     ConcurrentDictionary<Endpoint, Func<IActionResult>> endpoints
     ) : IEndpointProvider
 {
-    public EndpointProvider() : this(new(new EndpointComparer())) { }
+    public EndpointProvider() : this(new(EndpointComparer.Instance)) { }
 
     public Func<IActionResult>? GetEndpoint(ReadOnlyMemory<byte> path, ReadOnlyMemory<byte> method) =>
         endpoints.GetValueOrDefault(new(path, method));

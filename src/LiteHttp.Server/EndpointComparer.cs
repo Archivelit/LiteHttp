@@ -2,6 +2,8 @@
 
 public class EndpointComparer : IEqualityComparer<Endpoint>
 {
+    public static readonly EndpointComparer Instance = new();
+
     public bool Equals(Endpoint first, Endpoint second) =>
         first.Method.Length == second.Method.Length
         && first.Path.Length == second.Path.Length

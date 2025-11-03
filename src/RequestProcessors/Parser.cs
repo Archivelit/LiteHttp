@@ -1,7 +1,9 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-public class Parser : IParser
+public sealed class Parser : IParser
 {
+    public static readonly Parser Instance = new();
+
     public HttpContext Parse(Memory<byte> request)
     {
         var requestParts = SplitRequest(request);

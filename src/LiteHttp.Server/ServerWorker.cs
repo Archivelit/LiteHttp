@@ -1,13 +1,12 @@
 ﻿namespace LiteHttp.Server;
 
 #pragma warning disable CS8618
-public class ServerWorker : IServerWorker, IDisposable
+public sealed class ServerWorker : IServerWorker, IDisposable
 {
-    private readonly ActionResultFactory _actionResultFactory = new();
-    private readonly Responder _responder = new();
+    private readonly Responder _responder = Responder.Instance;
     private readonly Router _router = new();
-    private readonly Parser _parser = new();
-    private readonly Receiver _receiver = new();
+    private readonly Parser _parser = Parser.Instance;
+    private readonly Receiver _receiver = Receiver.Instance;
     private readonly ResponseBuilder _responseGenerator = new();
     // TODO: refactor to handle large requests and prevent unexpected errors
 
@@ -37,7 +36,7 @@ public class ServerWorker : IServerWorker, IDisposable
 
             if (action is null)
             {
-                var notFoundResponse = _responseGenerator.Build(_actionResultFactory.NotFound());
+                var notFoundResponse = _responseGenerator.Build(ActionResultFactory.Instance.NotFound());
                 
                 await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse, cancellationToken).ConfigureAwait(false);
 
@@ -57,10 +56,10 @@ public class ServerWorker : IServerWorker, IDisposable
 
             await SendResponseAndDisposeConnection(@event.Connection, response, cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             // TODO: add exception logging
-            var response = _responseGenerator.Build(_actionResultFactory.InternalServerError());
+            var response = _responseGenerator.Build(ActionResultFactory.Instance.InternalServerError());
             
             await SendResponseAndDisposeConnection(@event.Connection, response, cancellationToken).ConfigureAwait(false);
         }
