@@ -1,7 +1,7 @@
 ﻿namespace LiteHttp.Server;
 
 #pragma warning disable CS8618, CS4014
-internal sealed class HttpServer : IServer, IDisposable
+public sealed class HttpServer : IServer, IDisposable
 {
     private readonly Listener.Listener _listener = new();
     private readonly RequestEventBus _eventBus = new();

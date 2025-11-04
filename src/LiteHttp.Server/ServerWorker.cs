@@ -1,7 +1,7 @@
 ﻿namespace LiteHttp.Server;
 
 #pragma warning disable CS8618
-public sealed class ServerWorker : IServerWorker, IDisposable
+internal sealed class ServerWorker : IServerWorker, IDisposable
 {
     private readonly Responder _responder = Responder.Instance;
     private readonly Router _router = new();
