@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-public class ResponseBuilder : IResponseBuilder, IDisposable
+public sealed class ResponseBuilder : IResponseBuilder, IDisposable
 {
     private readonly IMemoryOwner<byte> _owner = MemoryPool<byte>.Shared.Rent(4096);
     private int _length = 0;
@@ -49,7 +49,7 @@ public class ResponseBuilder : IResponseBuilder, IDisposable
 
         Append(HttpVersionsAsBytes.Http_1_1);
         Append(actionResult.ResponseCode.AsByteString());
-        
+
         BuildHeaders(responseBody);
 
         Append(RequestSymbolsAsBytes.NewRequestLine);

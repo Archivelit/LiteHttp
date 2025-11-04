@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Constants;
 
-public class RequestMethods
+public static class RequestMethods
 {
     public const string Get = "GET";
     public const string Post = "POST";

@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-public class Router : IRouter
+public sealed class Router : IRouter
 {
     private IEndpointProvider? _endpointProvider;
     

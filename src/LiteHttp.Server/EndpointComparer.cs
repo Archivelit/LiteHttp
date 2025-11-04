@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Server;    
 
-public class EndpointComparer : IEqualityComparer<Endpoint>
+internal sealed class EndpointComparer : IEqualityComparer<Endpoint>
 {
     public static readonly EndpointComparer Instance = new();
 

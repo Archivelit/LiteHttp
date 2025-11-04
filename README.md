@@ -18,7 +18,7 @@ server.MapGet("/", () => new ActionResult(ResponseCode.Ok)); // Creates a root e
 await server.Start();
 ```
 
-You can also find it in `src/ExampleApp/Program.cs`
+You can also find it in `src/SampleApp/Program.cs`
 
 **Important that default server address is localhost:30000 (can be easily changed using `server.SetAddress()` and `server.SetPort()`)**
 

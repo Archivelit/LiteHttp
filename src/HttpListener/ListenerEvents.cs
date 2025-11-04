@@ -2,14 +2,14 @@
 
 public sealed partial class Listener : IListener, IDisposable
 {
-    public event Func<RequestReceivedEvent, CancellationToken, ValueTask>? OnRequestReceived;
+    public event Func<RequestReceivedEvent, CancellationToken, ValueTask>? RequestReceived;
 
-    public void RaiseRequestReceived(RequestReceivedEvent connection, CancellationToken ct) =>
-        OnRequestReceived?.Invoke(connection, ct);
+    public void OnRequestReceived(RequestReceivedEvent connection, CancellationToken ct) =>
+        RequestReceived?.Invoke(connection, ct);
 
     public void SubscribeToRequestReceived(Func<RequestReceivedEvent, CancellationToken, ValueTask> handler) =>
-        OnRequestReceived += handler;
+        RequestReceived += handler;
 
     public void UnsubscribeFromRequestReceived(Func<RequestReceivedEvent, CancellationToken, ValueTask> handler) =>
-        OnRequestReceived -= handler;
+        RequestReceived -= handler;
 }

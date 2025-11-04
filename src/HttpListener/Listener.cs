@@ -53,7 +53,7 @@ public sealed partial class Listener : IListener, IDisposable
 
                 Log.Logger.Debug("Request accepted");
 
-                RaiseRequestReceived(new RequestReceivedEvent(connection), stoppingToken);
+                OnRequestReceived(new RequestReceivedEvent(connection), stoppingToken);
             }
         }
         catch (Exception ex)
