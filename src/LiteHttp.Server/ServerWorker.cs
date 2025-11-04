@@ -7,7 +7,7 @@ public sealed class ServerWorker : IServerWorker, IDisposable
     private readonly Router _router = new();
     private readonly Parser _parser = Parser.Instance;
     private readonly Receiver _receiver = Receiver.Instance;
-    private readonly ResponseBuilder _responseGenerator = new();
+    private readonly ResponseBuilder _reponseBuilder = new();
     // TODO: refactor to handle large requests and prevent unexpected errors
 
     public ServerWorker(IEndpointProvider endpointProvider, string address, int port) =>
@@ -17,17 +17,16 @@ public sealed class ServerWorker : IServerWorker, IDisposable
         _router.SetProvider(endpointProvider);
 
     public void SetHostPort(int port) =>
-        _responseGenerator.Port = port;
+        _reponseBuilder.Port = port;
 
     public void SetHostAddress(string address) =>
-        _responseGenerator.Address = address;
+        _reponseBuilder.Address = address;
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    public async ValueTask HandleEvent(RequestReceivedEvent @event, CancellationToken cancellationToken)
+    public async Task HandleRequest(RequestReceivedEvent @event, CancellationToken cancellationToken)
     {
         try
         {
-            // var contextBytes = await _serializer.RecieveFromConnection(@event.Connection, ct).ConfigureAwait(false);
             var contextBytes = await _receiver.RecieveFromConnection(@event.Connection, cancellationToken).ConfigureAwait(false);
             
             var context = _parser.Parse(contextBytes);
@@ -36,7 +35,7 @@ public sealed class ServerWorker : IServerWorker, IDisposable
 
             if (action is null)
             {
-                var notFoundResponse = _responseGenerator.Build(ActionResultFactory.Instance.NotFound());
+                var notFoundResponse = _reponseBuilder.Build(ActionResultFactory.Instance.NotFound());
                 
                 await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse, cancellationToken).ConfigureAwait(false);
 
@@ -50,28 +49,24 @@ public sealed class ServerWorker : IServerWorker, IDisposable
             // TODO: add action execute module which will do work below
 
             if (actionResult is IActionResult<object> result)
-                response = _responseGenerator.Build(result, Encoding.UTF8.GetBytes(result.Result.ToString() ?? string.Empty));
+                response = _reponseBuilder.Build(result, Encoding.UTF8.GetBytes(result.Result.ToString() ?? string.Empty));
             else
-                response = _responseGenerator.Build(actionResult);
+                response = _reponseBuilder.Build(actionResult);
 
             await SendResponseAndDisposeConnection(@event.Connection, response, cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // TODO: add exception logging
-            var response = _responseGenerator.Build(ActionResultFactory.Instance.InternalServerError());
+            var response = _reponseBuilder.Build(ActionResultFactory.Instance.InternalServerError());
             
             await SendResponseAndDisposeConnection(@event.Connection, response, cancellationToken).ConfigureAwait(false);
-        }
-        finally
-        {
-            WorkCompleted?.Invoke(this);
         }
     }
 
     public void Dispose()
     {
-        _responseGenerator.Dispose();
+        _reponseBuilder.Dispose();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -82,6 +77,4 @@ public sealed class ServerWorker : IServerWorker, IDisposable
         connection.Close();
         connection.Dispose();
     }
-
-    public event Func<ServerWorker, ValueTask> WorkCompleted;
 }

@@ -10,7 +10,7 @@ public class ReverseProxy(
     {
         var worker = await _availableWorkers.Reader.ReadAsync(ct).ConfigureAwait(false);
 
-        worker?.HandleEvent(@event, ct);
+        worker?.HandleRequest(@event, ct);
     }
 
     public ValueTask PublishWorker(ServerWorker worker) =>

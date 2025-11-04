@@ -7,7 +7,6 @@ public sealed class HttpServer : IServer, IDisposable
     private readonly RequestEventBus _eventBus = new();
 	private readonly EndpointProvider _endpointProvider = new();
     
-    private ReverseProxy _reverseProxy;
     private ServerWorker[]? _workerPool;
     
     public HttpServer() =>
@@ -24,17 +23,35 @@ public sealed class HttpServer : IServer, IDisposable
     {
         try
         {
-            Task.Run(() => _listener.StartListen(cancellationToken));
+            List<Task> tasks = new(_workerPool!.Length + 1); // +1 for listener task
 
-            while (!cancellationToken.IsCancellationRequested)
+            var listenerTask = Task.Run(async () => await _listener.StartListen(cancellationToken));
+
+            tasks.Add(listenerTask);
+
+            foreach (var worker in _workerPool)
             {
-                var @event = await _eventBus.ConsumeAsync(cancellationToken).ConfigureAwait(false);
-                _reverseProxy.Proxy(@event, cancellationToken);
+                var workerTask = Task.Run(async () =>
+                {
+                    while (!cancellationToken.IsCancellationRequested)
+                    {
+                        var @event = await _eventBus.ConsumeAsync(cancellationToken).ConfigureAwait(false);
+                        await worker.HandleRequest(@event, cancellationToken).ConfigureAwait(false);
+                    }
+                });
+                tasks.Add(workerTask);
             }
+
+            await Task.WhenAll(tasks);
         }
         catch(OperationCanceledException)
         {
+            Console.WriteLine($"[HttpServer] Cancellation was requested from token");
             Dispose();
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine($"[HttpServer] An error occurred: {ex.Message}");
         }
     }
 
@@ -69,7 +86,7 @@ public sealed class HttpServer : IServer, IDisposable
 
         _listener.SetIpAddress(iPAddress!);
 
-        foreach(var worker in _workerPool)
+        foreach(var worker in _workerPool!)
         {
             worker.SetHostAddress(address);
         }
@@ -98,14 +115,6 @@ public sealed class HttpServer : IServer, IDisposable
         for (var i = 0; i < _workerPool.Length; i++)
         {
             _workerPool[i] = new(_endpointProvider, _listener.ListenerAddress.ToString(), _listener.ListenerPort);
-        }
-
-        _reverseProxy = new ReverseProxy(_workerPool);
-
-        foreach(var worker in _workerPool)
-        { 
-            worker.WorkCompleted += _reverseProxy.PublishWorker;
-            _reverseProxy.PublishWorker(worker);
         }
     }
 }
