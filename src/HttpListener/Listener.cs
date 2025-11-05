@@ -6,7 +6,7 @@ public sealed partial class Listener : IListener, IDisposable
     public Socket Socket { get => _socket; }
     public int ListenerPort { get => _serverPort; }
     public IPAddress ListenerAddress { get => _ipv4Address; }
-
+    
     private Socket _socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
     private int _serverPort;
     private IPAddress _ipv4Address;

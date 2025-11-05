@@ -13,7 +13,7 @@ The following example shows easy server with one endpoint:
 ```csharp
 var server = new HttpServer();
 
-server.MapGet("/", () => new ActionResult(ResponseCode.Ok)); // Creates a root endpoint returning status code 200
+server.MapGet("/", () => ActionResultFactory.Instance.Ok());
 
 await server.Start();
 ```
@@ -21,11 +21,6 @@ await server.Start();
 You can also find it in `src/SampleApp/Program.cs`
 
 **Important that default server address is localhost:30000 (can be easily changed using `server.SetAddress()` and `server.SetPort()`)**
-
-```csharp
-var factory = new ActionResultFactory();
-var response = factory.Ok(); // Generates IActionResult with status code 200
-```
 
 # Benchmarks
 

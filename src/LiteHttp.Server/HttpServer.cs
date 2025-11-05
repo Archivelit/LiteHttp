@@ -46,12 +46,7 @@ public sealed class HttpServer : IServer, IDisposable
         }
         catch(OperationCanceledException)
         {
-            Console.WriteLine($"[HttpServer] Cancellation was requested from token");
             Dispose();
-        }
-        catch(Exception ex)
-        {
-            Console.WriteLine($"[HttpServer] An error occurred: {ex.Message}");
         }
     }
 

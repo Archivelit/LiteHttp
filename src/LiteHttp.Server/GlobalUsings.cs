@@ -3,7 +3,6 @@ global using LiteHttp.Models.Events;
 global using LiteHttp.Enums;
 global using LiteHttp.Models;
 global using LiteHttp.Constants;
-global using LiteHttp.EventBus;
 global using LiteHttp.Extensions;
 global using LiteHttp.Abstractions.Factories;
 global using LiteHttp.RequestProcessors;
