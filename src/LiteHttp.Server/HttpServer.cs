@@ -5,7 +5,7 @@ public sealed class HttpServer : IServer, IDisposable
 {
     private readonly InternalServer _internalServer;
 
-    public HttpServer(int workersCount)
+    public HttpServer(int workersCount = default)
     {
         if (workersCount <= 1)
             _internalServer = new InternalServer(workersCount);
