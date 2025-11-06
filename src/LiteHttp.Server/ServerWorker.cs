@@ -42,11 +42,11 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
                 return;
             }
 
+            // TODO: add action execute module which will do work below
+            
             var actionResult = action();
 
             ReadOnlyMemory<byte> response;
-
-            // TODO: add action execute module which will do work below
 
             if (actionResult is IActionResult<object> result)
                 response = _reponseBuilder.Build(result, Encoding.UTF8.GetBytes(result.Result.ToString() ?? string.Empty));

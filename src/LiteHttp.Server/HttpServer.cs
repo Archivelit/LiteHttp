@@ -3,7 +3,15 @@
 #pragma warning disable CS8618, CS4014
 public sealed class HttpServer : IServer, IDisposable
 {
-    private readonly InternalServer _internalServer = new();
+    private readonly InternalServer _internalServer;
+
+    public HttpServer(int workersCount)
+    {
+        if (workersCount <= 1)
+            _internalServer = new InternalServer(workersCount);
+        else
+            _internalServer = new InternalServer();
+    }
 
     public Task Start(CancellationToken cancellationToken = default) =>
         _internalServer.Start(cancellationToken);

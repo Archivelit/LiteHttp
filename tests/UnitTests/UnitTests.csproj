@@ -24,7 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\EventBus\EventBus.csproj" />
     <ProjectReference Include="..\..\src\HttpListener\Listener.csproj" />
     <ProjectReference Include="..\..\src\LiteHttp.Server\LiteHttp.Server.csproj" />
     <ProjectReference Include="..\..\src\RequestProcessors\RequestProcessors.csproj" />
