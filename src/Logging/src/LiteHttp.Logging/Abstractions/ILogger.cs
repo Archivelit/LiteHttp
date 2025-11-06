@@ -9,3 +9,5 @@ public interface ILogger
     void LogError(FormattableString message);
     void LogCritical(FormattableString message);
 }
+
+public interface ILogger<TCategoryName> : ILogger;
