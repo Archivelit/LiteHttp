@@ -6,8 +6,7 @@ public interface ILogger
     void LogDebug(FormattableString message);
     void LogInformation(FormattableString message);
     void LogWarning(FormattableString message);
-    void LogError(FormattableString message);
-    void LogCritical(FormattableString message);
+    void LogError(Exception ex, FormattableString message);
 }
 
 public interface ILogger<TCategoryName> : ILogger;

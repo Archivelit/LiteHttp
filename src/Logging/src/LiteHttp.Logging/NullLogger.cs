@@ -4,11 +4,15 @@ public sealed class NullLogger : ILogger
 {
     public static readonly NullLogger Instance = new NullLogger();
 
-    public void LogCritical(FormattableString message) { }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void LogDebug(FormattableString message) { }
-    public void LogError(FormattableString message) { }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void LogError(Exception ex, FormattableString message) { }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void LogInformation(FormattableString message) { }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void LogTrace(FormattableString message) { }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void LogWarning(FormattableString message) { }
 }
 
@@ -16,10 +20,14 @@ public sealed class NullLogger<TCategoryName> : ILogger<TCategoryName>
 {
     public static readonly NullLogger<TCategoryName> Instance = new NullLogger<TCategoryName>();
 
-    public void LogCritical(FormattableString message) { }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void LogDebug(FormattableString message) { }
-    public void LogError(FormattableString message) { }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void LogError(Exception ex, FormattableString message) { }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void LogInformation(FormattableString message) { }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void LogTrace(FormattableString message) { }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void LogWarning(FormattableString message) { }
 }
