@@ -3,4 +3,5 @@ global using System.Net;
 global using LiteHttp.Constants;
 global using LiteHttp.Abstractions;
 global using LiteHttp.Models.Events;
-global using Serilog;
+global using LiteHttp.Logging.Abstractions;
+global using LiteHttp.Logging;
