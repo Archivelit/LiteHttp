@@ -6,8 +6,15 @@
     <Project Path="src/Shared/Shared.csproj" />
     <Project Path="src\LiteHttp.Server\LiteHttp.Server.csproj" />
   </Folder>
+  <Folder Name="/src/Logging/" />
+  <Folder Name="/src/Logging/src/">
+    <Project Path="src/Logging/src/LiteHttp.Logging/LiteHttp.Logging.csproj" />
+  </Folder>
+  <Folder Name="/src/Logging/src/Adapters/">
+    <Project Path="src/Logging/src/Adapters/LiteHttp.Logging.Adapters.Serilog/LiteHttp.Logging.Adapters.Serilog.csproj" />
+  </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/Benchmarks/Benchmarks.csproj" Id="2715a6e1-9ad0-467d-95a7-c6c92092a336" />
+    <Project Path="tests/Benchmarks/Benchmarks.csproj" />
     <Project Path="tests/UnitTests/UnitTests.csproj" />
   </Folder>
 </Solution>

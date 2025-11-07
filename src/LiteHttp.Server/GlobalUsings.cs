@@ -2,10 +2,12 @@
 global using LiteHttp.Models.Events;
 global using LiteHttp.Enums;
 global using LiteHttp.Models;
+global using LiteHttp.Logging;
 global using LiteHttp.Constants;
 global using LiteHttp.Extensions;
-global using LiteHttp.Abstractions.Factories;
 global using LiteHttp.RequestProcessors;
+global using LiteHttp.Logging.Abstractions;
+global using LiteHttp.Abstractions.Factories;
 global using System.Net;
 global using System.Text;
 global using System.Numerics;

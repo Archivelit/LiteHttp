@@ -10,6 +10,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\HttpListener\Listener.csproj" />
+      <ProjectReference Include="..\Logging\src\LiteHttp.Logging\LiteHttp.Logging.csproj" />
       <ProjectReference Include="..\RequestProcessors\RequestProcessors.csproj" />
       <ProjectReference Include="..\Shared\Shared.csproj" />
     </ItemGroup>

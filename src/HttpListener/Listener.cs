@@ -12,9 +12,15 @@ public sealed partial class Listener : IListener, IDisposable
     private IPAddress _ipv4Address;
     private IPEndPoint _endPoint;
     private ListenerState _listenerState = ListenerState.Stopped;
-
-    public Listener() =>
+    private ILogger<Listener> _logger = NullLogger<Listener>.Instance;  
+    
+    public Listener(ILogger<Listener>? logger = null)
+    {
+        if (logger is not null)
+            _logger = logger;
+        
         Initialize();
+    }
 
     public Listener(int port)
         : this(AddressConstants.IPV4_LOOPBACK, port) { }
@@ -22,11 +28,21 @@ public sealed partial class Listener : IListener, IDisposable
     public Listener(IPAddress address) 
         : this(address, AddressConstants.DEFAULT_SERVER_PORT) { }
 
-    public Listener(IPEndPoint endPoint) =>
+    public Listener(IPEndPoint endPoint, ILogger<Listener>? logger = null)
+    {
+        if (logger is not null)
+            _logger = logger;
+        
         Initialize(endPoint.Address, endPoint.Port);
+    }
 
-    public Listener(IPAddress address, int port) =>
+    public Listener(IPAddress address, int port, ILogger<Listener>? logger = null)
+    {
+        if (logger is not null)
+            _logger = logger;
+        
         Initialize(address, port);
+    }
 
     public async ValueTask StartListen(CancellationToken stoppingToken)
     {
@@ -36,14 +52,14 @@ public sealed partial class Listener : IListener, IDisposable
         if (!_socket.IsBound)
         {
             BindSocket();
-            Log.Logger.Debug("Socket bound");
+            _logger.LogDebug($"Socket bound");
         }
 
         _socket.Listen();
 
         _listenerState = ListenerState.Listening;
 
-        Log.Logger.Information($"Listening at {_endPoint.ToString()}"); 
+        _logger.LogInformation($"Listening at {_endPoint.ToString()}");
 
         try
         {
@@ -51,27 +67,28 @@ public sealed partial class Listener : IListener, IDisposable
             {
                 var connection = await _socket.AcceptAsync(stoppingToken).ConfigureAwait(false);
 
-                Log.Logger.Debug("Request accepted");
+                _logger.LogInformation($"Request accepted");
 
                 OnRequestReceived(new RequestReceivedEvent(connection), stoppingToken);
             }
         }
         catch (Exception ex)
         {
-            Log.Logger.Error(ex, "An error occurred while listening for incoming connections");
+            _logger.LogError(ex, $"An error occurred while listening for incoming connections");
             throw;
         }
-
-        _listenerState = ListenerState.Stopped;
+        finally
+        {
+            _listenerState = ListenerState.Stopped;
+        }
     }
 
     public void Dispose()
     {
         _socket.Dispose();
-        GC.SuppressFinalize(this);
     }
 
-    public Listener SetIpAddress(IPAddress address)
+    internal Listener SetIpAddress(IPAddress address)
     {
         if (IsListening())
             throw new InvalidOperationException("Ip address cannot be changed while server listening");
@@ -82,7 +99,7 @@ public sealed partial class Listener : IListener, IDisposable
         return this;
     }
     
-    public Listener SetPort(int port)
+    internal Listener SetPort(int port)
     {
         if (IsListening())
             throw new InvalidOperationException("Port cannot be changed while server listening");
@@ -93,6 +110,13 @@ public sealed partial class Listener : IListener, IDisposable
         return this;
     }
 
+    internal Listener SetLogger(ILogger logger)
+    {
+        _logger = logger.ForContext<Listener>();
+
+        return this;
+    }
+    
     private void BindSocket() => 
         _socket.Bind(_endPoint);
 

@@ -8,3 +8,5 @@ global using System.Diagnostics;
 global using System.Net.Sockets;
 global using System.IO.Pipelines;
 global using System.Runtime.CompilerServices;
+global using LiteHttp.Logging;
+global using LiteHttp.Logging.Abstractions;

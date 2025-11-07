@@ -39,4 +39,7 @@ public sealed class HttpServer : IServer, IDisposable
     
     public void Dispose() =>
         _internalServer.Dispose();
+
+    public void AddLogger(ILogger logger) =>
+        _internalServer.AddLogger(logger);
 }

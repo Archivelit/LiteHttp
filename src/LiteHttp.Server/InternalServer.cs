@@ -6,6 +6,8 @@ internal sealed class InternalServer : IServer, IDisposable
     private readonly RequestEventBus _eventBus = new();
 	private readonly EndpointProvider _endpointProvider = new();
     
+    private ILogger<InternalServer> _logger = NullLogger<InternalServer>.Instance;
+
     private ServerWorker[]? _workerPool;
     
     public InternalServer() =>
@@ -20,6 +22,8 @@ internal sealed class InternalServer : IServer, IDisposable
 
     public async Task Start(CancellationToken cancellationToken)
     {
+        _logger.LogInformation($"Starting server");
+
         try
         {
             List<Task> tasks = new(_workerPool!.Length + 1); // +1 for listener task
@@ -41,12 +45,19 @@ internal sealed class InternalServer : IServer, IDisposable
                 tasks.Add(workerTask);
             }
 
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(listenerTask);
         }
-        catch(OperationCanceledException)
+        catch (OperationCanceledException)
         {
             Dispose();
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error occured during server work");
+            Dispose();
+        }
+        
+        _logger.LogInformation($"Server work ended");
     }
 
     public void Dispose()
@@ -72,8 +83,10 @@ internal sealed class InternalServer : IServer, IDisposable
     public void SetAddress(string address)
     {
         ArgumentNullException.ThrowIfNullOrEmpty(address, nameof(address));
-        
+    
         var success = IPAddress.TryParse(address, out var iPAddress);
+        
+        _logger.LogInformation($"Setting server address to {address}...");
         
         if (!success)
             throw new InvalidOperationException($"Address {address} wrong formatted");
@@ -84,31 +97,63 @@ internal sealed class InternalServer : IServer, IDisposable
         {
             worker.SetHostAddress(address);
         }
+
+        _logger.LogInformation($"Server address set to {address} successfully.");
     }
 
     public void SetPort(int port)
     { 
-        _listener.SetPort(port);
-        
-        foreach(var worker in _workerPool!)
+        _logger.LogInformation($"Setting server port to {port}...");
+
+        try
         {
-            worker.SetHostPort(port);
+            _listener.SetPort(port);
+
+            foreach (var worker in _workerPool!)
+            {
+                worker.SetHostPort(port);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"An error occurred while setting server port to {port}");
+            throw;
+        }
+    }
+
+    public void AddLogger(ILogger logger)
+    {
+        _logger = logger.ForContext<InternalServer>();
+        
+        _listener.SetLogger(logger);
+        
+        foreach (var worker in _workerPool!)
+        {
+            worker.SetLogger(logger);
         }
     }
     
     private void Initialize()
     {
+        _logger.LogInformation($"Initializing InternalServer...");
+
         _listener.SubscribeToRequestReceived(_eventBus.PublishAsync);
         InitializeWorkers();
+    
+        _logger.LogInformation($"InternalServer initialized successfully.");
     }
     
     private void InitializeWorkers()
     {
+        _logger.LogInformation($"Initializing server workers...");
+
         _workerPool ??= new ServerWorker[1];
 
         for (var i = 0; i < _workerPool.Length; i++)
         {
             _workerPool[i] = new(_endpointProvider, _listener.ListenerAddress.ToString(), _listener.ListenerPort);
         }
+
+        _logger.LogInformation($"Server workers initialized successfully.");
     }
 }
