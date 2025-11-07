@@ -9,12 +9,18 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LiteHttp.Server\LiteHttp.Server.csproj" />
+    <ProjectReference Include="..\Logging\src\Adapters\LiteHttp.Logging.Adapters.Serilog\LiteHttp.Logging.Adapters.Serilog.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.GC.Server" Value="true" />
 		<RuntimeHostConfigurationOption Include="System.GC.Concurrent" Value="true" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Serilog" Version="4.3.0" />
+	  <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
 	</ItemGroup>
 
 </Project>

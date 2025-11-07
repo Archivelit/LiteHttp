@@ -1,9 +1,16 @@
-﻿using Serilog;
+﻿using LiteHttp.Logging.Abstractions;
+using Serilog;
+using ILogger = Serilog.ILogger;
 
 namespace LiteHttp.Logging.Adapters.Serilog;
 
 public sealed class SerilogLoggerAdapter : LiteHttp.Logging.Abstractions.ILogger
 {
+    /*public SerilogLoggerAdapter(LoggerConfiguration configuration)
+    {
+        Log.Logger = configuration.CreateLogger();
+    }*/
+    
     public void LogTrace(FormattableString message)
     {
         Log.Verbose(message.Format, message.GetArguments());
@@ -27,6 +34,11 @@ public sealed class SerilogLoggerAdapter : LiteHttp.Logging.Abstractions.ILogger
     public void LogError(Exception ex, FormattableString message)
     {
         Log.Error(message.Format, message.GetArguments());
+    }
+
+    public ILogger<TContext> ForContext<TContext>()
+    {
+        return SerilogLoggerAdapter<TContext>.Instance;
     }
 }
 
@@ -58,5 +70,10 @@ public sealed class SerilogLoggerAdapter<TCategoryName> : LiteHttp.Logging.Abstr
     public void LogError(Exception ex, FormattableString message)
     {
         Logger.Error(message.Format, message.GetArguments());
+    }
+
+    public ILogger<TContext> ForContext<TContext>()
+    {
+        return SerilogLoggerAdapter<TContext>.Instance;
     }
 }

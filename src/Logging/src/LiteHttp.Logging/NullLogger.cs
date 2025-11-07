@@ -14,6 +14,9 @@ public sealed class NullLogger : ILogger
     public void LogTrace(FormattableString message) { }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void LogWarning(FormattableString message) { }
+    
+    public ILogger<TContext> ForContext<TContext>()  => 
+        NullLogger<TContext>.Instance;
 }
 
 public sealed class NullLogger<TCategoryName> : ILogger<TCategoryName>
@@ -30,4 +33,7 @@ public sealed class NullLogger<TCategoryName> : ILogger<TCategoryName>
     public void LogTrace(FormattableString message) { }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void LogWarning(FormattableString message) { }
+    
+    public ILogger<TContext> ForContext<TContext>() =>
+        NullLogger<TContext>.Instance;
 }

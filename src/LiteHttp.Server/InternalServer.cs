@@ -5,7 +5,8 @@ internal sealed class InternalServer : IServer, IDisposable
     private readonly Listener.Listener _listener = new();
     private readonly RequestEventBus _eventBus = new();
 	private readonly EndpointProvider _endpointProvider = new();
-    private readonly ILogger<InternalServer> _logger = NullLogger<InternalServer>.Instance;
+    
+    private ILogger<InternalServer> _logger = NullLogger<InternalServer>.Instance;
 
     private ServerWorker[]? _workerPool;
     
@@ -113,6 +114,11 @@ internal sealed class InternalServer : IServer, IDisposable
             _logger.LogError(ex, $"An error occurred while setting server port to {port}");
             throw;
         }
+    }
+
+    public void AddLogger(ILogger logger)
+    {
+        _logger = logger.ForContext<InternalServer>();
     }
     
     private void Initialize()
