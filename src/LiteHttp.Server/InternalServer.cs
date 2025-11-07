@@ -21,6 +21,8 @@ internal sealed class InternalServer : IServer, IDisposable
 
     public async Task Start(CancellationToken cancellationToken)
     {
+        _logger.LogInformation($"Starting server");
+        
         try
         {
             List<Task> tasks = new(_workerPool!.Length + 1); // +1 for listener task
@@ -48,6 +50,8 @@ internal sealed class InternalServer : IServer, IDisposable
         {
             Dispose();
         }
+        
+        _logger.LogInformation($"Server work ended");
     }
 
     public void Dispose()
