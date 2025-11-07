@@ -6,7 +6,7 @@ var server = new HttpServer(1);
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
-    .MinimumLevel.Information()
+    .MinimumLevel.Debug()
     .CreateLogger();
 
 var loggerAdapter = new SerilogLoggerAdapter();

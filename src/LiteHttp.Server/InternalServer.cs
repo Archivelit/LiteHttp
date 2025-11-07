@@ -23,7 +23,7 @@ internal sealed class InternalServer : IServer, IDisposable
     public async Task Start(CancellationToken cancellationToken)
     {
         _logger.LogInformation($"Starting server");
-        
+
         try
         {
             List<Task> tasks = new(_workerPool!.Length + 1); // +1 for listener task
@@ -45,10 +45,15 @@ internal sealed class InternalServer : IServer, IDisposable
                 tasks.Add(workerTask);
             }
 
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(listenerTask);
         }
-        catch(OperationCanceledException)
+        catch (OperationCanceledException)
         {
+            Dispose();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error occured during server work");
             Dispose();
         }
         
@@ -119,6 +124,13 @@ internal sealed class InternalServer : IServer, IDisposable
     public void AddLogger(ILogger logger)
     {
         _logger = logger.ForContext<InternalServer>();
+        
+        _listener.SetLogger(logger);
+        
+        foreach (var worker in _workerPool!)
+        {
+            worker.SetLogger(logger);
+        }
     }
     
     private void Initialize()

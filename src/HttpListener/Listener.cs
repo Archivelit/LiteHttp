@@ -1,5 +1,4 @@
-﻿
-namespace LiteHttp.Listener;
+﻿namespace LiteHttp.Listener;
 
 #pragma warning disable CS8618
 public sealed partial class Listener : IListener, IDisposable
@@ -68,7 +67,7 @@ public sealed partial class Listener : IListener, IDisposable
             {
                 var connection = await _socket.AcceptAsync(stoppingToken).ConfigureAwait(false);
 
-                _logger.LogDebug($"Request accepted");
+                _logger.LogInformation($"Request accepted");
 
                 OnRequestReceived(new RequestReceivedEvent(connection), stoppingToken);
             }
@@ -89,7 +88,7 @@ public sealed partial class Listener : IListener, IDisposable
         _socket.Dispose();
     }
 
-    public Listener SetIpAddress(IPAddress address)
+    internal Listener SetIpAddress(IPAddress address)
     {
         if (IsListening())
             throw new InvalidOperationException("Ip address cannot be changed while server listening");
@@ -100,7 +99,7 @@ public sealed partial class Listener : IListener, IDisposable
         return this;
     }
     
-    public Listener SetPort(int port)
+    internal Listener SetPort(int port)
     {
         if (IsListening())
             throw new InvalidOperationException("Port cannot be changed while server listening");
@@ -111,6 +110,13 @@ public sealed partial class Listener : IListener, IDisposable
         return this;
     }
 
+    internal Listener SetLogger(ILogger logger)
+    {
+        _logger = logger.ForContext<Listener>();
+
+        return this;
+    }
+    
     private void BindSocket() => 
         _socket.Bind(_endPoint);
 

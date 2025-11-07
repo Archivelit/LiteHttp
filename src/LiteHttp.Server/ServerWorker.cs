@@ -7,7 +7,9 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
     private readonly Router _router = new();
     private readonly Parser _parser = Parser.Instance;
     private readonly Receiver _receiver = Receiver.Instance;
-    private readonly ResponseBuilder _reponseBuilder = new();
+    private readonly ResponseBuilder _responseBuilder = new();
+
+    private ILogger<ServerWorker> _logger = NullLogger<ServerWorker>.Instance; 
     // TODO: refactor to handle large requests and prevent unexpected errors
 
     public ServerWorker(IEndpointProvider endpointProvider, string address, int port) =>
@@ -17,10 +19,10 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
         _router.SetProvider(endpointProvider);
 
     public void SetHostPort(int port) =>
-        _reponseBuilder.Port = port;
+        _responseBuilder.Port = port;
 
     public void SetHostAddress(string address) =>
-        _reponseBuilder.Address = address;
+        _responseBuilder.Address = address;
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public async Task HandleRequest(RequestReceivedEvent @event, CancellationToken cancellationToken)
@@ -35,7 +37,8 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
 
             if (action is null)
             {
-                var notFoundResponse = _reponseBuilder.Build(ActionResultFactory.Instance.NotFound());
+                _logger.LogInformation($"Endpoint not found");
+                var notFoundResponse = _responseBuilder.Build(ActionResultFactory.Instance.NotFound());
                 
                 await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse, cancellationToken).ConfigureAwait(false);
 
@@ -49,31 +52,41 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
             ReadOnlyMemory<byte> response;
 
             if (actionResult is IActionResult<object> result)
-                response = _reponseBuilder.Build(result, Encoding.UTF8.GetBytes(result.Result.ToString() ?? string.Empty));
+                response = _responseBuilder.Build(result, Encoding.UTF8.GetBytes(result.Result.ToString() ?? string.Empty));
             else
-                response = _reponseBuilder.Build(actionResult);
+                response = _responseBuilder.Build(actionResult);
 
             await SendResponseAndDisposeConnection(@event.Connection, response, cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // TODO: add exception logging
-            var response = _reponseBuilder.Build(ActionResultFactory.Instance.InternalServerError());
+            _logger.LogError(ex, $"Error occured during processing request");
             
+            var response = _responseBuilder.Build(ActionResultFactory.Instance.InternalServerError());
             await SendResponseAndDisposeConnection(@event.Connection, response, cancellationToken).ConfigureAwait(false);
         }
     }
 
     public void Dispose()
     {
-        _reponseBuilder.Dispose();
+        _responseBuilder.Dispose();
+    }
+
+    internal void SetLogger(ILogger logger)
+    {
+        _logger = logger.ForContext<ServerWorker>();
+        
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private async ValueTask SendResponseAndDisposeConnection(Socket connection, ReadOnlyMemory<byte> response, CancellationToken ct)
     {
+        _logger.LogDebug($"Sending response");
+        
         _ = await _responder.SendResponse(connection, response).ConfigureAwait(false);
-
+        
+        _logger.LogInformation($"Response sent successfully");
+        
         connection.Close();
         connection.Dispose();
     }
