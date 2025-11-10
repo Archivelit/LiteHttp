@@ -13,9 +13,9 @@ public sealed class Parser : IParser
         var method = GetMethod(firstLine);
         var path = GetPath(firstLine);
 
-        var headers = requestParts.Headers[firstLine.Length..]; // First line of request does not contain any header
+        var headerSection = requestParts.Headers[(firstLine.Length + RequestSymbolsAsBytes.NewRequestLine.Length)..]; // First line of request does not contain any header
 
-        return new(method, path, MapHeaders(headers), requestParts.Body);
+        return new(method, path, MapHeaders(headerSection), requestParts.Body);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -43,56 +43,46 @@ public sealed class Parser : IParser
         if (splitterIndex == -1)
             return (request, null);
         
-        return (request[..(splitterIndex + RequestSymbolsAsBytes.RequestSplitter.Length)], request[(splitterIndex + RequestSymbolsAsBytes.RequestSplitter.Length)..]);
+        return (request[..(splitterIndex + RequestSymbolsAsBytes.NewRequestLine.Length)], // NOTE: do not change, it is breaking change. Adding 1 new line symbol for proper header parsing 
+            request[(splitterIndex + RequestSymbolsAsBytes.RequestSplitter.Length)..]);
     }
     
     [SkipLocalsInit]
     private Dictionary<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>> MapHeaders(Memory<byte> headers)
     {
         var headersDictionary = new Dictionary<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>>(8);
-        
-        while(true)
+
+        while (true)
         {
-            var trimmed = headers.Trim((byte)' ');
+            if (headers.Length < 2) break;
 
-            var eol = trimmed.Span.IndexOf(RequestSymbolsAsBytes.NewLine);
+            var eol = headers.Span.IndexOf(RequestSymbolsAsBytes.NewLine);
+
+
             if (eol == -1)
-                break;
+            {
+                var colonIndex = headers.Span.IndexOf(RequestSymbolsAsBytes.Colon);
+             
+                if (colonIndex == -1) break;
+                headersDictionary.Add(headers[..colonIndex], headers[(colonIndex + 2)..]); // +2 to exclude colon and space,
+                return headersDictionary;
+            }
 
-            var colon = trimmed.Span[..eol].IndexOf(RequestSymbolsAsBytes.Colon);
+            var colon = headers.Span[..eol].IndexOf(RequestSymbolsAsBytes.Colon);
+            
             if (colon == -1)
-                break;
+                throw new FormatException("The headers had wrong format");
             
-            Debug.Assert(colon > eol);
+            Debug.Assert(colon < eol);
 
-            var key = trimmed[..colon];
-            var value = trimmed[(colon + 2)..eol]; // 2 symbols are colon and space between value and colon
+            var key = headers[..colon];
+            var value = headers[(colon + 2)..(eol - 1)]; // +2 to exclude colon and space, -1 to exclude carriage return (\r) symbol
             
-            headersDictionary.Add(key, value);
+            headersDictionary[key] = value;
 
-            headers = trimmed[eol..];
+            headers = headers[(eol + 1)..]; // +1 to exclude eol symbol
         }
 
         return headersDictionary;
-    }
-    
-    [Obsolete("In new versions server works with bytes directly, so working strings are deprecated. " +
-              "I decided to let it to reuse logic in new MapHeaders realisation")]
-    private (string key, string value)? PerformOnString(ReadOnlySpan<byte> headerLine)
-    {
-        var lineAsString = Encoding.UTF8.GetString(headerLine);
-            
-        if (string.IsNullOrEmpty(lineAsString.Trim()))
-            return null;
-            
-        var colonIndex = lineAsString.IndexOf(':');
-
-        if (colonIndex == -1)
-            throw new FormatException("Headers must contain ':' symbol");
-
-        var key = lineAsString[..colonIndex].Trim(); 
-        var value = lineAsString[(colonIndex + 1)..].Trim();
-
-        return (key, value);
     }
 }
