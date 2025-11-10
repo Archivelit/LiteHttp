@@ -7,3 +7,4 @@ global using LiteHttp.Constants;
 global using LiteHttp.Models;
 global using System.Text;
 global using LiteHttp.Server;
+global using LiteHttp.RequestProcessors;

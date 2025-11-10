@@ -43,7 +43,7 @@ public sealed class Parser : IParser
         if (splitterIndex == -1)
             return (request, null);
         
-        return (request[..splitterIndex], request[splitterIndex..]);
+        return (request[..(splitterIndex + RequestSymbolsAsBytes.RequestSplitter.Length)], request[(splitterIndex + RequestSymbolsAsBytes.RequestSplitter.Length)..]);
     }
     
     [SkipLocalsInit]
