@@ -15,7 +15,7 @@ public class ParserBenchmarks
     [Params(1_000, 10_000, 1_000_000)]
     public int N;
 
-    //[Benchmark, BenchmarkCategory("Parsing")]
+    [Benchmark, BenchmarkCategory("Parsing")]
     public HttpContext Parse() =>
         _ = _parser.Parse(_request);
 }
