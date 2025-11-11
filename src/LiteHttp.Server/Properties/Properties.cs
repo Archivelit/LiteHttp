@@ -1,2 +1,2 @@
-﻿[assembly: InternalsVisibleTo("LiteHttp.Benchmarks")]
+﻿[assembly: InternalsVisibleTo("Benchmarks")]
 [assembly: InternalsVisibleTo("UnitTests")]

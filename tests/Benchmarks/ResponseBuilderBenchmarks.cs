@@ -1,7 +1,4 @@
-﻿using LiteHttp.Server.Internal.RequestProcessors;
-using LiteHttp.Server.Internal.Shared.Enums;
-
-namespace LiteHttp.Benchmarks;
+﻿namespace LiteHttp.Benchmarks;
 
 [CPUUsageDiagnoser, MemoryDiagnoser, DotNetObjectAllocJobConfiguration, DotNetObjectAllocDiagnoser, CategoriesColumn, Orderer(BenchmarkDotNet.Order.SummaryOrderPolicy.FastestToSlowest)]
 public class ResponseBuilderBenchmarks
