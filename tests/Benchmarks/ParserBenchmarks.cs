@@ -1,4 +1,6 @@
-﻿namespace LiteHttp.Benchmarks;
+﻿using LiteHttp.Server.Internal.Shared.Models;
+
+namespace LiteHttp.Benchmarks;
 
 [CPUUsageDiagnoser, MemoryDiagnoser, DotNetObjectAllocJobConfiguration, DotNetObjectAllocDiagnoser, CategoriesColumn, Orderer(BenchmarkDotNet.Order.SummaryOrderPolicy.FastestToSlowest)]
 public class ParserBenchmarks

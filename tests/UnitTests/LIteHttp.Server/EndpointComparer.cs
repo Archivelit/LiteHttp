@@ -1,4 +1,7 @@
-﻿namespace UnitTests.LiteHttp.Server;
+﻿using LiteHttp.Server.Internal.Shared.Constants;
+using LiteHttp.Server.Internal.Shared.Models;
+
+namespace UnitTests.LiteHttp.Server;
 
 public class EndpointComparerTests
 {

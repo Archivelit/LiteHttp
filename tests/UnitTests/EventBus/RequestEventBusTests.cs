@@ -1,4 +1,7 @@
-﻿namespace UnitTests.EventBus;
+﻿using LiteHttp.Server.Internal.Shared.Abstractions.EventBus;
+using LiteHttp.Server.Internal.Shared.Models.Events;
+
+namespace UnitTests.EventBus;
 
 public class RequestEventBusTests
 {

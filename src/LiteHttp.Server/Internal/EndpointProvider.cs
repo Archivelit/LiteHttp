@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Server;
 
-public sealed class EndpointProvider(
+internal sealed class EndpointProvider(
     ConcurrentDictionary<Endpoint, Func<IActionResult>> endpoints
     ) : IEndpointProvider
 {
