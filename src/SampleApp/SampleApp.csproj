@@ -10,7 +10,6 @@
   <ItemGroup>
     <ProjectReference Include="..\LiteHttp.Server\LiteHttp.Server.csproj" />
     <ProjectReference Include="..\Logging\src\Adapters\LiteHttp.Logging.Adapters.Serilog\LiteHttp.Logging.Adapters.Serilog.csproj" />
-    <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
 	<ItemGroup>

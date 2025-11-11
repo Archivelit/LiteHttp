@@ -11,9 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\HttpListener\Listener.csproj" />
     <ProjectReference Include="..\..\src\LiteHttp.Server\LiteHttp.Server.csproj" />
-    <ProjectReference Include="..\..\src\RequestProcessors\RequestProcessors.csproj" />
-    <ProjectReference Include="..\..\src\Shared\Shared.csproj" />
   </ItemGroup>
 </Project>
