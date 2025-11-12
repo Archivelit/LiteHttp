@@ -27,7 +27,7 @@ public class ParserTests
         
         // Assert
         result.Method.Span.ToArray().Should().BeEquivalentTo(expectedMethod);
-        result.Path.Span.ToArray().Should().BeEquivalentTo(expectedRoute);
+        result.Route.Span.ToArray().Should().BeEquivalentTo(expectedRoute);
 
         ParseHeadersToStrings(result, out var actualHeaders);
         actualHeaders.Should().BeEquivalentTo(expectedHeaders);
@@ -57,7 +57,7 @@ public class ParserTests
 
         // Assert
         result.Method.Span.ToArray().Should().BeEquivalentTo(expectedMethod);
-        result.Path.Span.ToArray().Should().BeEquivalentTo(expectedRoute);
+        result.Route.Span.ToArray().Should().BeEquivalentTo(expectedRoute);
 
         ParseHeadersToStrings(result, out var actualHeaders);
         actualHeaders.Should().BeEquivalentTo(expectedHeaders);
@@ -89,7 +89,7 @@ public class ParserTests
 
         // Assert
         result.Method.Span.ToArray().Should().BeEquivalentTo(expectedMethod);
-        result.Path.Span.ToArray().Should().BeEquivalentTo(expectedRoute);
+        result.Route.Span.ToArray().Should().BeEquivalentTo(expectedRoute);
         
         ParseHeadersToStrings(result, out var actualHeaders);
         actualHeaders.Should().BeEquivalentTo(expectedHeaders);
@@ -106,9 +106,53 @@ public class ParserTests
         );
     }
 
+    [Fact]
+    public void Parse_InvalidRequest_WithoutHttpVersion()
+    {
+        // Arrange
+        var request = Encoding.UTF8.GetBytes("GET /\r\nHost: test.com");
+        var action = () => _parser.Parse(request);
+        
+        // Act & Assert
+        action.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void Parse_InvalidRequest_WithoutMethod()
+    {
+        // Arrange
+        var request = Encoding.UTF8.GetBytes("/ HTTP1.0\r\nHost: test.com");
+        var action = () => _parser.Parse(request);
+        
+        // Act & Assert
+        action.Should().Throw<ArgumentException>(); 
+    }
+
+    [Fact]
+    public void Parse_InvalidRequest_WithoutRoute()
+    {
+        // Arrange
+        var request = Encoding.UTF8.GetBytes("GET HTTP1.0\r\nHost: test.com");
+        var action = () => _parser.Parse(request);
+        
+        // Act & Assert
+        action.Should().Throw<ArgumentException>(); 
+    }
+
+    [Fact]
+    public void Parse_InvalidRequest_WithoutSpaces()
+    {
+        // Arrange
+        var request = Encoding.UTF8.GetBytes("GET/HTTP1.0\r\nHost: test.com");
+        var action = () => _parser.Parse(request);
+        
+        // Act & Assert
+        action.Should().Throw<ArgumentException>(); 
+    }
+    
     private void WriteContextData(HttpContext context)
     {
-        _outputHelper.WriteLine($"The request route gained after parsing: {Encoding.UTF8.GetString(context.Path.Span)}");
+        _outputHelper.WriteLine($"The request route gained after parsing: {Encoding.UTF8.GetString(context.Route.Span)}");
         _outputHelper.WriteLine($"The request method gained after parsing: {Encoding.UTF8.GetString(context.Method.Span)}");
         _outputHelper.WriteLine(context.Body.HasValue
             ? $"Request body gained after parsing: {Encoding.UTF8.GetString(context.Body.Value.Span)}"

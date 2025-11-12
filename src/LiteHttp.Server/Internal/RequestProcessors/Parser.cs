@@ -11,29 +11,40 @@ internal sealed class Parser : IParser
         var firstLine = GetFirstLine(requestParts.Headers);
 
         var method = GetMethod(firstLine);
-        var path = GetPath(firstLine);
+        var route = GetRoute(firstLine);
 
         var headerSection = requestParts.Headers[(firstLine.Length + RequestSymbolsAsBytes.NewRequestLine.Length)..]; // First line of request does not contain any header
 
-        return new(method, path, MapHeaders(headerSection), requestParts.Body);
+        return new(method, route, MapHeaders(headerSection), requestParts.Body);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Memory<byte> GetPath(Memory<byte> firstRequestLine)
+    private Memory<byte> GetRoute(Memory<byte> firstRequestLine)
     {
         var firstSpaceIndex = firstRequestLine.Span.IndexOf(RequestSymbolsAsBytes.Space);
         var lastSpaceIndex = firstRequestLine.Span.LastIndexOf(RequestSymbolsAsBytes.Space);
+        
+        if (firstSpaceIndex == lastSpaceIndex)
+            throw new ArgumentException("The request has wrong format");
 
-        return firstRequestLine[(firstSpaceIndex+1)..lastSpaceIndex]; // space index + 1 to get first symbol of path
+        return firstRequestLine[(firstSpaceIndex+1)..lastSpaceIndex]; // space index + 1 to exclude whitespace and get first symbol of route
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Memory<byte> GetFirstLine(Memory<byte> request) =>
-        request[..request.Span.IndexOf(RequestSymbolsAsBytes.CarriageReturnSymbol)];
+    private Memory<byte> GetFirstLine(Memory<byte> firstRequestLine) =>
+        firstRequestLine[..firstRequestLine.Span.IndexOf(RequestSymbolsAsBytes.CarriageReturnSymbol)];
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Memory<byte> GetMethod(Memory<byte> request) =>
-        request[..request.Span.IndexOf(RequestSymbolsAsBytes.Space)];
+    private Memory<byte> GetMethod(Memory<byte> firstRequestLine)
+    {
+        var spaceIndex = firstRequestLine.Span.IndexOf(RequestSymbolsAsBytes.Space);
+
+        if (spaceIndex == -1)
+        {
+            throw new ArgumentException("The request has wrong format");
+        }
+        
+        return firstRequestLine[..spaceIndex];
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private (Memory<byte> Headers, Memory<byte>? Body) SplitRequest(Memory<byte> request)
