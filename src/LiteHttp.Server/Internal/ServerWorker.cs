@@ -1,4 +1,7 @@
-﻿namespace LiteHttp.Server;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+
+namespace LiteHttp.Server;
 
 #pragma warning disable CS8618
 internal sealed class ServerWorker : IServerWorker, IDisposable

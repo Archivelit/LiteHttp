@@ -52,7 +52,7 @@ public sealed class ResponseBuilder : IResponseBuilder, IDisposable
 
         BuildHeaders(responseBody);
 
-        Append(RequestSymbolsAsBytes.NewRequestLine);
+        Append(RequestSymbolsAsBytes.RequestSplitter);
 
         if (responseBody is not null)
             Append(responseBody.Value);
@@ -81,8 +81,6 @@ public sealed class ResponseBuilder : IResponseBuilder, IDisposable
             if (body.Value.Length.TryFormat(memory.Span[_length..], out var written))
                 _length += written;
         }
-
-        Append(RequestSymbolsAsBytes.NewRequestLine);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
