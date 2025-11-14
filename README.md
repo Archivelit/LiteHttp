@@ -1,41 +1,167 @@
-# LiteHttp ![version](https://img.shields.io/badge/version-1.0.10-blue.svg) ![license](https://img.shields.io/badge/license-MIT-green.svg)
+# LiteHttp ![version](https://img.shields.io/badge/version-2.0.0-blue.svg) ![license](https://img.shields.io/badge/license-MIT-green.svg)
 
-- Lightweight and dependency-free (except Serilog)
+- Lightweight and dependency-free
 - Built with System.* only
 - Simple route mapping (MapGet, MapPost, etc.)
-- ActionResultFactory for clean response handling
-- Easily configurable host and port
+- ActionResultFactory for clean and zero alloc response handling
+- Simply configurable host and port
+
+## Cannot be installed using Nuget (temporarily)
+
+---
 
 # Getting Started
 
-The following example shows easy server with one endpoint:
+## Default Server Address
+By default, LiteHttp listens on **localhost:30000**
+
+## Quickstart
+
+The following example shows a small app with one endpoint:
 
 ```csharp
-var server = new HttpServer();
+using LiteHttp.Server;
+
+var builder = new ServerBuilder();
+
+var server = builder.Build();
 
 server.MapGet("/", () => ActionResultFactory.Instance.Ok());
 
 await server.Start();
 ```
 
-You can also find it in `src/SampleApp/Program.cs`
+You can also find it in `src/SampleApp/Program.cs` (It may differ from snippet above)
 
-**Important that default server address is localhost:30000 (can be easily changed using `server.SetAddress()` and `server.SetPort()`)**
+## Features
 
+### Routing
+LiteHttp provides AspNet Core minimal-api based routing.
+
+
+Currently supported methods:
+- Get
+- Put
+- Patch
+- Post
+- Delete
+
+### Response building
+Current version provides quite effecient response building.
+The biggest current version problem is **logic customization**.
+It is **minimal** or **completely absent**.
+
+### Logging
+
+LiteHttp uses own `ILogger` interface.
+If you want to implement own logger, you have to work with `LiteHttp.Logging.Abstractions` package
+
+### Logging libraries compatibility
+
+If you want to use a logging library, you can check whether an **adapter** for your library is available in NuGet via `LiteHttp.Logging.Adapters.[libraryname]` or implement your **own adapter** if one does not exist
+
+### Current Supported Libraries (via Adapter)
+- Serilog
+
+### Implementing own adapter
+
+You can look at any adapter library to inspire or understand how it should be implemented
+
+### You can find out more about logging [here](./src/Logging)
+
+### Listening address change
+
+The default address and port can easily be changed using `builder.WithAddress()` and `builder.WithPort()` methods (Sample below)
+
+```csharp
+var builder = new ServerBuilder();
+
+builder.WithAddress(new IPAddress([192, 168, 1, 1]));
+builder.WithPort(8000);
+
+var server = builder.Build();
+
+server.MapGet("/", () => ActionResultFactory.Instance.Ok());
+
+await server.Start();
+```
+
+In example above we setting up entire server on address `192.168.1.1:8000`
+
+The `WithAddress` method also has overload `ServerBuilder WithAddress(string address)`. This overload maps domain using DNS (Domain Name System) to get first **IPV4** address for this domain
+
+---
+
+<!-- Update this section -->
 # Benchmarks
 
-### Average response time: **7ms**
+**Note:** you can find out more about single component performance [**here**](./tests/Benchmarks)
 
-### Maximum stable short-term rps: **9300**
+## Average response time: **7ms**
+
+## Maximum stable short-term rps: **9900**
+Remark: ***Maximum stable rps** means **0%** request loss*
 
 *Test was provided via **vegeta** on Machine with next configuration:*
 > - CPU: Ryzen r7 5800X
 > - RAM: 32GB 3200 MHz
 > - OS: Windows 11
 
+### Vegeta command:
+```text
+echo GET http://localhost:30000/ | vegeta attack -rate=9900 -duration=10s | vegeta report --type=text
+```
+
+## Max reached rps 20100
+
+*Test was provided in same conditions*
+
+### Vegeta command:
+```text
+echo GET http://localhost:30000/ | vegeta attack -rate=23000 -duration=10s | vegeta report --type=text
+```
+
+The average request loss during test was about 13%
+
+---
+
+# Limitations
+
+LiteHttp is still under development.
+Please, be aware that many certain features are missing or incomplete.
+If you encounter an issue or have feature request, **feel free to open an issue**.
+
+## Not supported:
+- Async endpoint delegates
+- Endpoint delegates with parameters
+- Automatic serialization of endpoint return values
+- Custom header generation
+- HttpContext access
+- Middlewares or other analogs for server flow configuration
+- Synchronous server start
+- Integration with `Microsoft.Extensions.Hosting` or `Microsoft.Extensions.DependencyInjection`
+
+## Shortcommings:
+- No XML documentation
+- No analyzers
+
+---
+
+# Goals
+The main goal of LiteHttp is build **independent mini-framework for high-throughput scenarios**.
+
+Main goals:
+--
+- High optimization
+- Aim for zero allocation
+- Avoid using non-system libraries
+- Minimal realisation
+- High customization
+
+---
+
 # License
 This project is licensed under the MIT License.
-
 
 # Contributing
 Contributions, issues and feature requests are welcome!

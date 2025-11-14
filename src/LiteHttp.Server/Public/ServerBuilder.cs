@@ -47,7 +47,8 @@ public class ServerBuilder
 
     public ServerBuilder WithAddress(string address)
     {
-        _address = Dns.GetHostAddresses(address).First().MapToIPv4();
+        _address = Dns.GetHostAddresses(address)
+            .First(a => a.AddressFamily == AddressFamily.InterNetwork);
 
         return this;
     }
