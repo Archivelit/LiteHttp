@@ -4,15 +4,16 @@
 public sealed class HttpServer : IServer, IDisposable
 {
     private readonly InternalServer _internalServer;
-
-    public HttpServer(int workersCount = default)
+    
+    internal HttpServer(int workersCount = 1, int port = AddressConstants.DEFAULT_SERVER_PORT, 
+        IPAddress? address = null, ILogger? logger = null)
     {
-        if (workersCount <= 1)
-            _internalServer = new InternalServer(workersCount);
-        else
-            _internalServer = new InternalServer();
-    }
+        logger ??= NullLogger.Instance;
+        address ??= IPAddress.Loopback;
 
+        _internalServer = new InternalServer(workersCount: workersCount, address: address, port: port, logger: logger);
+    }
+    
     public Task Start(CancellationToken cancellationToken = default) =>
         _internalServer.Start(cancellationToken);
 
@@ -39,7 +40,4 @@ public sealed class HttpServer : IServer, IDisposable
     
     public void Dispose() =>
         _internalServer.Dispose();
-
-    public void AddLogger(ILogger logger) =>
-        _internalServer.AddLogger(logger);
 }

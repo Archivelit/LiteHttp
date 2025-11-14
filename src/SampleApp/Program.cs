@@ -2,7 +2,8 @@
 using LiteHttp.Server;
 using Serilog;
 
-var server = new HttpServer(1);
+var builder = new ServerBuilder();
+
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -11,7 +12,9 @@ Log.Logger = new LoggerConfiguration()
 
 var loggerAdapter = new SerilogLoggerAdapter();
 
-server.AddLogger(loggerAdapter);
+builder.WithLogger(loggerAdapter);
+
+var server = builder.Build();
 
 server.MapGet("/", () => ActionResultFactory.Instance.Ok());
 

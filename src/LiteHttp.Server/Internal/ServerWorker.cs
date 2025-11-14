@@ -1,7 +1,4 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-
-namespace LiteHttp.Server;
+﻿namespace LiteHttp.Server;
 
 #pragma warning disable CS8618
 internal sealed class ServerWorker : IServerWorker, IDisposable
@@ -15,11 +12,8 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
     private ILogger<ServerWorker> _logger = NullLogger<ServerWorker>.Instance; 
     // TODO: refactor to handle large requests and prevent unexpected errors
 
-    public ServerWorker(IEndpointProvider endpointProvider, string address, int port) =>
-        Initialize(endpointProvider);
-    
-    public void Initialize(IEndpointProvider endpointProvider) =>
-        _router.SetProvider(endpointProvider);
+    public ServerWorker(IEndpointProvider endpointProvider, string address, int port, ILogger logger) =>
+        Initialize(endpointProvider: endpointProvider, logger: logger, port: port, address: address);
 
     public void SetHostPort(int port) =>
         _responseBuilder.Port = port;
@@ -75,12 +69,6 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
         _responseBuilder.Dispose();
     }
 
-    internal void SetLogger(ILogger logger)
-    {
-        _logger = logger.ForContext<ServerWorker>();
-        
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private async ValueTask SendResponseAndDisposeConnection(Socket connection, ReadOnlyMemory<byte> response, CancellationToken ct)
     {
@@ -92,5 +80,14 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
         
         connection.Close();
         connection.Dispose();
+    }
+    
+    private void Initialize(IEndpointProvider endpointProvider, ILogger logger, int port, string address)
+    {
+        _router.SetProvider(endpointProvider);
+        _logger = logger.ForContext<ServerWorker>();
+
+        _responseBuilder.Address = address;
+        _responseBuilder.Port = port;
     }
 }
