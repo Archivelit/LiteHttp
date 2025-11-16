@@ -1,5 +1,4 @@
-﻿using System.Net;
-using LiteHttp.Logging.Adapters.Serilog;
+﻿using LiteHttp.Logging.Adapters.Serilog;
 using LiteHttp.Server;
 using Serilog;
 
@@ -14,9 +13,6 @@ Log.Logger = new LoggerConfiguration()
 var loggerAdapter = new SerilogLoggerAdapter();
 
 builder.WithLogger(loggerAdapter);
-
-builder.WithAddress(new IPAddress([192, 168, 1, 1]));
-builder.WithPort(8000);
 
 var server = builder.Build();
 

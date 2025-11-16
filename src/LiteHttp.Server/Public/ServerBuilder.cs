@@ -1,5 +1,13 @@
 ﻿namespace LiteHttp.Server;
 
+/// <summary>
+/// Provides a builder with fluent api for configuring and creating instances of <see cref="HttpServer"/> 
+/// with customizable settings such as logger, worker count etc. The builder has no logging inside
+/// </summary>
+/// <remarks>
+/// Thread safety is not guaranteed; configure the builder on a single
+/// thread before building the server.
+/// </remarks>
 public class ServerBuilder
 {
     private ILogger _logger = NullLogger.Instance;
@@ -7,18 +15,46 @@ public class ServerBuilder
     private int _port = AddressConstants.DEFAULT_SERVER_PORT;
     private IPAddress _address = AddressConstants.IPV4_LOOPBACK;
     
+    /// <summary>
+    /// Creates and configures a new instance of the <see cref="HttpServer"/> class using the specified worker count,
+    /// port, etc.
+    /// </summary>
+    /// <remarks>The returned server instance is initialized with the parameters provided to the builder.
+    /// Ensure that the configuration properties are set appropriately before calling this method. This method does not
+    /// start the server; you must explicitly start the returned <see cref="HttpServer"/> instance.</remarks>
+    /// <returns>A configured <see cref="HttpServer"/> instance.</returns>
     public HttpServer Build()
     {
         return new HttpServer(workersCount: _workersCount, port: _port, address: _address, logger: _logger);
     }
 
+    /// <summary>
+    /// Configures the server builder to use the specified logger for diagnostic and operational messages.
+    ///  <see cref="NullLogger"/> is predefined logger for the server, use this method 
+    ///  only if you want to use custom <see cref="ILogger"/> implementation such as logging framework adapters etc.
+    ///  <para>Changes will not reflected on building stage cause <see cref="ServerBuilder"/> does not provide logging</para>
+    /// </summary>
+    /// <remarks>
+    /// Calling this method replaces any previously configured logger.
+    /// </remarks>
+    /// <param name="logger">The logger instance to use for logging server events. Cannot be null. </param>
+    /// <returns>The current <see cref="ServerBuilder"/> instance with the configured logger.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="logger"/> is null</exception>
     public ServerBuilder WithLogger(ILogger logger)
     {
+        if (logger is null)
+            throw new ArgumentNullException($"{nameof(logger)} logger cannot be null");
         _logger = logger;
 
         return this;
     }
 
+    /// <summary>
+    /// Configures the number of worker threads to be used by the server.
+    /// </summary>
+    /// <param name="workersCount">The number of worker threads to allocate. Must be greater than or equal to 1.</param>
+    /// <returns>The current <see cref="ServerBuilder"/> instance with the updated worker count.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="workersCount"/> is less than 1.</exception>
     public ServerBuilder WithWorkersCount(int workersCount)
     {
         if (workersCount < 1)
@@ -28,6 +64,12 @@ public class ServerBuilder
         return this;
     }
 
+    /// <summary>
+    /// Sets the port number for the server to listen on.
+    /// </summary>
+    /// <param name="port">The port number to assign to the server. Must be zero or greater.</param>
+    /// <returns>The current <see cref="ServerBuilder"/> instance with the specified port configured.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="port"/> is less than zero.</exception>
     public ServerBuilder WithPort(int port)
     {
         if (port < 0)
@@ -38,6 +80,11 @@ public class ServerBuilder
         return this;
     }
 
+    /// <summary>
+    /// Sets the server's network address to the specified value.
+    /// </summary>
+    /// <param name="address">The IP address to assign to the server. Cannot be null.</param>
+    /// <returns>The current <see cref="ServerBuilder"/> instance with the updated address.</returns>
     public ServerBuilder WithAddress(IPAddress address)
     {
         _address = address;
@@ -45,6 +92,22 @@ public class ServerBuilder
         return this;
     }
 
+    /// <summary>
+    /// Sets the server's network address using the specified host name or IP address.
+    /// </summary>
+    /// <remarks>
+    /// Only IPv4 addresses are considered. If the host cannot be resolved or contains no IPv4 entries,
+    /// an exception will be thrown.
+    /// <para>
+    /// If multiple addresses are resolved for the specified host, the first IPv4 address is used.
+    /// </para>
+    /// </remarks>
+    /// <param name="address">The host name or IPv4 address to use for the server. An <see cref="ArgumentNullException"/> is thrown if null.</param>
+    /// <returns>The current <see cref="ServerBuilder"/> instance with the updated address.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="address"/> is null</exception>
+    /// <exception cref="ArgumentOutOfRangeException">The <paramref name="address"/> length is greater than 255 characters.</exception>
+    /// <exception cref="SocketException">An error is encountered when resolving.<paramref name="address"/></exception>
+    /// <exception cref="ArgumentException"><paramref name="address"/> is invalid IP address.</exception>
     public ServerBuilder WithAddress(string address)
     {
         _address = Dns.GetHostAddresses(address)
