@@ -22,7 +22,7 @@ public class ParserTests
         ReadOnlyMemory<byte>? expectedBody = null;
 
         // Act
-        var result = _parser.Parse(request);
+        var result = _parser.Parse(request).Value;
         WriteContextData(result);
         
         // Assert
@@ -52,7 +52,7 @@ public class ParserTests
         ReadOnlyMemory<byte>? expectedBody = null;
 
         // Act
-        var result = _parser.Parse(request);
+        var result = _parser.Parse(request).Value;
         WriteContextData(result);
 
         // Assert
@@ -84,7 +84,7 @@ public class ParserTests
         var expectedBody = Encoding.UTF8.GetBytes("Hello, World!");
 
         // Act
-        var result = _parser.Parse(request);
+        var result = _parser.Parse(request).Value;
         WriteContextData(result);
 
         // Assert
@@ -111,10 +111,13 @@ public class ParserTests
     {
         // Arrange
         var request = Encoding.UTF8.GetBytes("GET /\r\nHost: test.com");
-        var action = () => _parser.Parse(request);
-        
-        // Act & Assert
-        action.Should().Throw<ArgumentException>();
+
+        // Act
+        var result = _parser.Parse(request);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Exception.Should().BeOfType<ArgumentException>();
     }
 
     [Fact]
@@ -122,10 +125,13 @@ public class ParserTests
     {
         // Arrange
         var request = Encoding.UTF8.GetBytes("/ HTTP1.0\r\nHost: test.com");
-        var action = () => _parser.Parse(request);
         
-        // Act & Assert
-        action.Should().Throw<ArgumentException>(); 
+        // Act
+        var result = _parser.Parse(request);
+        
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Exception.Should().BeOfType<ArgumentException>(); 
     }
 
     [Fact]
@@ -133,10 +139,13 @@ public class ParserTests
     {
         // Arrange
         var request = Encoding.UTF8.GetBytes("GET HTTP1.0\r\nHost: test.com");
-        var action = () => _parser.Parse(request);
         
-        // Act & Assert
-        action.Should().Throw<ArgumentException>(); 
+        // Act
+        var result = _parser.Parse(request);
+        
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Exception.Should().BeOfType<ArgumentException>(); 
     }
 
     [Fact]
@@ -144,10 +153,13 @@ public class ParserTests
     {
         // Arrange
         var request = Encoding.UTF8.GetBytes("GET/HTTP1.0\r\nHost: test.com");
-        var action = () => _parser.Parse(request);
         
-        // Act & Assert
-        action.Should().Throw<ArgumentException>(); 
+        // Act 
+        var result = _parser.Parse(request);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Exception.Should().BeOfType<ArgumentException>(); 
     }
     
     private void WriteContextData(HttpContext context)
@@ -161,8 +173,6 @@ public class ParserTests
         _outputHelper.WriteLine($"Request headers gained after parsing: ");
         
         foreach (var header in context.Headers)
-        {
             _outputHelper.WriteLine($"{Encoding.UTF8.GetString(header.Key.Span)}: {Encoding.UTF8.GetString(header.Value.Span)}");
-        }
     }
 }

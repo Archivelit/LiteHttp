@@ -2,5 +2,5 @@
 
 public interface IParser
 {
-    HttpContext Parse(Memory<byte> request);
+    Result<HttpContext> Parse(Memory<byte> request);
 }

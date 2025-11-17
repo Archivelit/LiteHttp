@@ -30,7 +30,10 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
             
             var context = _parser.Parse(contextBytes);
 
-            var action = _router.GetAction(context);
+            if (!context.Success)
+                await SendResponseAndDisposeConnection(@event.Connection, _responseBuilder.Build(ActionResultFactory.Instance.InternalServerError()), cancellationToken).ConfigureAwait(false);
+
+            var action = _router.GetAction(context.Value);
 
             if (action is null)
             {

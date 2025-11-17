@@ -17,5 +17,5 @@ public class ParserBenchmarks
 
     [Benchmark, BenchmarkCategory("Parsing")]
     public HttpContext Parse() =>
-        _ = _parser.Parse(_request);
+        _ = _parser.Parse(_request).Value;
 }
