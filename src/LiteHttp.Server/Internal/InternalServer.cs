@@ -18,6 +18,7 @@ internal sealed class InternalServer : IServer, IDisposable
         Initialize(logger: logger, port: port, address: address);
     }
     
+    /// <inheritdoc/>
     public async Task Start(CancellationToken cancellationToken)
     {
         _logger.LogInformation($"Starting server");
@@ -63,21 +64,28 @@ internal sealed class InternalServer : IServer, IDisposable
         _listener.Dispose();
     }
     
+    /// <inheritdoc/>
     public void MapGet(string route, Func<IActionResult> action) =>
         _endpointProvider.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Get, action);
-    
+
+    /// <inheritdoc/>
     public void MapDelete(string route, Func<IActionResult> action) =>
         _endpointProvider.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Delete, action);
 
+    /// <inheritdoc/>
     public void MapPost(string route, Func<IActionResult> action) =>
         _endpointProvider.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Post, action);
 
+    /// <inheritdoc/>
     public void MapPut(string route, Func<IActionResult> action) =>
         _endpointProvider.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Put, action);
 
+    /// <inheritdoc/>
     public void MapPatch(string route, Func<IActionResult> action) =>
         _endpointProvider.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Patch, action);
-    
+
+    /// <inheritdoc/>
+    [Obsolete("Must be used builder instead")]
     public void SetAddress(string address)
     {
         ArgumentNullException.ThrowIfNullOrEmpty(address, nameof(address));
@@ -98,7 +106,14 @@ internal sealed class InternalServer : IServer, IDisposable
 
         _logger.LogInformation($"Server address set to {address} successfully.");
     }
-    
+
+    /// <summary>
+    /// Sets the server's IP address for incoming connections.
+    /// </summary>
+    /// <remarks>Calling this method updates the server's listening address and notifies all worker instances
+    /// of the new address. Prefer using the builder pattern for configuration in new code.</remarks>
+    /// <param name="address">The IP address to assign to the server. Cannot be null.</param>
+    [Obsolete("Must be used builder instead")]
     public void SetAddress(IPAddress address)
     {
         var addressAsString = address.ToString();
@@ -115,6 +130,8 @@ internal sealed class InternalServer : IServer, IDisposable
         _logger.LogInformation($"Server address set to {addressAsString} successfully.");
     }
 
+    /// <inheritdoc/>
+    [Obsolete("Must be used builder instead")]
     public void SetPort(int port)
     { 
         _logger.LogInformation($"Setting server port to {port}...");
@@ -135,6 +152,15 @@ internal sealed class InternalServer : IServer, IDisposable
         }
     }
     
+    /// <summary>
+    /// Initializes the internal server components, configuring the listener and preparing worker threads for request handling.
+    /// </summary>
+    /// <remarks>This method must be called before the server can accept requests. Calling this method
+    /// multiple times may result in reinitialization of server components.</remarks>
+    /// <param name="logger">The logger instance used to record informational and diagnostic messages during initialization. Cannot be null.</param>
+    /// <param name="port">The network port number on which the server will listen for incoming requests. Must be in the valid range for
+    /// TCP/UDP ports.</param>
+    /// <param name="address">The IP address to which the server listener will bind. Cannot be null.</param>
     private void Initialize(ILogger logger, int port, IPAddress address)
     {
         _logger.LogInformation($"Initializing InternalServer...");
@@ -147,6 +173,10 @@ internal sealed class InternalServer : IServer, IDisposable
         _logger.LogInformation($"InternalServer initialized successfully.");
     }
     
+    /// <summary>
+    /// Initializes the server worker pool using the specified logger for diagnostic output.
+    /// </summary>
+    /// <param name="logger">The logger instance used to record informational messages during worker initialization. Cannot be null.</param>
     private void InitializeWorkers(ILogger logger)
     {
         _logger.LogInformation($"Initializing server workers...");
