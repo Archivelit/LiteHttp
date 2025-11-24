@@ -97,31 +97,31 @@ The `WithAddress` method also has overload `ServerBuilder WithAddress(string add
 
 **Note:** you can find out more about single component performance [**here**](./tests/Benchmarks)
 
-## Average response time: **7ms**
+## Average response time: **444 microseconds**
 
-## Maximum stable short-term rps: **9900**
-Remark: ***Maximum stable rps** means **0%** request loss*
+## Maximum reached short-term rps: **22600**
 
-*Test was provided via **vegeta** on Machine with next configuration:*
+*Test was provided via **k6** on Machine with next configuration:*
 > - CPU: Ryzen r7 5800X
 > - RAM: 32GB 3200 MHz
 > - OS: Windows 11
 
-### Vegeta command:
-```text
-echo GET http://localhost:30000/ | vegeta attack -rate=9900 -duration=10s | vegeta report --type=text
+### K6 file:
+```javascript
+import http from 'k6/http';
+
+export const options = {
+  vus: 15,
+  duration: '10s',
+};
+
+
+export default function () {
+  const url = 'http://localhost:30000/';
+
+  http.get(url);
+}
 ```
-
-## Max reached rps 20100
-
-*Test was provided in same conditions*
-
-### Vegeta command:
-```text
-echo GET http://localhost:30000/ | vegeta attack -rate=23000 -duration=10s | vegeta report --type=text
-```
-
-The average request loss during test was about 13%
 
 ---
 
