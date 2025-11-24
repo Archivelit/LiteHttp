@@ -1,4 +1,4 @@
-﻿namespace LiteHttp.Server;    
+﻿namespace LiteHttp.Server.Services.Endpoints;    
 
 internal sealed class EndpointComparer : IEqualityComparer<Endpoint>
 {

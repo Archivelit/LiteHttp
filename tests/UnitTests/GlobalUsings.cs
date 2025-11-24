@@ -10,3 +10,4 @@ global using LiteHttp.Server;
 global using LiteHttp.RequestProcessors;
 global using System.Net;
 global using LiteHttp.Logging;
+global using LiteHttp.Server.Services.Endpoints;

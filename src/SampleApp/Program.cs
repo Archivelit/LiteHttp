@@ -1,18 +1,18 @@
-﻿using LiteHttp.Logging.Adapters.Serilog;
+﻿//using LiteHttp.Logging.Adapters.Serilog;
 using LiteHttp.Server;
-using Serilog;
+//using Serilog;
 
 var builder = new ServerBuilder();
 
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .MinimumLevel.Debug()
-    .CreateLogger();
+////Log.Logger = new LoggerConfiguration()
+////    .WriteTo.Console()
+////    .MinimumLevel.Debug()
+////    .CreateLogger();
 
-var loggerAdapter = new SerilogLoggerAdapter();
+//var loggerAdapter = new SerilogLoggerAdapter();
 
-builder.WithLogger(loggerAdapter);
+//builder.WithLogger(loggerAdapter);
 
 var server = builder.Build();
 

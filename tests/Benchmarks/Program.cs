@@ -6,7 +6,5 @@ public class Program
     {
         //var config = ManualConfig.Create(DefaultConfig.Instance);
         //config.AddFilter(new NameFilter(name => name.Equals("Parse")));
-
-        BenchmarkRunner.Run(typeof(Program).Assembly);
     }
 }

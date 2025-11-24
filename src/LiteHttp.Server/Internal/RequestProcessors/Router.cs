@@ -2,11 +2,11 @@
 
 internal sealed class Router : IRouter
 {
-    private IEndpointProvider? _endpointProvider;
+    private IEndpointContext? _endpointContext;
     
     public Func<IActionResult>? GetAction(in HttpContext context) => 
-        _endpointProvider?.GetEndpoint(context.Route, context.Method);
+        _endpointContext?.EndpointProvider.GetEndpoint(context.Route, context.Method);
 
-    public void SetProvider(IEndpointProvider endpointProvider) =>
-        _endpointProvider = endpointProvider;
+    public void SetContext(IEndpointContext endpointContext) =>
+        _endpointContext = endpointContext;
 }

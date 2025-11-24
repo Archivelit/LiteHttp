@@ -4,7 +4,7 @@ internal sealed class InternalServer : IServer, IDisposable
 {
     private readonly Listener.Listener _listener = new();
     private readonly RequestEventBus _eventBus = new();
-	private readonly EndpointProvider _endpointProvider = new();
+	private readonly EndpointProviderConfiguration _endpointProviderConfiguration = new();
     
     private ILogger<InternalServer> _logger = NullLogger<InternalServer>.Instance;
     private ServerWorker[]? _workerPool;
@@ -22,6 +22,8 @@ internal sealed class InternalServer : IServer, IDisposable
     public async Task Start(CancellationToken cancellationToken)
     {
         _logger.LogInformation($"Starting server");
+
+        _endpointProviderConfiguration.Freeze();
 
         try
         {
@@ -66,23 +68,23 @@ internal sealed class InternalServer : IServer, IDisposable
     
     /// <inheritdoc/>
     public void MapGet(string route, Func<IActionResult> action) =>
-        _endpointProvider.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Get, action);
+        _endpointProviderConfiguration.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Get, action);
 
     /// <inheritdoc/>
     public void MapDelete(string route, Func<IActionResult> action) =>
-        _endpointProvider.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Delete, action);
+        _endpointProviderConfiguration.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Delete, action);
 
     /// <inheritdoc/>
     public void MapPost(string route, Func<IActionResult> action) =>
-        _endpointProvider.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Post, action);
+        _endpointProviderConfiguration.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Post, action);
 
     /// <inheritdoc/>
     public void MapPut(string route, Func<IActionResult> action) =>
-        _endpointProvider.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Put, action);
+        _endpointProviderConfiguration.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Put, action);
 
     /// <inheritdoc/>
     public void MapPatch(string route, Func<IActionResult> action) =>
-        _endpointProvider.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Patch, action);
+        _endpointProviderConfiguration.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Patch, action);
 
     /// <inheritdoc/>
     [Obsolete("Must be used builder instead")]
@@ -185,7 +187,7 @@ internal sealed class InternalServer : IServer, IDisposable
 
         for (var i = 0; i < _workerPool.Length; i++)
         {
-            _workerPool[i] = new(_endpointProvider, _listener.ListenerAddress.ToString(), _listener.ListenerPort, logger);
+            _workerPool[i] = new(_endpointProviderConfiguration.EndpointContext, _listener.ListenerAddress.ToString(), _listener.ListenerPort, logger);
         }
 
         _logger.LogInformation($"Server workers initialized successfully.");

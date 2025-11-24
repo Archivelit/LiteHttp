@@ -1,4 +1,4 @@
-﻿[*.cs]
+﻿# [*.cs]
 
 # Default severity for analyzer diagnostics with category 'Performance'
-dotnet_analyzer_diagnostic.category-Performance.severity = warning
+# dotnet_analyzer_diagnostic.category-Performance.severity = warning

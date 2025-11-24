@@ -12,8 +12,8 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
     private ILogger<ServerWorker> _logger = NullLogger<ServerWorker>.Instance; 
     // TODO: refactor to handle large requests and prevent unexpected errors
 
-    public ServerWorker(IEndpointProvider endpointProvider, string address, int port, ILogger logger) =>
-        Initialize(endpointProvider: endpointProvider, logger: logger, port: port, address: address);
+    public ServerWorker(IEndpointContext endpointContext, string address, int port, ILogger logger) =>
+        Initialize(endpointContext: endpointContext, logger: logger, port: port, address: address);
 
     public void SetHostPort(int port) =>
         _responseBuilder.Port = port;
@@ -85,9 +85,9 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
         connection.Dispose();
     }
     
-    private void Initialize(IEndpointProvider endpointProvider, ILogger logger, int port, string address)
+    private void Initialize(IEndpointContext endpointContext, ILogger logger, int port, string address)
     {
-        _router.SetProvider(endpointProvider);
+        _router.SetContext(endpointContext);
         _logger = logger.ForContext<ServerWorker>();
 
         _responseBuilder.Address = address;
