@@ -65,8 +65,50 @@ public class ResponseBuilderTests
             },
             new object[]
             {
+                new ActionResult(ResponseCode.Created),
+                $"HTTP/1.1 201 Created\r\nHost: {AddressConstants.IPV4_LOOPBACK.ToString()}" +
+                $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n"
+            },
+            new object[]
+            {
+                new ActionResult(ResponseCode.Accepted),
+                $"HTTP/1.1 202 Accepted\r\nHost: {AddressConstants.IPV4_LOOPBACK.ToString()}" +
+                $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n"
+            },
+            new object[]
+            {
+                new ActionResult(ResponseCode.NoContent),
+                $"HTTP/1.1 204 No Content\r\nHost: {AddressConstants.IPV4_LOOPBACK.ToString()}" +
+                $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n"
+            },
+            new object[]
+            {
+                new ActionResult(ResponseCode.MultipleChoices),
+                $"HTTP/1.1 300 Multiple Choices\r\nHost: {AddressConstants.IPV4_LOOPBACK.ToString()}" +
+                $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n"
+            },
+            new object[]
+            {
+                new ActionResult(ResponseCode.NotModified),
+                $"HTTP/1.1 304 Not Modified\r\nHost: {AddressConstants.IPV4_LOOPBACK.ToString()}" +
+                $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n"
+            },
+            new object[]
+            {
                 new ActionResult(ResponseCode.BadRequest),
                 $"HTTP/1.1 400 Bad Request\r\nHost: {AddressConstants.IPV4_LOOPBACK.ToString()}" +
+                $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n"
+            },
+            new object[]
+            {
+                new ActionResult(ResponseCode.Unauthorized),
+                $"HTTP/1.1 401 Unauthorized\r\nHost: {AddressConstants.IPV4_LOOPBACK.ToString()}" +
+                $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n"
+            },
+            new object[]
+            {
+                new ActionResult(ResponseCode.Forbidden),
+                $"HTTP/1.1 403 Forbidden\r\nHost: {AddressConstants.IPV4_LOOPBACK.ToString()}" +
                 $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n"
             },
             new object[]
@@ -77,8 +119,50 @@ public class ResponseBuilderTests
             },
             new object[]
             {
+                new ActionResult(ResponseCode.MethodNotAllowed),
+                $"HTTP/1.1 405 Method Not Allowed\r\nHost: {AddressConstants.IPV4_LOOPBACK.ToString()}" +
+                $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n"
+            },
+            new object[]
+            {
+                new ActionResult(ResponseCode.RequestTimeout),
+                $"HTTP/1.1 408 Request Timeout\r\nHost: {AddressConstants.IPV4_LOOPBACK.ToString()}" +
+                $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n"
+            },
+            new object[]
+            {
+                new ActionResult(ResponseCode.Conflict),
+                $"HTTP/1.1 409 Conflict\r\nHost: {AddressConstants.IPV4_LOOPBACK.ToString()}" +
+                $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n"
+            },
+            new object[]
+            {
+                new ActionResult(ResponseCode.ContentTooLarge),
+                $"HTTP/1.1 413 Content Too Large\r\nHost: {AddressConstants.IPV4_LOOPBACK.ToString()}" +
+                $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n"
+            },
+            new object[]
+            {
+                new ActionResult(ResponseCode.TooManyRequests),
+                $"HTTP/1.1 429 Too Many Requests\r\nHost: {AddressConstants.IPV4_LOOPBACK.ToString()}" +
+                $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n"
+            },
+            new object[]
+            {
                 new ActionResult(ResponseCode.InternalServerError),
                 $"HTTP/1.1 500 Internal Server Error\r\nHost: {AddressConstants.IPV4_LOOPBACK.ToString()}" +
+                $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n"
+            },
+            new object[]
+            {
+                new ActionResult(ResponseCode.NotImplemented),
+                $"HTTP/1.1 501 Not Implemented\r\nHost: {AddressConstants.IPV4_LOOPBACK.ToString()}" +
+                $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n"
+            },
+            new object[]
+            {
+                new ActionResult(ResponseCode.ServiceUnavailable),
+                $"HTTP/1.1 503 Service Unavailable\r\nHost: {AddressConstants.IPV4_LOOPBACK.ToString()}" +
                 $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n"
             }
         };
