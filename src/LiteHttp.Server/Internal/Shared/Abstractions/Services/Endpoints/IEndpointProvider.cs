@@ -2,5 +2,5 @@
 
 public interface IEndpointProvider
 {
-    Func<IActionResult>? GetEndpoint(ReadOnlyMemory<byte> path, ReadOnlyMemory<byte> method);
+    public Func<IActionResult>? GetEndpoint(ReadOnlyMemory<byte> path, ReadOnlyMemory<byte> method);
 }

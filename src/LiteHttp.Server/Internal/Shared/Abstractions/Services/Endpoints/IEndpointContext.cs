@@ -2,5 +2,5 @@
 
 public interface IEndpointContext
 {
-    IEndpointProvider EndpointProvider { get; }
+    public IEndpointProvider EndpointProvider { get; }
 }

@@ -3,8 +3,8 @@
 internal sealed class Router : IRouter
 {
     private IEndpointContext? _endpointContext;
-    
-    public Func<IActionResult>? GetAction(in HttpContext context) => 
+
+    public Func<IActionResult>? GetAction(in HttpContext context) =>
         _endpointContext?.EndpointProvider.GetEndpoint(context.Route, context.Method);
 
     public void SetContext(IEndpointContext endpointContext) =>

@@ -14,7 +14,7 @@ public class ServerBuilder
     private int _workersCount = Environment.ProcessorCount / 2;
     private int _port = AddressConstants.DEFAULT_SERVER_PORT;
     private IPAddress _address = AddressConstants.IPV4_LOOPBACK;
-    
+
     /// <summary>
     /// Creates and configures a new instance of the <see cref="HttpServer"/> class using the specified worker count,
     /// port, etc.
@@ -23,16 +23,14 @@ public class ServerBuilder
     /// Ensure that the configuration properties are set appropriately before calling this method. This method does not
     /// start the server; you must explicitly start the returned <see cref="HttpServer"/> instance.</remarks>
     /// <returns>A configured <see cref="HttpServer"/> instance.</returns>
-    public HttpServer Build()
-    {
-        return new HttpServer(workersCount: _workersCount, port: _port, address: _address, logger: _logger);
-    }
+    public HttpServer Build() => 
+        new(workersCount: _workersCount, port: _port, address: _address, logger: _logger);
 
     /// <summary>
     /// Configures the server builder to use the specified logger for diagnostic and operational messages.
     ///  <see cref="NullLogger"/> is predefined logger for the server, use this method 
     ///  only if you want to use custom <see cref="ILogger"/> implementation such as logging framework adapters etc.
-    ///  <para>Changes will not reflected on building stage cause <see cref="ServerBuilder"/> does not provide logging</para>
+    ///  <para>Changes will not reflect on building stage cause <see cref="ServerBuilder"/> does not provide logging</para>
     /// </summary>
     /// <remarks>
     /// Calling this method replaces any previously configured logger.
@@ -42,9 +40,7 @@ public class ServerBuilder
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="logger"/> is null</exception>
     public ServerBuilder WithLogger(ILogger logger)
     {
-        if (logger is null)
-            throw new ArgumentNullException($"{nameof(logger)} logger cannot be null");
-        _logger = logger;
+        _logger = logger ?? throw new ArgumentNullException($"{nameof(logger)} logger cannot be null");
 
         return this;
     }
@@ -60,7 +56,7 @@ public class ServerBuilder
         if (workersCount < 1)
             throw new ArgumentException("Workers count cannot be under 1 worker");
         _workersCount = workersCount;
-        
+
         return this;
     }
 
@@ -76,7 +72,7 @@ public class ServerBuilder
             throw new ArgumentException("Port cannot be below zero");
 
         _port = port;
-        
+
         return this;
     }
 

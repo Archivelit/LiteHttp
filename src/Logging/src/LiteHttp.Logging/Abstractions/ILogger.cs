@@ -9,12 +9,12 @@
 /// </remarks>
 public interface ILogger
 {
-    void LogTrace(FormattableString message);
-    void LogDebug(FormattableString message);
-    void LogInformation(FormattableString message);
-    void LogWarning(FormattableString message);
-    void LogError(Exception ex, FormattableString message);
-    ILogger<TContext> ForContext<TContext>();
+    public void LogTrace(FormattableString message);
+    public void LogDebug(FormattableString message);
+    public void LogInformation(FormattableString message);
+    public void LogWarning(FormattableString message);
+    public void LogError(Exception ex, FormattableString message);
+    public ILogger<TContext> ForContext<TContext>();
 }
 
 /// <inheritdoc/>

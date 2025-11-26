@@ -17,21 +17,21 @@ internal sealed class Parser : IParser
         var firstLine = GetFirstLine(requestParts.Headers);
 
         var method = GetMethod(firstLine);
-        
+
         if (!method.Success)
-            return new(method.Exception);
-        
+            return new(method.Exception!);
+
         var route = GetRoute(firstLine);
 
         if (!route.Success)
-            return new (route.Exception);
+            return new(route.Exception!);
 
         var headerSection = requestParts.Headers[(firstLine.Length + RequestSymbolsAsBytes.NewRequestLine.Length)..]; // First line of request does not contain any header
 
         var headers = MapHeaders(headerSection);
-        
-        return !headers.Success 
-            ? new(headers.Exception) 
+
+        return !headers.Success
+            ? new(headers.Exception!)
             : new Result<HttpContext>(new HttpContext(method.Value, route.Value, headers.Value, requestParts.Body));
     }
 
@@ -45,11 +45,11 @@ internal sealed class Parser : IParser
     {
         var firstSpaceIndex = firstRequestLine.Span.IndexOf(RequestSymbolsAsBytes.Space);
         var lastSpaceIndex = firstRequestLine.Span.LastIndexOf(RequestSymbolsAsBytes.Space);
-        
+
         if (firstSpaceIndex == lastSpaceIndex)
             return new(new ArgumentException("The request has wrong format"));
 
-        return new(firstRequestLine[(firstSpaceIndex+1)..lastSpaceIndex]); // space index + 1 to exclude whitespace and get first symbol of route
+        return new(firstRequestLine[(firstSpaceIndex + 1)..lastSpaceIndex]); // space index + 1 to exclude whitespace and get first symbol of route
     }
 
     /// <summary>
@@ -73,10 +73,10 @@ internal sealed class Parser : IParser
 
         if (spaceIndex == -1)
             return new(new ArgumentException("The request has wrong format"));
-        
+
         return new(firstRequestLine[..spaceIndex]);
     }
-    
+
     /// <summary>
     /// Splits the entire request to Headers and Body parts
     /// </summary>
@@ -89,11 +89,11 @@ internal sealed class Parser : IParser
 
         if (splitterIndex == -1)
             return (request, null);
-        
+
         return (request[..(splitterIndex + RequestSymbolsAsBytes.NewRequestLine.Length)], // NOTE: do not change, it is breaking change. Adding 1 new line symbol for proper header parsing 
             request[(splitterIndex + RequestSymbolsAsBytes.RequestSplitter.Length)..]);
     }
-    
+
     /// <summary>
     /// Maps the entire request header section on specified headers.
     /// </summary>
@@ -113,11 +113,11 @@ internal sealed class Parser : IParser
             {
                 var colonIndex = headers.Span.IndexOf(RequestSymbolsAsBytes.Colon);
 
-                if (colonIndex == -1) 
+                if (colonIndex == -1)
                     return new(headersDictionary);
-                
-                headersDictionary.Add(headers[..colonIndex],headers[(colonIndex + 2)..]); // +2 to exclude colon and space,
-                
+
+                headersDictionary.Add(headers[..colonIndex], headers[(colonIndex + 2)..]); // +2 to exclude colon and space,
+
                 return new(headersDictionary);
             }
 

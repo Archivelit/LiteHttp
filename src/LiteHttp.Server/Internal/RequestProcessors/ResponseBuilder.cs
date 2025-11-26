@@ -3,8 +3,8 @@
 public sealed class ResponseBuilder : IResponseBuilder, IDisposable
 {
     private readonly IMemoryOwner<byte> _owner = MemoryPool<byte>.Shared.Rent(4096);
-    private int _length = 0;
-    
+    private int _length;
+
     public int Port
     {
         get;
@@ -22,14 +22,14 @@ public sealed class ResponseBuilder : IResponseBuilder, IDisposable
 
         set
         {
-            ArgumentNullException.ThrowIfNullOrWhiteSpace(value, nameof(value));
-            
+            ArgumentException.ThrowIfNullOrWhiteSpace(value, nameof(value));
+
             field = value;
 
             UpdateHost();
         }
     }
-    
+
     private ReadOnlyMemory<byte> _host;
 
     public ResponseBuilder()
@@ -38,16 +38,16 @@ public sealed class ResponseBuilder : IResponseBuilder, IDisposable
         Port = AddressConstants.DEFAULT_SERVER_PORT;
     }
 
-    public void Dispose() => 
+    public void Dispose() =>
         _owner.Dispose();
-    
+
     public ReadOnlyMemory<byte> Build(IActionResult actionResult, ReadOnlyMemory<byte>? responseBody = null)
     {
         ResetMessage();
 
         var memory = _owner.Memory;
 
-        Append(HttpVersionsAsBytes.Http_1_1);
+        Append(HttpVersionsAsBytes.Http11);
         Append(actionResult.ResponseCode.AsByteString());
 
         BuildHeaders(responseBody);
@@ -56,14 +56,14 @@ public sealed class ResponseBuilder : IResponseBuilder, IDisposable
 
         if (responseBody is not null)
             Append(responseBody.Value);
-        
+
         return memory[.._length];
     }
 
     private void BuildHeaders(ReadOnlyMemory<byte>? body)
     {
         var memory = _owner.Memory;
-        
+
         Append(HeadersAsBytes.Host);
 
         Append(_host);

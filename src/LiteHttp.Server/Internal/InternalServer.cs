@@ -4,20 +4,20 @@ internal sealed class InternalServer : IServer, IDisposable
 {
     private readonly Listener.Listener _listener = new();
     private readonly RequestEventBus _eventBus = new();
-	private readonly EndpointProviderConfiguration _endpointProviderConfiguration = new();
-    
-    private ILogger<InternalServer> _logger = NullLogger<InternalServer>.Instance;
+    private readonly EndpointProviderConfiguration _endpointProviderConfiguration = new();
+
+    private readonly ILogger<InternalServer> _logger = NullLogger<InternalServer>.Instance;
     private ServerWorker[]? _workerPool;
-    
+
     internal InternalServer(int workersCount, IPAddress? address = null, int port = AddressConstants.DEFAULT_SERVER_PORT, ILogger? logger = null)
     {
         _workerPool = new ServerWorker[workersCount];
         logger ??= NullLogger.Instance;
         address ??= IPAddress.Loopback;
-        
+
         Initialize(logger: logger, port: port, address: address);
     }
-    
+
     /// <inheritdoc/>
     public async Task Start(CancellationToken cancellationToken)
     {
@@ -57,7 +57,7 @@ internal sealed class InternalServer : IServer, IDisposable
             _logger.LogError(ex, $"Error occured during server work");
             Dispose();
         }
-        
+
         _logger.LogInformation($"Server work ended");
     }
 
@@ -65,7 +65,7 @@ internal sealed class InternalServer : IServer, IDisposable
     {
         _listener.Dispose();
     }
-    
+
     /// <inheritdoc/>
     public void MapGet(string route, Func<IActionResult> action) =>
         _endpointProviderConfiguration.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Get, action);
@@ -90,21 +90,19 @@ internal sealed class InternalServer : IServer, IDisposable
     [Obsolete("Must be used builder instead")]
     public void SetAddress(string address)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(address, nameof(address));
-    
+        ArgumentException.ThrowIfNullOrEmpty(address, nameof(address));
+
         var success = IPAddress.TryParse(address, out var iPAddress);
-        
+
         _logger.LogInformation($"Setting server address to {address}...");
-        
+
         if (!success)
             throw new InvalidOperationException($"Address {address} wrong formatted");
 
         _listener.SetIpAddress(iPAddress!);
 
-        foreach(var worker in _workerPool!)
-        {
+        foreach (var worker in _workerPool!)
             worker.SetHostAddress(address);
-        }
 
         _logger.LogInformation($"Server address set to {address} successfully.");
     }
@@ -119,15 +117,13 @@ internal sealed class InternalServer : IServer, IDisposable
     public void SetAddress(IPAddress address)
     {
         var addressAsString = address.ToString();
-     
+
         _logger.LogInformation($"Setting server address to {addressAsString}...");
-        
+
         _listener.SetIpAddress(address);
 
-        foreach(var worker in _workerPool!)
-        {
+        foreach (var worker in _workerPool!) 
             worker.SetHostAddress(addressAsString);
-        }
 
         _logger.LogInformation($"Server address set to {addressAsString} successfully.");
     }
@@ -135,17 +131,15 @@ internal sealed class InternalServer : IServer, IDisposable
     /// <inheritdoc/>
     [Obsolete("Must be used builder instead")]
     public void SetPort(int port)
-    { 
+    {
         _logger.LogInformation($"Setting server port to {port}...");
 
         try
         {
             _listener.SetPort(port);
 
-            foreach (var worker in _workerPool!)
-            {
+            foreach (var worker in _workerPool!) 
                 worker.SetHostPort(port);
-            }
         }
         catch (Exception ex)
         {
@@ -153,7 +147,7 @@ internal sealed class InternalServer : IServer, IDisposable
             throw;
         }
     }
-    
+
     /// <summary>
     /// Initializes the internal server components, configuring the listener and preparing worker threads for request handling.
     /// </summary>
@@ -171,10 +165,10 @@ internal sealed class InternalServer : IServer, IDisposable
         _listener.SetIpAddress(address);
         _listener.SubscribeToRequestReceived(_eventBus.PublishAsync);
         InitializeWorkers(logger);
-    
+
         _logger.LogInformation($"InternalServer initialized successfully.");
     }
-    
+
     /// <summary>
     /// Initializes the server worker pool using the specified logger for diagnostic output.
     /// </summary>
@@ -185,10 +179,8 @@ internal sealed class InternalServer : IServer, IDisposable
 
         _workerPool ??= new ServerWorker[1];
 
-        for (var i = 0; i < _workerPool.Length; i++)
-        {
+        for (var i = 0; i < _workerPool.Length; i++) 
             _workerPool[i] = new(_endpointProviderConfiguration.EndpointContext, _listener.ListenerAddress.ToString(), _listener.ListenerPort, logger);
-        }
 
         _logger.LogInformation($"Server workers initialized successfully.");
     }

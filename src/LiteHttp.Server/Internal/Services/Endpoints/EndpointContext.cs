@@ -2,14 +2,12 @@
 
 internal class EndpointContext : IEndpointContext
 {
-    private IEndpointProvider? _endpointProvider;
-
-    public IEndpointProvider EndpointProvider 
-    { 
-        get => _endpointProvider 
-            ?? throw new InvalidOperationException("Endpoint provider was not bound"); 
-    }
+    public IEndpointProvider EndpointProvider
+    {
+        get => field
+            ?? throw new InvalidOperationException("Endpoint provider was not bound"); private set;
+    } = null!;
 
     internal void SetEndpointProvider(IEndpointProvider endpointProvider) =>
-        _endpointProvider = endpointProvider;
+        EndpointProvider = endpointProvider;
 }

@@ -2,8 +2,8 @@
 
 internal sealed class EndpointProviderConfiguration : IEndpointProviderConfiguration
 {
-    private EndpointContext _endpointContext = new();
-    private EndpointProvider _endpointProvider = new();
+    private readonly EndpointContext _endpointContext = new();
+    private readonly EndpointProvider _endpointProvider = new();
 
     public IEndpointContext EndpointContext { get => _endpointContext; }
 

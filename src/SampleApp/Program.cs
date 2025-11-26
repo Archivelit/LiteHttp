@@ -1,21 +1,29 @@
-﻿//using LiteHttp.Logging.Adapters.Serilog;
+﻿using LiteHttp.Logging.Adapters.Serilog;
 using LiteHttp.Server;
-//using Serilog;
 
-var builder = new ServerBuilder();
+using Serilog;
 
+namespace SampleApp;
 
-////Log.Logger = new LoggerConfiguration()
-////    .WriteTo.Console()
-////    .MinimumLevel.Debug()
-////    .CreateLogger();
+internal class Program
+{
+    private static async Task Main(string[] args)
+    {
+        var builder = new ServerBuilder();
 
-//var loggerAdapter = new SerilogLoggerAdapter();
+        Log.Logger = new LoggerConfiguration()
+            .WriteTo.Console()
+            .MinimumLevel.Debug()
+            .CreateLogger();
 
-//builder.WithLogger(loggerAdapter);
+        var loggerAdapter = new SerilogLoggerAdapter();
 
-var server = builder.Build();
+        builder.WithLogger(loggerAdapter);
 
-server.MapGet("/", () => ActionResultFactory.Instance.Ok());
+        var server = builder.Build();
 
-await server.Start();
+        server.MapGet("/", ActionResultFactory.Instance.Ok);
+
+        await server.Start();
+    }
+}

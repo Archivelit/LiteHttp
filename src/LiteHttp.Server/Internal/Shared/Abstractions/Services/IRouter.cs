@@ -2,6 +2,6 @@
 
 public interface IRouter
 {
-    Func<IActionResult>? GetAction(in HttpContext context);
-    void SetContext(IEndpointContext endpointContext);
+    public Func<IActionResult>? GetAction(in HttpContext context);
+    public void SetContext(IEndpointContext endpointContext);
 }

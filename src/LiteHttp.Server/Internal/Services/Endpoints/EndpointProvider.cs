@@ -2,7 +2,7 @@
 
 internal sealed class FrozenEndpointProvider : IEndpointProvider
 {
-    private FrozenDictionary<Endpoint, Func<IActionResult>> _frozenEndpoints;
+    private readonly FrozenDictionary<Endpoint, Func<IActionResult>> _frozenEndpoints;
 
     public FrozenEndpointProvider(Dictionary<Endpoint, Func<IActionResult>> endpoints) =>
         _frozenEndpoints = endpoints.ToFrozenDictionary(EndpointComparer.Instance);

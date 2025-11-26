@@ -1,4 +1,4 @@
-﻿namespace LiteHttp.Server.Services.Endpoints;    
+﻿namespace LiteHttp.Server.Services.Endpoints;
 
 internal sealed class EndpointComparer : IEqualityComparer<Endpoint>
 {
@@ -13,16 +13,16 @@ internal sealed class EndpointComparer : IEqualityComparer<Endpoint>
     public int GetHashCode(Endpoint endpoint)
     {
         var hash = new HashCode();
-            
+
         hash.Add(16843025);
 
         AddSpan(ref hash, endpoint.Method.Span);
         AddSpan(ref hash, endpoint.Path.Span);
-            
+
         return hash.ToHashCode();
     }
 
-    private HashCode AddSpan(ref HashCode hash, ReadOnlySpan<byte> span)
+    private void AddSpan(ref HashCode hash, ReadOnlySpan<byte> span)
     {
         hash.Add(span.Length);
 
@@ -31,19 +31,19 @@ internal sealed class EndpointComparer : IEqualityComparer<Endpoint>
             for (var i = 0; i < span.Length; i++)
                 HashFunction(ref hash, span[i], span.Length);
 
-            return hash;
+            return;
         }
 
         int vectorWidth = Vector<byte>.Count;
         int index = 0;
-        int remaining = span.Length % vectorWidth;
+        _ = span.Length % vectorWidth;
 
         for (; index + vectorWidth <= span.Length; index += vectorWidth)
         {
             var vector = new Vector<byte>(span.Slice(index, vectorWidth));
             var uintVector = Vector.AsVectorUInt32(vector);
 
-            uintVector = unchecked(((uintVector << span.Length % 16) ^ (uintVector * 0x9E3779B1) ^ (uintVector >> 3)) & VectorConstants.HashVector);
+            uintVector = ((uintVector << span.Length % 16) ^ (uintVector * 0x9E3779B1) ^ (uintVector >> 3)) & VectorConstants.HashVector;
 
             for (int i = 0; i < vectorWidth; i++)
                 hash.Add(uintVector[i]);
@@ -51,8 +51,6 @@ internal sealed class EndpointComparer : IEqualityComparer<Endpoint>
 
         for (; index < span.Length; index++)
             HashFunction(ref hash, span[index], span.Length);
-
-        return hash;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

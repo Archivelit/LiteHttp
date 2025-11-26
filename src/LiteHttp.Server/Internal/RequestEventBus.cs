@@ -2,7 +2,7 @@
 
 internal sealed class RequestEventBus : IEventBus<RequestReceivedEvent>
 {
-    private Channel<RequestReceivedEvent> _channel = Channel.CreateUnbounded<RequestReceivedEvent>();
+    private readonly Channel<RequestReceivedEvent> _channel = Channel.CreateUnbounded<RequestReceivedEvent>();
 
     public ValueTask PublishAsync(RequestReceivedEvent @event, CancellationToken ct = default) =>
         _channel.Writer.WriteAsync(@event, ct);

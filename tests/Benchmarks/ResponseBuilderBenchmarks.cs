@@ -4,7 +4,7 @@
 public class ResponseBuilderBenchmarks
 {
     private ResponseBuilder _responseBuilder;
- 
+
     [GlobalSetup]
     public void Setup()
     {
@@ -14,11 +14,11 @@ public class ResponseBuilderBenchmarks
             Port = 8080
         };
     }
-    
+
     [Params(1_000, 10_000, 1_000_000)]
     public int N;
 
-     [Benchmark, BenchmarkCategory("ResponseBuilding")]
+    [Benchmark, BenchmarkCategory("ResponseBuilding")]
     public ReadOnlyMemory<byte> BuildResponse() =>
-        _ = _responseBuilder.Build(new ActionResult(ResponseCode.Ok));
+       _ = _responseBuilder.Build(new ActionResult(ResponseCode.Ok));
 }

@@ -34,7 +34,7 @@ public static class RequestMethodsAsBytes
 
 public static class HttpVersionsAsBytes
 {
-    public static readonly byte[] Http_1_1 =
+    public static readonly byte[] Http11 =
         HttpVersions.HTTP_1_1.AsMemoryByteArray().ToArray();
 }
 

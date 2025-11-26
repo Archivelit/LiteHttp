@@ -5,7 +5,7 @@ public class ParserTests
 {
     private readonly Parser _parser = Parser.Instance;
     private readonly ITestOutputHelper _outputHelper = TestContext.Current.TestOutputHelper;
-    
+
     [Fact]
     public void Parse_ValidRequest_WithoutBody_WithCRLFOnEnd()
     {
@@ -24,7 +24,7 @@ public class ParserTests
         // Act
         var result = _parser.Parse(request).Value;
         WriteContextData(result);
-        
+
         // Assert
         result.Method.Span.ToArray().Should().BeEquivalentTo(expectedMethod);
         result.Route.Span.ToArray().Should().BeEquivalentTo(expectedRoute);
@@ -90,7 +90,7 @@ public class ParserTests
         // Assert
         result.Method.Span.ToArray().Should().BeEquivalentTo(expectedMethod);
         result.Route.Span.ToArray().Should().BeEquivalentTo(expectedRoute);
-        
+
         ParseHeadersToStrings(result, out var actualHeaders);
         actualHeaders.Should().BeEquivalentTo(expectedHeaders);
 
@@ -125,13 +125,13 @@ public class ParserTests
     {
         // Arrange
         var request = Encoding.UTF8.GetBytes("/ HTTP1.0\r\nHost: test.com");
-        
+
         // Act
         var result = _parser.Parse(request);
-        
+
         // Assert
         result.Success.Should().BeFalse();
-        result.Exception.Should().BeOfType<ArgumentException>(); 
+        result.Exception.Should().BeOfType<ArgumentException>();
     }
 
     [Fact]
@@ -139,13 +139,13 @@ public class ParserTests
     {
         // Arrange
         var request = Encoding.UTF8.GetBytes("GET HTTP1.0\r\nHost: test.com");
-        
+
         // Act
         var result = _parser.Parse(request);
-        
+
         // Assert
         result.Success.Should().BeFalse();
-        result.Exception.Should().BeOfType<ArgumentException>(); 
+        result.Exception.Should().BeOfType<ArgumentException>();
     }
 
     [Fact]
@@ -153,15 +153,15 @@ public class ParserTests
     {
         // Arrange
         var request = Encoding.UTF8.GetBytes("GET/HTTP1.0\r\nHost: test.com");
-        
+
         // Act 
         var result = _parser.Parse(request);
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Exception.Should().BeOfType<ArgumentException>(); 
+        result.Exception.Should().BeOfType<ArgumentException>();
     }
-    
+
     private void WriteContextData(HttpContext context)
     {
         _outputHelper.WriteLine($"The request route gained after parsing: {Encoding.UTF8.GetString(context.Route.Span)}");
@@ -171,7 +171,7 @@ public class ParserTests
             : "Request does not have body");
         _outputHelper.WriteLine($"The request after parsing contains {context.Headers.Count}");
         _outputHelper.WriteLine($"Request headers gained after parsing: ");
-        
+
         foreach (var header in context.Headers)
             _outputHelper.WriteLine($"{Encoding.UTF8.GetString(header.Key.Span)}: {Encoding.UTF8.GetString(header.Value.Span)}");
     }

@@ -2,8 +2,8 @@
 
 public interface IActionResultFactory
 {
-    IActionResult Ok();
-    IActionResult BadRequest();
-    IActionResult NotFound();
-    IActionResult InternalServerError();
+    public IActionResult Ok();
+    public IActionResult BadRequest();
+    public IActionResult NotFound();
+    public IActionResult InternalServerError();
 }

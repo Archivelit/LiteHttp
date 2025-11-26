@@ -7,5 +7,5 @@ public interface IParser
     /// </summary>
     /// <param name="request">Entire request bytes.</param>
     /// <returns></returns>
-    Result<HttpContext> Parse(Memory<byte> request);
+    public Result<HttpContext> Parse(Memory<byte> request);
 }

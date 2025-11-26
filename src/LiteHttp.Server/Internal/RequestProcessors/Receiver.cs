@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-internal sealed class Receiver: IReceiver
+internal sealed class Receiver : IReceiver
 {
     public static readonly Receiver Instance = new();
 
@@ -11,6 +11,6 @@ internal sealed class Receiver: IReceiver
 
         var receivedLength = await connection.ReceiveAsync(buffer, ct).ConfigureAwait(false);
 
-        return buffer.Slice(0, receivedLength);
+        return buffer[..receivedLength];
     }
 }

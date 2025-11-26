@@ -10,7 +10,7 @@
 public sealed class HttpServer : IServer, IDisposable
 {
     private readonly InternalServer _internalServer;
-    
+
     /// <summary>
     /// Initializes a new instance of the HttpServer class with the specified configuration
     /// </summary>
@@ -21,7 +21,7 @@ public sealed class HttpServer : IServer, IDisposable
     /// AddressConstants.DEFAULT_SERVER_PORT if not specified.</param>
     /// <param name="address">The IP address to bind the server to. If null, the server binds to the loopback address.</param>
     /// <param name="logger">The logger used for server diagnostics and error reporting. If null, a no-op logger is used.</param>
-    internal HttpServer(int workersCount = 1, int port = AddressConstants.DEFAULT_SERVER_PORT, 
+    internal HttpServer(int workersCount = 1, int port = AddressConstants.DEFAULT_SERVER_PORT,
         IPAddress? address = null, ILogger? logger = null)
     {
         logger ??= NullLogger.Instance;
@@ -29,21 +29,21 @@ public sealed class HttpServer : IServer, IDisposable
 
         _internalServer = new InternalServer(workersCount: workersCount, address: address, port: port, logger: logger);
     }
-    
+
     /// <inheritdoc/>
     public Task Start(CancellationToken cancellationToken = default) =>
         _internalServer.Start(cancellationToken);
 
     /// <inheritdoc/>
     [Obsolete("Use builder instead")]
-    public void SetPort(int port) => 
+    public void SetPort(int port) =>
         _internalServer.SetPort(port);
 
     /// <inheritdoc/>
     [Obsolete("Use builder instead")]
     public void SetAddress(string address) =>
         _internalServer.SetAddress(address);
-    
+
     /// <inheritdoc/>
     public void MapGet(string route, Func<IActionResult> action) =>
         _internalServer.MapGet(route, action);
@@ -63,7 +63,7 @@ public sealed class HttpServer : IServer, IDisposable
     /// <inheritdoc/>
     public void MapPatch(string route, Func<IActionResult> action) =>
         _internalServer.MapPatch(route, action);
-    
+
     /// <summary>
     /// Releases all resources used by the current instance.
     /// </summary>

@@ -9,7 +9,7 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
     private readonly Receiver _receiver = Receiver.Instance;
     private readonly ResponseBuilder _responseBuilder = new();
 
-    private ILogger<ServerWorker> _logger = NullLogger<ServerWorker>.Instance; 
+    private ILogger<ServerWorker> _logger = NullLogger<ServerWorker>.Instance;
     // TODO: refactor to handle large requests and prevent unexpected errors
 
     public ServerWorker(IEndpointContext endpointContext, string address, int port, ILogger logger) =>
@@ -27,11 +27,11 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
         try
         {
             var contextBytes = await _receiver.RecieveFromConnection(@event.Connection, cancellationToken).ConfigureAwait(false);
-            
+
             var context = _parser.Parse(contextBytes);
 
             if (!context.Success)
-                await SendResponseAndDisposeConnection(@event.Connection, _responseBuilder.Build(ActionResultFactory.Instance.InternalServerError()), cancellationToken).ConfigureAwait(false);
+                await SendResponseAndDisposeConnection(@event.Connection, _responseBuilder.Build(ActionResultFactory.Instance.InternalServerError())).ConfigureAwait(false);
 
             var action = _router.GetAction(context.Value);
 
@@ -39,31 +39,27 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
             {
                 _logger.LogInformation($"Endpoint not found");
                 var notFoundResponse = _responseBuilder.Build(ActionResultFactory.Instance.NotFound());
-                
-                await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse, cancellationToken).ConfigureAwait(false);
+
+                await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse).ConfigureAwait(false);
 
                 return;
             }
 
             // TODO: add action execute module which will do work below
-            
+
             var actionResult = action();
 
-            ReadOnlyMemory<byte> response;
-
-            if (actionResult is IActionResult<object> result)
-                response = _responseBuilder.Build(result, Encoding.UTF8.GetBytes(result.Result.ToString() ?? string.Empty));
-            else
-                response = _responseBuilder.Build(actionResult);
-
-            await SendResponseAndDisposeConnection(@event.Connection, response, cancellationToken).ConfigureAwait(false);
+            var response = actionResult is IActionResult<object> result
+                ? _responseBuilder.Build(result, Encoding.UTF8.GetBytes(result.Result.ToString() ?? string.Empty))
+                : _responseBuilder.Build(actionResult);
+            await SendResponseAndDisposeConnection(@event.Connection, response).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error occured during processing request");
-            
+
             var response = _responseBuilder.Build(ActionResultFactory.Instance.InternalServerError());
-            await SendResponseAndDisposeConnection(@event.Connection, response, cancellationToken).ConfigureAwait(false);
+            await SendResponseAndDisposeConnection(@event.Connection, response).ConfigureAwait(false);
         }
     }
 
@@ -73,18 +69,18 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private async ValueTask SendResponseAndDisposeConnection(Socket connection, ReadOnlyMemory<byte> response, CancellationToken ct)
+    private async ValueTask SendResponseAndDisposeConnection(Socket connection, ReadOnlyMemory<byte> response)
     {
         _logger.LogDebug($"Sending response");
-        
+
         _ = await _responder.SendResponse(connection, response).ConfigureAwait(false);
-        
+
         _logger.LogInformation($"Response sent successfully");
-        
+
         connection.Close();
         connection.Dispose();
     }
-    
+
     private void Initialize(IEndpointContext endpointContext, ILogger logger, int port, string address)
     {
         _router.SetContext(endpointContext);

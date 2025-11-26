@@ -2,5 +2,5 @@
 
 public interface IServerWorker
 {
-    Task HandleRequest(RequestReceivedEvent @event, CancellationToken ct);
+    public Task HandleRequest(RequestReceivedEvent @event, CancellationToken ct);
 }

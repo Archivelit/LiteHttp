@@ -1,8 +1,8 @@
 ﻿namespace LiteHttp.Abstractions;
 
-public interface IEventBus<TEvent> 
+public interface IEventBus<TEvent>
     where TEvent : IEvent
 {
-    ValueTask PublishAsync(TEvent @event, CancellationToken ct = default);
-    ValueTask<TEvent> ConsumeAsync(CancellationToken ct = default);
+    public ValueTask PublishAsync(TEvent @event, CancellationToken ct = default);
+    public ValueTask<TEvent> ConsumeAsync(CancellationToken ct = default);
 }

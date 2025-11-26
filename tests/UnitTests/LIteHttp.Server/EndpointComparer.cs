@@ -2,7 +2,7 @@
 
 public class EndpointComparerTests
 {
-    private IEqualityComparer<Endpoint> _comparer = new EndpointComparer();
+    private readonly IEqualityComparer<Endpoint> _comparer = new EndpointComparer();
 
     [Fact]
     public void CheckEndpointEquality_DifferentMethods_ShouldReturnFalse()
@@ -111,7 +111,7 @@ public class EndpointComparerTests
         // Arrange
         var endpoint = new Endpoint(Encoding.UTF8.GetBytes(string.Empty), RequestMethodsAsBytes.Post);
         var action = () => _comparer.GetHashCode(endpoint);
-        
+
         // Act & Assert
         action.Should().NotThrow();
     }
@@ -122,7 +122,7 @@ public class EndpointComparerTests
         // Arrange
         var endpoint = new Endpoint(null, RequestMethodsAsBytes.Post);
         var action = () => _comparer.GetHashCode(endpoint);
-        
+
         // Act & Assert
         action.Should().NotThrow();
     }
@@ -131,11 +131,11 @@ public class EndpointComparerTests
     public void GetHashCode_EmptyMethod_ShouldNotThrow()
     {
         // Arrange
-        var endpoint = new Endpoint(Encoding.UTF8.GetBytes("/api/test"), 
+        var endpoint = new Endpoint(Encoding.UTF8.GetBytes("/api/test"),
             Encoding.UTF8.GetBytes(string.Empty));
-        
+
         var action = () => _comparer.GetHashCode(endpoint);
-        
+
         // Act & Assert
         action.Should().NotThrow();
     }
@@ -146,7 +146,7 @@ public class EndpointComparerTests
         // Arrange
         var endpoint = new Endpoint(Encoding.UTF8.GetBytes("/api/test"), null);
         var action = () => _comparer.GetHashCode(endpoint);
-        
+
         // Act & Assert
         var result = action.Should().NotThrow();
     }

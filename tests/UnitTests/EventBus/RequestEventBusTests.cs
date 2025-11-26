@@ -2,7 +2,7 @@
 
 public class RequestEventBusTests
 {
-    private IEventBus<RequestReceivedEvent> _eventBus = new RequestEventBus();
+    private readonly IEventBus<RequestReceivedEvent> _eventBus = new RequestEventBus();
 
     [Fact]
     public async Task ConsumeAsync_WhenChannelIsEmpty_ShouldWaitEventPublishment()

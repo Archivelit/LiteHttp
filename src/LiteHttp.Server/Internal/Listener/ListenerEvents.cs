@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Listener;
 
-internal sealed partial class Listener : IListener, IDisposable
+internal sealed partial class Listener
 {
     public event Func<RequestReceivedEvent, CancellationToken, ValueTask>? RequestReceived;
 
