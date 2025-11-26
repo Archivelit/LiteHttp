@@ -8,11 +8,9 @@
 
 ## Cannot be installed using Nuget (temporarily)
 
----
-
 # Getting Started
 
-## Default Server Address
+### Note
 By default, LiteHttp listens on **localhost:30000**
 
 ## Quickstart
@@ -90,23 +88,21 @@ In example above we setting up entire server on address `192.168.1.1:8000`
 
 The `WithAddress` method also has overload `ServerBuilder WithAddress(string address)`. This overload maps domain using DNS (Domain Name System) to get first **IPV4** address for this domain
 
----
-
 <!-- Update this section -->
 # Benchmarks
 
 **Note:** you can find out more about single component performance [**here**](./tests/Benchmarks)
 
-## Average response time: **444 microseconds**
+### Average response time: **444 microseconds**
 
-## Maximum reached short-term rps: **22600**
+### Maximum reached short-term rps: **22600**
 
 *Test was provided via **k6** on Machine with next configuration:*
 > - CPU: Ryzen r7 5800X
 > - RAM: 32GB 3200 MHz
 > - OS: Windows 11
 
-### K6 file:
+#### K6 file:
 ```javascript
 import http from 'k6/http';
 
@@ -122,8 +118,6 @@ export default function () {
   http.get(url);
 }
 ```
-
----
 
 # Limitations
 
@@ -145,23 +139,13 @@ If you encounter an issue or have feature request, **feel free to open an issue*
 - No XML documentation
 - No analyzers
 
----
-
 # Goals
 The main goal of LiteHttp is build **independent mini-framework for high-throughput scenarios**.
 
 Main goals:
---
+
 - High optimization
 - Aim for zero allocation
 - Avoid using non-system libraries
 - Minimal realisation
 - High customization
-
----
-
-# License
-This project is licensed under the MIT License.
-
-# Contributing
-Contributions, issues and feature requests are welcome!
