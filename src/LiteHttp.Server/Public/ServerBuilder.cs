@@ -23,7 +23,7 @@ public class ServerBuilder
     /// Ensure that the configuration properties are set appropriately before calling this method. This method does not
     /// start the server; you must explicitly start the returned <see cref="HttpServer"/> instance.</remarks>
     /// <returns>A configured <see cref="HttpServer"/> instance.</returns>
-    public HttpServer Build() => 
+    public HttpServer Build() =>
         new(workersCount: _workersCount, port: _port, address: _address, logger: _logger);
 
     /// <summary>

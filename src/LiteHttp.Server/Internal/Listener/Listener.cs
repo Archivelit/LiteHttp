@@ -80,7 +80,7 @@ internal sealed partial class Listener : IListener, IDisposable
         }
     }
 
-    public void Dispose() => 
+    public void Dispose() =>
         Socket.Dispose();
 
     internal Listener SetIpAddress(IPAddress address)

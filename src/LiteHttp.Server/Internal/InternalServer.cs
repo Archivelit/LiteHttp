@@ -122,7 +122,7 @@ internal sealed class InternalServer : IServer, IDisposable
 
         _listener.SetIpAddress(address);
 
-        foreach (var worker in _workerPool!) 
+        foreach (var worker in _workerPool!)
             worker.SetHostAddress(addressAsString);
 
         _logger.LogInformation($"Server address set to {addressAsString} successfully.");
@@ -138,7 +138,7 @@ internal sealed class InternalServer : IServer, IDisposable
         {
             _listener.SetPort(port);
 
-            foreach (var worker in _workerPool!) 
+            foreach (var worker in _workerPool!)
                 worker.SetHostPort(port);
         }
         catch (Exception ex)
@@ -179,7 +179,7 @@ internal sealed class InternalServer : IServer, IDisposable
 
         _workerPool ??= new ServerWorker[1];
 
-        for (var i = 0; i < _workerPool.Length; i++) 
+        for (var i = 0; i < _workerPool.Length; i++)
             _workerPool[i] = new(_endpointProviderConfiguration.EndpointContext, _listener.ListenerAddress.ToString(), _listener.ListenerPort, logger);
 
         _logger.LogInformation($"Server workers initialized successfully.");
