@@ -6,12 +6,21 @@ using ILogger = Serilog.ILogger;
 
 namespace LiteHttp.Logging.Adapters.Serilog;
 
+/// <summary>
+/// Logger adapter for <c>Serilog</c> logger.
+/// Implements <see cref="Abstractions.ILogger"/> so can be easily/.
+/// </summary>
 public sealed class SerilogLoggerAdapter : LiteHttp.Logging.Abstractions.ILogger
 {
-    /*public SerilogLoggerAdapter(LoggerConfiguration configuration)
-    {
+    /// <summary>
+    /// Creates logger with provided configuration and replaces
+    /// <see cref="Log.Logger"/> by logger with new configuration. 
+    /// </summary>
+    /// <param name="configuration"><see cref="LoggerConfiguration"/> for logger</param>
+    public SerilogLoggerAdapter(LoggerConfiguration configuration) => 
         Log.Logger = configuration.CreateLogger();
-    }*/
+
+    public SerilogLoggerAdapter() { }
 
     public void LogTrace(FormattableString message) => 
         Log.Verbose(message.Format, message.GetArguments());
@@ -32,6 +41,13 @@ public sealed class SerilogLoggerAdapter : LiteHttp.Logging.Abstractions.ILogger
         SerilogLoggerAdapter<TContext>.Instance;
 }
 
+/// <summary>
+/// Represents a category-specific <see cref="Serilog"/> logger, typically bound to the type
+/// where the logging occurs.
+/// </summary>
+/// <typeparam name="TCategoryName">
+/// The type defining the logger category.
+/// </typeparam>
 public sealed class SerilogLoggerAdapter<TCategoryName> : LiteHttp.Logging.Abstractions.ILogger<TCategoryName>
 {
     public static readonly SerilogLoggerAdapter<TCategoryName> Instance = new();
