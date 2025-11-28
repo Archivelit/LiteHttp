@@ -41,7 +41,7 @@ public class LimitsConfiguration
         get;
         set
         {
-            if (value.HasValue && value < 0)
+            if (value is < 0)
                 throw new ArgumentOutOfRangeException(nameof(value), ExceptionStrings.NullOrNonNegativeNumberRequired);
 
             field = value;
@@ -53,7 +53,7 @@ public class LimitsConfiguration
         get;
         set
         {
-            if (value.HasValue && value < 0)
+            if (value is < 0)
                 throw new ArgumentOutOfRangeException(nameof(value), ExceptionStrings.NullOrNonNegativeNumberRequired);
 
             field = value;
@@ -77,7 +77,7 @@ public class LimitsConfiguration
         get;
         set
         {
-            if (value.HasValue && value < 0)
+            if (value is < 0)
                 throw new ArgumentOutOfRangeException(nameof(value), ExceptionStrings.NullOrNonNegativeNumberRequired);
 
             field = value;
@@ -89,7 +89,7 @@ public class LimitsConfiguration
         get;
         set
         {
-            if (value.HasValue && value < 0)
+            if (value is < 0)
                 throw new ArgumentOutOfRangeException(nameof(value), ExceptionStrings.NullOrNonNegativeNumberRequired);
 
             field = value;
@@ -113,7 +113,7 @@ public class LimitsConfiguration
         get;
         set
         {
-            if (value.HasValue && value < 0)
+            if (value is < 0)
                 throw new ArgumentOutOfRangeException(nameof(value), ExceptionStrings.NonNegativeNumberRequired);
 
             field = value;
