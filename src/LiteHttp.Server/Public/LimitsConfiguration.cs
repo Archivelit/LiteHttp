@@ -1,5 +1,7 @@
-﻿// Source - https://github.com/dotnet/aspnetcore/blob/main/src/Servers/Kestrel/Core/src/KestrelServerLimits.cs
-// Retrieved 27.11.2025 (DD.MM.YYYY), License - MIT license
+﻿// Based on: ASP.NET Core KestrelServerLimits
+// Source: https://github.com/dotnet/aspnetcore/blob/main/src/Servers/Kestrel/Core/src/KestrelServerLimits.cs
+// Retrieved: 2025-11-27
+// License: MIT license
 
 namespace LiteHttp.Server;
 
