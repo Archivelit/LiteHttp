@@ -1,7 +1,7 @@
 ﻿// Source - https://github.com/dotnet/aspnetcore/blob/main/src/Servers/Kestrel/Core/src/KestrelServerLimits.cs
 // Retrieved 27.11.2025 (DD.MM.YYYY), License - MIT license
 
-namespace LiteHttp.Configuration;
+namespace LiteHttp.Server;
 
 // TODO: Add documentation
 public class LimitsConfiguration
