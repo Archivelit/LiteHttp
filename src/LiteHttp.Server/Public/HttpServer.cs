@@ -21,13 +21,15 @@ public sealed class HttpServer : IServer, IDisposable
     /// AddressConstants.DEFAULT_SERVER_PORT if not specified.</param>
     /// <param name="address">The IP address to bind the server to. If null, the server binds to the loopback address.</param>
     /// <param name="logger">The logger used for server diagnostics and error reporting. If null, a no-op logger is used.</param>
+    /// <param name="limitsProvider">The provider for server limits configuration. If null, default limits are applied.</param>
     internal HttpServer(int workersCount = 1, int port = AddressConstants.DEFAULT_SERVER_PORT,
-        IPAddress? address = null, ILogger? logger = null)
+        IPAddress? address = null, ILogger? logger = null, ILimitsProvider? limitsProvider = null)
     {
         logger ??= NullLogger.Instance;
         address ??= IPAddress.Loopback;
+        limitsProvider ??= LimitsProvider.Default;
 
-        _internalServer = new InternalServer(workersCount: workersCount, address: address, port: port, logger: logger);
+        _internalServer = new InternalServer(workersCount: workersCount, address: address, port: port, logger: logger, limitsProvider: limitsProvider);
     }
 
     /// <inheritdoc/>

@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Abstractions.Limits;
 
-public interface ILimitProvider
+public interface ILimitsProvider
 {
     public TimeSpan KeepAliveTimeout { get; }
     public TimeSpan RequestHeadersTimeout { get; }

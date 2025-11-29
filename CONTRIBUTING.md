@@ -35,7 +35,7 @@ Use clear naming, avoid hidden side effects, and document only when logic isn’
 
 ## Commit Messages and Branches
 
-Use semantic, descriptive commits (e.g., Feat(http): add timeout support; Fix(startup): exception occurring during startup #12345).  
+Use semantic, descriptive commits (e.g., Fix(startup): exception occurring during startup #12345; Add 402 response code support).  
 One PR = one logical purpose. Don’t mix unrelated changes.
 
 ## Security and Vulnerabilities

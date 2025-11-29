@@ -14,6 +14,7 @@ public class ServerBuilder
     private int _workersCount = Environment.ProcessorCount / 2;
     private int _port = AddressConstants.DEFAULT_SERVER_PORT;
     private IPAddress _address = AddressConstants.IPV4_LOOPBACK;
+    private ILimitsProvider? _limitsProvider;
 
     /// <summary>
     /// Creates and configures a new instance of the <see cref="HttpServer"/> class using the specified worker count,
@@ -24,7 +25,7 @@ public class ServerBuilder
     /// start the server; you must explicitly start the returned <see cref="HttpServer"/> instance.</remarks>
     /// <returns>A configured <see cref="HttpServer"/> instance.</returns>
     public HttpServer Build() =>
-        new(workersCount: _workersCount, port: _port, address: _address, logger: _logger);
+        new(workersCount: _workersCount, port: _port, address: _address, logger: _logger, limitsProvider: _limitsProvider);
 
     /// <summary>
     /// Configures the server builder to use the specified logger for diagnostic and operational messages.
@@ -109,6 +110,21 @@ public class ServerBuilder
         _address = Dns.GetHostAddresses(address)
             .First(a => a.AddressFamily == AddressFamily.InterNetwork);
 
+        return this;
+    }
+
+    /// <summary>
+    /// Configures server resource limits using the specified settings.
+    /// </summary>
+    /// <remarks>
+    /// Subsequent calls will overwrite previous limit settings.
+    /// </remarks>
+    /// <param name="configuration">The limits configuration to apply to the server. Cannot be null.</param>
+    /// <returns>The current <see cref="ServerBuilder"/> instance with updated limits configuration.</returns>
+    public ServerBuilder WithLimits(LimitsConfiguration configuration)
+    {
+        _limitsProvider = new LimitsProvider(configuration);
+        
         return this;
     }
 }

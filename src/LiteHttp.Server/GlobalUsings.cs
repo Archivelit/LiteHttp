@@ -20,3 +20,4 @@ global using LiteHttp.Models.Events;
 global using LiteHttp.RequestProcessors;
 global using LiteHttp.Server.Services.Endpoints;
 global using LiteHttp.Abstractions.Limits;
+global using LiteHttp.Server.Services.Limits;

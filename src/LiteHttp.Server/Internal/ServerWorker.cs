@@ -9,11 +9,12 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
     private readonly Receiver _receiver = Receiver.Instance;
     private readonly ResponseBuilder _responseBuilder = new();
 
+    private ILimitsProvider _limitsProvider { get; set; }
     private ILogger<ServerWorker> _logger = NullLogger<ServerWorker>.Instance;
     // TODO: refactor to handle large requests and prevent unexpected errors
 
-    public ServerWorker(IEndpointContext endpointContext, string address, int port, ILogger logger) =>
-        Initialize(endpointContext: endpointContext, logger: logger, port: port, address: address);
+    public ServerWorker(IEndpointContext endpointContext, string address, int port, ILogger logger, ILimitsProvider limits) =>
+        Initialize(endpointContext: endpointContext, logger: logger, port: port, address: address, limitsProvider: limits);
 
     public void SetHostPort(int port) =>
         _responseBuilder.Port = port;
@@ -66,6 +67,7 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
     public void Dispose()
     {
         _responseBuilder.Dispose();
+        _requestBuffer.Dispose();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -81,12 +83,13 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
         connection.Dispose();
     }
 
-    private void Initialize(IEndpointContext endpointContext, ILogger logger, int port, string address)
+    private void Initialize(IEndpointContext endpointContext, ILogger logger, int port, string address, ILimitsProvider limitsProvider)
     {
         _router.SetContext(endpointContext);
         _logger = logger.ForContext<ServerWorker>();
 
         _responseBuilder.Address = address;
         _responseBuilder.Port = port;
+        _limitsProvider = limitsProvider;
     }
 }
