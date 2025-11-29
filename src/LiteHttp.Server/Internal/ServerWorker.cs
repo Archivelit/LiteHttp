@@ -67,7 +67,6 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
     public void Dispose()
     {
         _responseBuilder.Dispose();
-        _requestBuffer.Dispose();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
