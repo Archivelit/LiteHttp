@@ -3,7 +3,7 @@
 internal sealed class LimitsProvider : ILimitsProvider
 {
     public static readonly LimitsProvider Default = new(new LimitsConfiguration(o => { }));
-
+    
     public LimitsProvider(LimitsConfiguration configuration)
     {
         KeepAliveTimeout = configuration.KeepAliveTimeout;

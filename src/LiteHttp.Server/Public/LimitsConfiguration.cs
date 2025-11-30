@@ -28,6 +28,9 @@ public sealed class LimitsConfiguration
     /// </summary>
     /// <remarks>
     /// Can be set to <see cref="Timeout.InfiniteTimeSpan"/>.
+    /// <para>
+    /// Not supported yet.
+    /// </para>
     /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown if value less or equals <see cref="TimeSpan.Zero"/>.
@@ -54,6 +57,9 @@ public sealed class LimitsConfiguration
     /// </summary>
     /// <remarks>
     /// Can be set to <see cref="Timeout.InfiniteTimeSpan"/>.
+    /// <para>
+    /// Not supported yet.
+    /// </para>
     /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown if value is  less or equals <see cref="TimeSpan.Zero"/>.
@@ -79,6 +85,11 @@ public sealed class LimitsConfiguration
     /// Defaults to null (unlimited open connections).
     /// </para>
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Not supported yet.
+    /// </para>
+    /// </remarks>
     /// <param name="value">
     /// Non-zero positive integer.
     /// </param>
@@ -96,7 +107,7 @@ public sealed class LimitsConfiguration
             field = value;
         }
     }
-    
+
     /// <summary>
     /// Gets or sets the maximum number of open, upgraded connections.
     /// When set to null, the number of upgraded connections is unlimited.
@@ -105,6 +116,11 @@ public sealed class LimitsConfiguration
     /// Defaults to null.
     /// </para>
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Not supported yet.
+    /// </para>
+    /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown if value is negative number.
     /// </exception>
@@ -126,6 +142,11 @@ public sealed class LimitsConfiguration
     /// Defaults to 100.
     /// </para>
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Not supported yet.
+    /// </para>
+    /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown if value is less or equals zero.
     /// </exception> 
@@ -140,7 +161,7 @@ public sealed class LimitsConfiguration
             field = value;
         }
     } = 100;
-    
+
     /// <summary>
     /// Gets or sets the maximum response buffer size.
     /// If set to null, disables buffer limits.
@@ -148,6 +169,11 @@ public sealed class LimitsConfiguration
     /// Defaults to 64 kB (65,536 bytes).
     /// </para>
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Not supported yet.
+    /// </para>
+    /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown if value is less or equals zero.
     /// </exception>
@@ -162,7 +188,7 @@ public sealed class LimitsConfiguration
             field = value;
         }
     } = 64 * 1024;
-    
+
     /// <summary>
     /// Gets or sets the maximum size of request buffer.
     /// If set to null, disables buffer limits.
@@ -170,6 +196,11 @@ public sealed class LimitsConfiguration
     /// Defaults to 1 MB (1,048,576 bytes).
     /// </para>
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Not supported yet.
+    /// </para>
+    /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown if value is less or equals zero.
     /// </exception>
@@ -191,6 +222,11 @@ public sealed class LimitsConfiguration
     /// Defaults to 8192 bytes (8 kB).
     /// </para>
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Not supported yet.
+    /// </para>
+    /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown if value is less or equals zero. 
     /// </exception>
@@ -212,6 +248,11 @@ public sealed class LimitsConfiguration
     /// Defaults to 30 000 000 bytes (approximately 28,6 MB).
     /// </para>
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Not supported yet.
+    /// </para>
+    /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown if value is negative number.
     /// </exception>
@@ -226,10 +267,15 @@ public sealed class LimitsConfiguration
             field = value;
         }
     } = 30_000_000;
-    
+
     /// <summary>
     /// Gets or sets maximum allowed size for HTTP request headers.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Not supported yet.
+    /// </para>
+    /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown if value is less or equals zero 
     /// </exception>
