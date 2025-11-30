@@ -10,6 +10,7 @@ global using System.Threading.Channels;
 
 global using LiteHttp.Abstractions;
 global using LiteHttp.Abstractions.Factories;
+global using LiteHttp.Abstractions.Limits;
 global using LiteHttp.Constants;
 global using LiteHttp.Enums;
 global using LiteHttp.Extensions;
@@ -19,5 +20,4 @@ global using LiteHttp.Models;
 global using LiteHttp.Models.Events;
 global using LiteHttp.RequestProcessors;
 global using LiteHttp.Server.Services.Endpoints;
-global using LiteHttp.Abstractions.Limits;
 global using LiteHttp.Server.Services.Limits;

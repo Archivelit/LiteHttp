@@ -41,7 +41,8 @@ public class ServerBuilder
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="logger"/> is null</exception>
     public ServerBuilder WithLogger(ILogger logger)
     {
-        _logger = logger ?? throw new ArgumentNullException($"{nameof(logger)} logger cannot be null");
+        _logger = logger
+            ?? throw new ArgumentNullException(nameof(logger), $"Logger cannot be null");
 
         return this;
     }
@@ -124,7 +125,7 @@ public class ServerBuilder
     public ServerBuilder WithLimits(LimitsConfiguration configuration)
     {
         _limitsProvider = new LimitsProvider(configuration);
-        
+
         return this;
     }
 }

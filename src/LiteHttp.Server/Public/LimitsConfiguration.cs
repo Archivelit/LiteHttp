@@ -17,7 +17,7 @@ public sealed class LimitsConfiguration
     /// <param name="callback">
     /// A callback action that provides configuration.
     /// </param>
-    public LimitsConfiguration(Action<LimitsConfiguration> callback) => 
+    public LimitsConfiguration(Action<LimitsConfiguration> callback) =>
         callback?.Invoke(this);
 
     /// <summary>

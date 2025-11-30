@@ -10,7 +10,7 @@ internal sealed class Receiver : IReceiver
         var buffer = owner.Memory;
 
         var receivedLength = await connection.ReceiveAsync(buffer, ct).ConfigureAwait(false);
-        
+
         return buffer[..receivedLength];
     }
 }
