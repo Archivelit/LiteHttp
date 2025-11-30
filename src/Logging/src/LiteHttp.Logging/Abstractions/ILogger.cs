@@ -16,7 +16,7 @@ public interface ILogger
     /// A <see cref="FormattableString"/> whose text and arguments should be logged.
     /// </param>
     public void LogTrace(FormattableString message);
-    
+
     /// <summary>
     /// Writes a log message with the <c>Debug</c> severity level.
     /// </summary>
@@ -24,7 +24,7 @@ public interface ILogger
     /// A <see cref="FormattableString"/> whose text and arguments should be logged.
     /// </param>
     public void LogDebug(FormattableString message);
-    
+
     /// <summary>
     /// Writes a log message with the <c>Information</c> severity level.
     /// </summary>
@@ -32,7 +32,7 @@ public interface ILogger
     /// A <see cref="FormattableString"/> whose text and arguments should be logged.
     /// </param>
     public void LogInformation(FormattableString message);
-    
+
     /// <summary>
     /// Writes a log message with the <c>Warning</c> severity level.
     /// </summary>
@@ -40,7 +40,7 @@ public interface ILogger
     /// A <see cref="FormattableString"/> whose text and arguments should be logged.
     /// </param>
     public void LogWarning(FormattableString message);
-    
+
     /// <summary>
     /// Writes a log message with the <c>Error</c> severity level, including an exception.
     /// </summary>

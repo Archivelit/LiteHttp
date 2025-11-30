@@ -9,13 +9,14 @@ internal sealed class InternalServer : IServer, IDisposable
     private readonly ILogger<InternalServer> _logger = NullLogger<InternalServer>.Instance;
     private ServerWorker[]? _workerPool;
 
-    internal InternalServer(int workersCount, IPAddress? address = null, int port = AddressConstants.DEFAULT_SERVER_PORT, ILogger? logger = null)
+    internal InternalServer(int workersCount, IPAddress? address = null, int port = AddressConstants.DEFAULT_SERVER_PORT, ILogger? logger = null, ILimitsProvider? limitsProvider = null)
     {
         _workerPool = new ServerWorker[workersCount];
         logger ??= NullLogger.Instance;
         address ??= IPAddress.Loopback;
+        limitsProvider ??= LimitsProvider.Default;
 
-        Initialize(logger: logger, port: port, address: address);
+        Initialize(logger: logger, port: port, address: address, limits: limitsProvider);
     }
 
     /// <inheritdoc/>
@@ -64,6 +65,12 @@ internal sealed class InternalServer : IServer, IDisposable
     public void Dispose()
     {
         _listener.Dispose();
+
+        if (_workerPool == null)
+            return;
+
+        foreach (var worker in _workerPool)
+            worker.Dispose();
     }
 
     /// <inheritdoc/>
@@ -122,7 +129,7 @@ internal sealed class InternalServer : IServer, IDisposable
 
         _listener.SetIpAddress(address);
 
-        foreach (var worker in _workerPool!) 
+        foreach (var worker in _workerPool!)
             worker.SetHostAddress(addressAsString);
 
         _logger.LogInformation($"Server address set to {addressAsString} successfully.");
@@ -138,7 +145,7 @@ internal sealed class InternalServer : IServer, IDisposable
         {
             _listener.SetPort(port);
 
-            foreach (var worker in _workerPool!) 
+            foreach (var worker in _workerPool!)
                 worker.SetHostPort(port);
         }
         catch (Exception ex)
@@ -157,14 +164,14 @@ internal sealed class InternalServer : IServer, IDisposable
     /// <param name="port">The network port number on which the server will listen for incoming requests. Must be in the valid range for
     /// TCP/UDP ports.</param>
     /// <param name="address">The IP address to which the server listener will bind. Cannot be null.</param>
-    private void Initialize(ILogger logger, int port, IPAddress address)
+    private void Initialize(ILogger logger, int port, IPAddress address, ILimitsProvider limits)
     {
         _logger.LogInformation($"Initializing InternalServer...");
 
         _listener.SetPort(port);
         _listener.SetIpAddress(address);
         _listener.SubscribeToRequestReceived(_eventBus.PublishAsync);
-        InitializeWorkers(logger);
+        InitializeWorkers(logger, limits);
 
         _logger.LogInformation($"InternalServer initialized successfully.");
     }
@@ -173,14 +180,14 @@ internal sealed class InternalServer : IServer, IDisposable
     /// Initializes the server worker pool using the specified logger for diagnostic output.
     /// </summary>
     /// <param name="logger">The logger instance used to record informational messages during worker initialization. Cannot be null.</param>
-    private void InitializeWorkers(ILogger logger)
+    private void InitializeWorkers(ILogger logger, ILimitsProvider limits)
     {
         _logger.LogInformation($"Initializing server workers...");
 
         _workerPool ??= new ServerWorker[1];
 
-        for (var i = 0; i < _workerPool.Length; i++) 
-            _workerPool[i] = new(_endpointProviderConfiguration.EndpointContext, _listener.ListenerAddress.ToString(), _listener.ListenerPort, logger);
+        for (var i = 0; i < _workerPool.Length; i++)
+            _workerPool[i] = new(_endpointProviderConfiguration.EndpointContext, _listener.ListenerAddress.ToString(), _listener.ListenerPort, logger, limits);
 
         _logger.LogInformation($"Server workers initialized successfully.");
     }
