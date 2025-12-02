@@ -9,7 +9,7 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
     private readonly Receiver _receiver = Receiver.Instance;
     private readonly ResponseBuilder _responseBuilder = new();
 
-    private ILimitsProvider _limitsProvider { get; set; }
+    private ILimitsProvider LimitsProvider { get; set; }
     private ILogger<ServerWorker> _logger = NullLogger<ServerWorker>.Instance;
     // TODO: refactor to handle large requests and prevent unexpected errors
 
@@ -64,10 +64,7 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        _responseBuilder.Dispose();
-    }
+    public void Dispose() => _responseBuilder.Dispose();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private async ValueTask SendResponseAndDisposeConnection(Socket connection, ReadOnlyMemory<byte> response)
@@ -89,6 +86,6 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
 
         _responseBuilder.Address = address;
         _responseBuilder.Port = port;
-        _limitsProvider = limitsProvider;
+        LimitsProvider = limitsProvider;
     }
 }
