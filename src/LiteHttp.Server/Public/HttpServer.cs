@@ -10,27 +10,12 @@
 public sealed class HttpServer : IServer, IDisposable
 {
     private readonly InternalServer _internalServer;
-
+    
     /// <summary>
-    /// Initializes a new instance of the HttpServer class with the specified configuration
+    /// Initializes a new instance of the HttpServer class with the specified <see cref="InternalServer"/>.
     /// </summary>
-    /// <remarks>If no address is provided, the server will only accept connections from the local machine.
-    /// Providing a custom logger allows integration with application-wide logging frameworks.</remarks>
-    /// <param name="workersCount">The number of worker threads to handle incoming HTTP requests. Must be greater than zero.</param>
-    /// <param name="port">The network port on which the server listens for incoming connections. Defaults to
-    /// AddressConstants.DEFAULT_SERVER_PORT if not specified.</param>
-    /// <param name="address">The IP address to bind the server to. If null, the server binds to the loopback address.</param>
-    /// <param name="logger">The logger used for server diagnostics and error reporting. If null, a no-op logger is used.</param>
-    /// <param name="limitsProvider">The provider for server limits configuration. If null, default limits are applied.</param>
-    internal HttpServer(int workersCount = 1, int port = AddressConstants.DEFAULT_SERVER_PORT,
-        IPAddress? address = null, ILogger? logger = null, ILimitsProvider? limitsProvider = null)
-    {
-        logger ??= NullLogger.Instance;
-        address ??= IPAddress.Loopback;
-        limitsProvider ??= LimitsProvider.Default;
-
-        _internalServer = new InternalServer(workersCount: workersCount, address: address, port: port, logger: logger, limitsProvider: limitsProvider);
-    }
+    /// <param name="internalServer">Preconfigured <see cref="InternalServer"/> instance.</param>
+    internal HttpServer(InternalServer internalServer) => _internalServer = internalServer;
 
     /// <inheritdoc/>
     public Task Start(CancellationToken cancellationToken = default) =>
