@@ -44,7 +44,7 @@ internal sealed partial class Listener : IListener, IDisposable
     public async ValueTask StartListen(CancellationToken stoppingToken)
     {
         if (_endPoint is null)
-            throw new ArgumentNullException(nameof(_endPoint), "Listener endpoint cannot be null");
+            throw new InvalidOperationException("Listener endpoint cannot be null");
 
         if (!Socket.IsBound)
         {
