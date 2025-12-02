@@ -20,12 +20,19 @@ public class ServerBuilder
     /// Creates and configures a new instance of the <see cref="HttpServer"/> class using the specified worker count,
     /// port, etc.
     /// </summary>
-    /// <remarks>The returned server instance is initialized with the parameters provided to the builder.
+    /// <remarks>
+    /// The returned server instance is initialized with the parameters provided to the builder.
     /// Ensure that the configuration properties are set appropriately before calling this method. This method does not
-    /// start the server; you must explicitly start the returned <see cref="HttpServer"/> instance.</remarks>
+    /// start the server; you must explicitly start the returned.
+    /// <see cref="HttpServer"/> instance.</remarks>
     /// <returns>A configured <see cref="HttpServer"/> instance.</returns>
-    public HttpServer Build() =>
-        new(workersCount: _workersCount, port: _port, address: _address, logger: _logger, limitsProvider: _limitsProvider);
+    public HttpServer Build()
+    {
+        var internalServer = new InternalServer(workersCount: _workersCount, port: _port, address: _address, 
+            logger: _logger, limitsProvider: _limitsProvider);
+
+        return new(internalServer);
+    }
 
     /// <summary>
     /// Configures the server builder to use the specified logger for diagnostic and operational messages.
