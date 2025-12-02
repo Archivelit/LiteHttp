@@ -12,7 +12,7 @@ public sealed class HttpServer : IServer, IDisposable
     private readonly InternalServer _internalServer;
 
     /// <summary>
-    /// Initializes a new instance of the HttpServer class with the specified configuration
+    /// Initializes a new instance of the HttpServer class with the specified configuration.
     /// </summary>
     /// <remarks>If no address is provided, the server will only accept connections from the local machine.
     /// Providing a custom logger allows integration with application-wide logging frameworks.</remarks>
@@ -31,6 +31,12 @@ public sealed class HttpServer : IServer, IDisposable
 
         _internalServer = new InternalServer(workersCount: workersCount, address: address, port: port, logger: logger, limitsProvider: limitsProvider);
     }
+
+    /// <summary>
+    /// Initializes a new instance of the HttpServer class with the specified <see cref="InternalServer"/>.
+    /// </summary>
+    /// <param name="internalServer">Preconfigured <see cref="InternalServer"/> instance.</param>
+    internal HttpServer(InternalServer internalServer) => _internalServer = internalServer;
 
     /// <inheritdoc/>
     public Task Start(CancellationToken cancellationToken = default) =>
