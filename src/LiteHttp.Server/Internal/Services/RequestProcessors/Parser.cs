@@ -19,19 +19,19 @@ internal sealed class Parser : IParser
         var method = GetMethod(firstLine);
 
         if (!method.Success)
-            return new(method.Error!);
+            return new(method.Error.Value);
 
         var route = GetRoute(firstLine);
 
         if (!route.Success)
-            return new(route.Error!);
+            return new(route.Error.Value);
 
         var headerSection = requestParts.Headers[(firstLine.Length + RequestSymbolsAsBytes.NewRequestLine.Length)..]; // First line of request does not contain any header
 
         var headers = MapHeaders(headerSection);
 
         return !headers.Success
-            ? new(headers.Error!)
+            ? new(headers.Error.Value)
             : new Result<HttpContext>(new HttpContext(method.Value, route.Value, headers.Value, requestParts.Body));
     }
 
@@ -47,7 +47,7 @@ internal sealed class Parser : IParser
         var lastSpaceIndex = firstRequestLine.Span.LastIndexOf(RequestSymbolsAsBytes.Space);
 
         if (firstSpaceIndex == lastSpaceIndex)
-            return new(new ArgumentException("The request has wrong format"));
+            return new(new Error(ParserErrors.InvalidRequestSyntax,"The request has wrong format"));
 
         return new(firstRequestLine[(firstSpaceIndex + 1)..lastSpaceIndex]); // space index + 1 to exclude whitespace and get first symbol of route
     }
@@ -72,7 +72,7 @@ internal sealed class Parser : IParser
         var spaceIndex = firstRequestLine.Span.IndexOf(RequestSymbolsAsBytes.Space);
 
         if (spaceIndex == -1)
-            return new(new ArgumentException("The request has wrong format"));
+            return new(new Error(ParserErrors.InvalidRequestSyntax, "The request has wrong format"));
 
         return new(firstRequestLine[..spaceIndex]);
     }
@@ -124,7 +124,7 @@ internal sealed class Parser : IParser
             var colon = headers.Span[..eol].IndexOf(RequestSymbolsAsBytes.Colon);
 
             if (colon == -1)
-                return new(new FormatException("The headers had wrong format"));
+                return new(new Error(ParserErrors.InvalidRequestSyntax, "The headers had wrong format"));
 
             var key = headers[..colon];
             var value = headers[

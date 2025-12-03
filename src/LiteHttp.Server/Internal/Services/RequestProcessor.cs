@@ -59,7 +59,7 @@ internal sealed class RequestProcessor : IDisposable, IRequestProcessor
         var context = _parser.Parse(request);
 
         if (!context.Success)
-            return new(context.Error!);
+            return new(_responseBuilder.Build(ActionResultFactory.Instance.BadRequest()));
         
         var action = _router.GetAction(context.Value);
 

@@ -5,7 +5,7 @@ public readonly struct Error
     public readonly string ErrorMessage;
     public readonly int ErrorCode;
 
-    public Error(string errorMessage, int errorCode)
+    public  Error(int errorCode, string errorMessage)
     {
         ErrorMessage = errorMessage;
         ErrorCode = errorCode;
