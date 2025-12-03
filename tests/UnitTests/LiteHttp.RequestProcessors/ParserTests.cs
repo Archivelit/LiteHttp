@@ -1,4 +1,6 @@
-﻿namespace UnitTests.LiteHttp.RequestProcessors;
+﻿using LiteHttp.Constants.ErrorCodes;
+
+namespace UnitTests.LiteHttp.RequestProcessors;
 
 #nullable disable
 public class ParserTests
@@ -7,7 +9,7 @@ public class ParserTests
     private readonly ITestOutputHelper _outputHelper = TestContext.Current.TestOutputHelper;
 
     [Fact]
-    public void Parse_ValidRequest_WithoutBody_WithCRLFOnEnd()
+    public void Parse_ValidRequest_WithoutBody_WithCRLFOnEnd_ShouldReturn_HttpContext()
     {
         // Arrange
         var request = Encoding.UTF8.GetBytes("GET / HTTP/1.1\r\nHost: test.com\r\n");
@@ -37,7 +39,7 @@ public class ParserTests
     }
 
     [Fact]
-    public void Parse_ValidRequest_WithoutBody_WithoutCRLFOnEnd()
+    public void Parse_ValidRequest_WithoutBody_WithoutCRLFOnEnd_ShouldReturn_HttpContext()
     {
         // Arrange
         var request = Encoding.UTF8.GetBytes("GET / HTTP/1.1\r\nHost: test.com");
@@ -66,8 +68,7 @@ public class ParserTests
         result.Body.Should().BeEquivalentTo(expectedBody);
     }
 
-    [Fact]
-    public void Parse_ValidRequest_WithSimpleBody()
+    [Fact] public void Parse_ValidRequest_WithSimpleBody_ShouldReturn_HttpContext()
     {
         // Arrange
         var request = Encoding.UTF8.GetBytes("PUT / HTTP/1.1\r\nHost: test.com\r\nContent-Type: text/plain\r\nContent-Length: 13\r\n\r\nHello, World!");
@@ -107,7 +108,7 @@ public class ParserTests
     }
 
     [Fact]
-    public void Parse_InvalidRequest_WithoutHttpVersion()
+    public void Parse_InvalidRequest_WithoutHttpVersion_ShouldReturn_ResultWithError_InvalidRequestSyntax()
     {
         // Arrange
         var request = Encoding.UTF8.GetBytes("GET /\r\nHost: test.com");
@@ -117,11 +118,12 @@ public class ParserTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Error.Should().BeOfType<ArgumentException>();
+        result.Error.Value.Should().NotBeNull().And.BeOfType<Error>();
+        result.Error.Value.ErrorCode.Should().Be(ParserErrors.InvalidRequestSyntax);
     }
 
     [Fact]
-    public void Parse_InvalidRequest_WithoutMethod()
+    public void Parse_InvalidRequest_WithoutMethod_ShouldReturn_ResultWithError_InvalidRequestSyntax()
     {
         // Arrange
         var request = Encoding.UTF8.GetBytes("/ HTTP1.0\r\nHost: test.com");
@@ -131,11 +133,12 @@ public class ParserTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Error.Should().BeOfType<ArgumentException>();
+        result.Error.Value.Should().NotBeNull().And.BeOfType<Error>();
+        result.Error.Value.ErrorCode.Should().Be(ParserErrors.InvalidRequestSyntax);
     }
 
     [Fact]
-    public void Parse_InvalidRequest_WithoutRoute()
+    public void Parse_InvalidRequest_WithoutRoute_ShouldReturn_ResultWithError_InvalidRequestSyntax()
     {
         // Arrange
         var request = Encoding.UTF8.GetBytes("GET HTTP1.0\r\nHost: test.com");
@@ -145,11 +148,12 @@ public class ParserTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Error.Should().BeOfType<ArgumentException>();
+        result.Error.Value.Should().NotBeNull().And.BeOfType<Error>();
+        result.Error.Value.ErrorCode.Should().Be(ParserErrors.InvalidRequestSyntax);
     }
 
     [Fact]
-    public void Parse_InvalidRequest_WithoutSpaces()
+    public void Parse_InvalidRequest_WithoutSpaces_ShouldReturn_ResultWithError_InvalidRequestSyntax()
     {
         // Arrange
         var request = Encoding.UTF8.GetBytes("GET/HTTP1.0\r\nHost: test.com");
@@ -159,7 +163,8 @@ public class ParserTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Error.Should().BeOfType<ArgumentException>();
+        result.Error.Should().BeOfType<Error>();
+        result.Error.Value.ErrorCode.Should().Be(ParserErrors.InvalidRequestSyntax);
     }
 
     private void WriteContextData(HttpContext context)
