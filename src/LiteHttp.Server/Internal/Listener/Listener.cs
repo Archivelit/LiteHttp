@@ -8,7 +8,7 @@ internal sealed partial class Listener : IListener, IDisposable
     public IPAddress ListenerAddress { get; private set; }
 
     private IPEndPoint _endPoint;
-    private ListenerState _listenerState = ListenerState.Stopped;
+    private bool _isListening = false;
     private ILogger<Listener> _logger = NullLogger<Listener>.Instance;
 
     public Listener(ILogger<Listener>? logger = null)
@@ -44,7 +44,7 @@ internal sealed partial class Listener : IListener, IDisposable
     public async ValueTask StartListen(CancellationToken stoppingToken)
     {
         if (_endPoint is null)
-            throw new ArgumentNullException(nameof(_endPoint), "Listener endpoint cannot be null");
+            throw new InvalidOperationException("Listener endpoint cannot be null");
 
         if (!Socket.IsBound)
         {
@@ -54,7 +54,7 @@ internal sealed partial class Listener : IListener, IDisposable
 
         Socket.Listen();
 
-        _listenerState = ListenerState.Listening;
+        _isListening = true;
 
         _logger.LogInformation($"Listening at {_endPoint.ToString()}");
 
@@ -76,7 +76,7 @@ internal sealed partial class Listener : IListener, IDisposable
         }
         finally
         {
-            _listenerState = ListenerState.Stopped;
+            _isListening = false;
         }
     }
 
@@ -85,7 +85,7 @@ internal sealed partial class Listener : IListener, IDisposable
 
     internal Listener SetIpAddress(IPAddress address)
     {
-        if (IsListening())
+        if (_isListening)
             throw new InvalidOperationException("Ip address cannot be changed while server listening");
 
         ListenerAddress = address;
@@ -96,7 +96,7 @@ internal sealed partial class Listener : IListener, IDisposable
 
     internal Listener SetPort(int port)
     {
-        if (IsListening())
+        if (_isListening)
             throw new InvalidOperationException("Port cannot be changed while server listening");
 
         ListenerPort = port;
@@ -128,6 +128,4 @@ internal sealed partial class Listener : IListener, IDisposable
 
         UpdateListenerEndPoint();
     }
-
-    private bool IsListening() => _listenerState == ListenerState.Listening;
 }
