@@ -2,13 +2,13 @@
 
 public readonly record struct Result<TResult>
 {
-    public Exception? Exception { get; init; }
-    public TResult? Value { get; init; }
-    public bool Success { get; init; }
+    public Error? Error { get; }
+    public TResult? Value { get; }
+    public bool Success { get; }
 
-    public Result(Exception exception)
+    public Result(Error error)
     {
-        Exception = exception;
+        Error = error;
         Success = false;
     }
 

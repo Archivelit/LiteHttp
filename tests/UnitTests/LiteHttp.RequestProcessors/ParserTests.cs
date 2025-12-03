@@ -117,7 +117,7 @@ public class ParserTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Exception.Should().BeOfType<ArgumentException>();
+        result.Error.Should().BeOfType<ArgumentException>();
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public class ParserTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Exception.Should().BeOfType<ArgumentException>();
+        result.Error.Should().BeOfType<ArgumentException>();
     }
 
     [Fact]
@@ -145,7 +145,7 @@ public class ParserTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Exception.Should().BeOfType<ArgumentException>();
+        result.Error.Should().BeOfType<ArgumentException>();
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public class ParserTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Exception.Should().BeOfType<ArgumentException>();
+        result.Error.Should().BeOfType<ArgumentException>();
     }
 
     private void WriteContextData(HttpContext context)

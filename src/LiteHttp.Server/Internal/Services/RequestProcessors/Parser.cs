@@ -19,19 +19,19 @@ internal sealed class Parser : IParser
         var method = GetMethod(firstLine);
 
         if (!method.Success)
-            return new(method.Exception!);
+            return new(method.Error!);
 
         var route = GetRoute(firstLine);
 
         if (!route.Success)
-            return new(route.Exception!);
+            return new(route.Error!);
 
         var headerSection = requestParts.Headers[(firstLine.Length + RequestSymbolsAsBytes.NewRequestLine.Length)..]; // First line of request does not contain any header
 
         var headers = MapHeaders(headerSection);
 
         return !headers.Success
-            ? new(headers.Exception!)
+            ? new(headers.Error!)
             : new Result<HttpContext>(new HttpContext(method.Value, route.Value, headers.Value, requestParts.Body));
     }
 
