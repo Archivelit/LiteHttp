@@ -14,8 +14,17 @@
 /// </typeparam>
 internal readonly record struct Result<TResult>
 {
+    /// <summary>
+    /// Gets the error information associated with the current operation, if any.
+    /// </summary>
     public Error? Error { get; }
+    /// <summary>
+    /// Gets the result value if the operation was successful; otherwise, returns null.
+    /// </summary>
     public TResult? Value { get; }
+    /// <summary>
+    /// Gets a value indicating whether the operation completed successfully.
+    /// </summary>
     public bool Success { get; }
 
     /// <summary>
