@@ -12,7 +12,7 @@
 /// <typeparam name="TResult">
 /// The type of the value returned when the operation is successful.
 /// </typeparam>
-public readonly record struct Result<TResult>
+internal readonly record struct Result<TResult>
 {
     public Error? Error { get; }
     public TResult? Value { get; }
