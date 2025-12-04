@@ -8,7 +8,7 @@
 /// message, within internal components. The struct is immutable and intended for internal error reporting
 /// scenarios.
 /// </remarks>
-internal readonly struct Error
+public readonly struct Error
 {
     /// <summary>
     /// Provides a descriptive message detailing the error condition.
