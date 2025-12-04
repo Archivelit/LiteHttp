@@ -20,5 +20,5 @@ public class ResponseBuilderBenchmarks
 
     [Benchmark, BenchmarkCategory("ResponseBuilding")]
     public ReadOnlyMemory<byte> BuildResponse() =>
-       _ = _responseBuilder.Build(new ActionResult(ResponseCode.Ok));
+       _ = _responseBuilder.Build(new ActionResult(ResponseCode.Ok)).Value;
 }

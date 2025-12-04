@@ -4,13 +4,20 @@ internal sealed class Receiver : IReceiver
 {
     public static readonly Receiver Instance = new();
 
-    public async ValueTask<Memory<byte>> RecieveFromConnection(Socket connection, CancellationToken ct)
+    public async Task<Result<Memory<byte>>> RecieveFromConnection(Socket connection, CancellationToken ct)
     {
-        using var owner = MemoryPool<byte>.Shared.Rent(4096);
-        var buffer = owner.Memory;
+        try
+        {
+            using var owner = MemoryPool<byte>.Shared.Rent(4096);
+            var buffer = owner.Memory;
 
-        var receivedLength = await connection.ReceiveAsync(buffer, ct).ConfigureAwait(false);
+            var receivedLength = await connection.ReceiveAsync(buffer, ct).ConfigureAwait(false);
 
-        return buffer[..receivedLength];
+            return new Result<Memory<byte>>(buffer[..receivedLength]);
+        }
+        catch (SocketException excpetion)
+        {
+            return new Result<Memory<byte>>(new Error(excpetion.ErrorCode, excpetion.Message));
+        }
     }
 }

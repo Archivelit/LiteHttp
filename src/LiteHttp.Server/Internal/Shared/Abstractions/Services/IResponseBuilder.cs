@@ -2,5 +2,5 @@
 
 public interface IResponseBuilder
 {
-    public ReadOnlyMemory<byte> Build(IActionResult actionResult, ReadOnlyMemory<byte>? responseBody = null);
+    public Result<ReadOnlyMemory<byte>> Build(IActionResult actionResult, ReadOnlyMemory<byte>? responseBody = null);
 }
