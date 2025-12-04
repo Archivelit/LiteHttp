@@ -51,6 +51,14 @@ public interface ILogger
     public void LogError(Exception ex, FormattableString message);
 
     /// <summary>
+    /// Writes a log message with the <c>Error</c> severity level.
+    /// </summary>
+    /// <param name="message">
+    /// A <see cref="FormattableString"/> whose text and arguments should be logged.
+    /// </param>
+    public void LogError(FormattableString message);
+
+    /// <summary>
     /// Creates a category-specific logger for the specified <typeparamref name="TContext"/>.
     /// </summary>
     /// <typeparam name="TContext">
