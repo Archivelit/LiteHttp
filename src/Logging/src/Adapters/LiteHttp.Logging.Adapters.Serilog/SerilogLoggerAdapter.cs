@@ -35,7 +35,7 @@ public sealed class SerilogLoggerAdapter : LiteHttp.Logging.Abstractions.ILogger
         Log.Warning(message.Format, message.GetArguments());
 
     public void LogError(Exception ex, FormattableString message) =>
-        Log.Error(message.Format, message.GetArguments());
+        Log.Error(ex, message.Format, message.GetArguments());
 
     public void LogError(FormattableString message) => 
         Log.Error(message.Format, message.GetArguments());
@@ -69,7 +69,7 @@ public sealed class SerilogLoggerAdapter<TCategoryName> : LiteHttp.Logging.Abstr
         Logger.Warning(message.Format, message.GetArguments());
 
     public void LogError(Exception ex, FormattableString message) =>
-        Logger.Error(message.Format, message.GetArguments());
+        Logger.Error(ex, message.Format, message.GetArguments());
 
     public void LogError(FormattableString message) =>
         Logger.Error(message.Format, message.GetArguments());
