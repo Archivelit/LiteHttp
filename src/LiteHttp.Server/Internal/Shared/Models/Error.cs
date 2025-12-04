@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Models;
 
-public readonly struct Error
+internal readonly struct Error
 {
     public readonly string ErrorMessage;
     public readonly int ErrorCode;
