@@ -1,20 +1,21 @@
 ﻿namespace LiteHttp.Sockets.TcpSocket;
 
 /// <summary>
-/// This class is used to receive data from the entire request.
+/// Provides functionality for receiving request from a TCP connection.
 /// </summary>
 internal sealed class TcpSocketReader
 {
     /// <summary>
-    /// Minimal size of buffer that used to receive data from request.
+    /// Minimal size of the buffer used when receiving request.
     /// </summary>
     private const int MinBufferSize = 1024;
     
     /// <summary>
-    /// Asynchronously receive and write data to the <see cref="Pipe"/> from parameters.
+    /// Asynchronously receives data from specified TCP <see cref="Socket"/> and writes
+    /// them into the provided <see cref="Pipe"/>.
     /// </summary>
-    /// <param name="socket">A socket with entire request.</param>
-    /// <param name="pipe">Pipe used for storing the request.</param>
+    /// <param name="socket">The connected socket from which the request data is received.</param>
+    /// <param name="pipe">The pipe used to store received request data.</param>
     public async Task ReceiveAsync(Socket socket, Pipe pipe)
     {
         while (true)
