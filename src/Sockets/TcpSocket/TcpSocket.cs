@@ -13,6 +13,10 @@ internal sealed class TcpSocket : IDisposable
     /// An <see cref="TcpSocketReader"/> instance that used to receive data from the entire request.
     /// </summary>
     private readonly TcpSocketReader _socketReader = new();
+    /// <summary>
+    /// An <see cref="TcpSocketWriter"/> instance that used to send response.
+    /// </summary>
+    private readonly TcpSocketWriter _socketWriter = new();
     
     /// <summary>
     /// Creates <see cref="TcpSocket"/> instance.
@@ -34,10 +38,18 @@ internal sealed class TcpSocket : IDisposable
     public void Dispose() => _internalSocket.Dispose();
     
     /// <summary>
-    /// Reads the data from entire request and writes them to <see cref="PipeReader"/> using <see cref="PipeWriter"/>. 
+    /// Reads the data from entire request and writes them to <see cref="PipeReader"/>. 
     /// </summary>
     /// <param name="pipe">Pipe used to store request for further processing.</param>
     /// <returns>A <see cref="Task"/> that represents asynchronous receive operation.</returns>
     public Task ReceiveAsync(Pipe pipe) =>
         _socketReader.ReceiveAsync(_internalSocket, pipe);
+
+    /// <summary>
+    /// Reads the response from <see cref="Pipe"/> and sends it to client using.
+    /// </summary>
+    /// <param name="pipe">Pipe with response stored in it.</param>
+    /// <returns>A <see cref="Task"/> that represents asynchronous send operation.</returns>
+    public Task SendAsync(Pipe pipe) =>
+        _socketWriter.SendAsync(_internalSocket, pipe);
 }
