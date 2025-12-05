@@ -7,6 +7,7 @@ global using System.Numerics;
 global using System.Runtime.CompilerServices;
 global using System.Text;
 global using System.Threading.Channels;
+global using System.IO.Pipelines;
 
 global using LiteHttp.Abstractions;
 global using LiteHttp.Abstractions.Factories;
