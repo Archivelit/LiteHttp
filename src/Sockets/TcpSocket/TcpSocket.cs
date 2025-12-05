@@ -9,6 +9,8 @@ internal class TcpSocket : IDisposable
     /// Internal socket that <see cref="TcpSocket"/> works with
     /// </summary>
     private readonly Socket _internalSocket;
+
+    private readonly TcpSocketReader _socketReader = new();
     
     /// <summary>
     /// Creates <see cref="TcpSocket"/> instance.
@@ -20,4 +22,12 @@ internal class TcpSocket : IDisposable
         _internalSocket = new Socket(addressFamily, socketType, ProtocolType.Tcp);
     
     public void Dispose() => _internalSocket.Dispose();
+    
+    /// <summary>
+    /// Reads the data from entire request and writes them to <see cref="PipeReader"/> using <see cref="PipeWriter"/>. 
+    /// </summary>
+    /// <param name="pipe">Pipe used to store request for further processing.</param>
+    /// <returns>A <see cref="Task"/> that represents asynchronous receive operation.</returns>
+    public Task ReceiveAsync(Pipe pipe) =>
+        _socketReader.ReceiveAsync(_internalSocket, pipe);
 }
