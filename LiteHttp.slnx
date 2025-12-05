@@ -10,6 +10,9 @@
   <Folder Name="/src/Logging/src/Adapters/">
     <Project Path="src/Logging/src/Adapters/LiteHttp.Logging.Adapters.Serilog/LiteHttp.Logging.Adapters.Serilog.csproj" />
   </Folder>
+  <Folder Name="/src/Sockets/">
+    <Project Path="src/Sockets/TcpSocket/TcpSocket.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Benchmarks/Benchmarks.csproj" />
     <Project Path="tests/UnitTests/UnitTests.csproj" />

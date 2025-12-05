@@ -10,6 +10,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Logging\src\LiteHttp.Logging\LiteHttp.Logging.csproj" />
+      <ProjectReference Include="..\Sockets\TcpSocket\TcpSocket.csproj" />
     </ItemGroup>
 
 </Project>
