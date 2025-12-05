@@ -22,6 +22,14 @@ internal sealed class TcpSocket : IDisposable
     public TcpSocket(AddressFamily addressFamily = AddressFamily.InterNetwork,
         SocketType socketType = SocketType.Stream) =>
         _internalSocket = new Socket(addressFamily, socketType, ProtocolType.Tcp);
+
+    /// <summary>
+    /// Creates a <see cref="TcpSocket"/> instance that encapsulates an existing <see cref="Socket"/>.
+    /// </summary>
+    /// <param name="socket">
+    /// The existing socket to be wrapped and used internally by the <see cref="TcpSocket"/> instance.
+    /// </param>
+    public TcpSocket(Socket socket) => _internalSocket = socket;
     
     public void Dispose() => _internalSocket.Dispose();
     
