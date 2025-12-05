@@ -9,7 +9,9 @@ internal sealed class TcpSocket : IDisposable
     /// Internal socket that <see cref="TcpSocket"/> works with
     /// </summary>
     private readonly Socket _internalSocket;
-
+    /// <summary>
+    /// An <see cref="TcpSocketReader"/> instance that used to receive data from the entire request.
+    /// </summary>
     private readonly TcpSocketReader _socketReader = new();
     
     /// <summary>
