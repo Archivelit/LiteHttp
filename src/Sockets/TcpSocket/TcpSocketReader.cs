@@ -2,13 +2,15 @@
 
 internal sealed class TcpSocketReader
 {
+    private const int MinBufferSize = 1024;
+    
     public async Task ReceiveAsync(Socket connection, Pipe pipe)
     {
         while (true)
         {
             try
             {
-                Memory<byte> buffer = pipe.Writer.GetMemory(512);
+                Memory<byte> buffer = pipe.Writer.GetMemory(MinBufferSize);
                 var bytesRead = await connection.ReceiveAsync(buffer);
 
                 if (bytesRead == 0)
