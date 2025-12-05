@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents convenient socket model to work with tcp connections.
 /// </summary>
-internal class TcpSocket : IDisposable
+internal sealed class TcpSocket : IDisposable
 {
     /// <summary>
     /// Internal socket that <see cref="TcpSocket"/> works with
