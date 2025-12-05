@@ -1,4 +1,4 @@
-﻿namespace LiteHttp.Services.TcpSocket;
+﻿namespace LiteHttp.Sockets.TcpSocket;
 
 internal sealed class TcpSocketReader
 {

@@ -1,4 +1,4 @@
-﻿namespace LiteHttp.Models;
+﻿namespace LiteHttp.Sockets.TcpSocket;
 
 /// <summary>
 /// Represents convenient socket model to work with tcp connections.
