@@ -44,7 +44,7 @@ internal class TcpSocketWriter
     /// </summary>
     /// <param name="socket">A socket with connection where the response has to be sent.</param>
     /// <param name="pipe">Pipe with response stored in it.</param>
-    public async Task SendAsync(Socket socket, Pipe pipe)
+    public async Task SendAsync(ISocketProxy socket, Pipe pipe)
     {
         while (true)
         {

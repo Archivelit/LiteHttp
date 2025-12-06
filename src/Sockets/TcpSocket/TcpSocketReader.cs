@@ -49,7 +49,7 @@ internal sealed class TcpSocketReader
     /// </summary>
     /// <param name="socket">The connected socket from which the request data is received.</param>
     /// <param name="pipe">The pipe used to store received request data.</param>
-    public async Task ReceiveAsync(Socket socket, Pipe pipe)
+    public async Task ReceiveAsync(ISocketProxy socket, Pipe pipe)
     {
         while (true)
         {
