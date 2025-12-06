@@ -40,9 +40,9 @@ internal class TcpSocketWriter
 #if DEBUG
     /// <summary>
     /// Asynchronously reads response data from the provided <see cref="Pipe"/> and sends it to the
-    /// specified TCP <see cref="Socket"/>.
+    /// specified TCP <see cref="SocketProxy"/>.
     /// </summary>
-    /// <param name="socket">A socket with connection where the response has to be sent.</param>
+    /// <param name="socket">A wrappee of connected socket where the response has to be sent.</param>
     /// <param name="pipe">Pipe with response stored in it.</param>
     public async Task SendAsync(ISocketProxy socket, Pipe pipe)
     {

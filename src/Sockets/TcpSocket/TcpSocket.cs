@@ -11,11 +11,11 @@ internal sealed class TcpSocket : IDisposable
     /// </summary>
     private readonly Socket _internalSocket;
     /// <summary>
-    /// An <see cref="TcpSocketReader"/> instance that used to receive data from the entire request.
+    /// An <see cref="TcpSocketReader"/> instance used to receive data from the entire request.
     /// </summary>
     private readonly TcpSocketReader _socketReader = new();
     /// <summary>
-    /// An <see cref="TcpSocketWriter"/> instance that used to send response.
+    /// An <see cref="TcpSocketWriter"/> instance used to send response.
     /// </summary>
     private readonly TcpSocketWriter _socketWriter = new();
 
@@ -36,7 +36,10 @@ internal sealed class TcpSocket : IDisposable
     /// <see cref="ProtocolType"/> value has to be Tcp 
     /// </param>
     public TcpSocket(Socket socket) => _internalSocket = socket;
-
+    
+    /// <summary>
+    /// Dispose encapsulated socket. Use only when you are sure that socket is not needed anymore.
+    /// </summary>
     public void Dispose() => _internalSocket.Dispose();
     
     /// <summary>
@@ -48,7 +51,7 @@ internal sealed class TcpSocket : IDisposable
         _socketReader.ReceiveAsync(_internalSocket, pipe);
 
     /// <summary>
-    /// Reads the response from provided <see cref="Pipe"/> and sends it to client using.
+    /// Reads the response from provided <see cref="Pipe"/> and sends it to client.
     /// </summary>
     /// <param name="pipe">Pipe with response stored in it.</param>
     /// <returns>A <see cref="Task"/> that represents asynchronous send operation.</returns>
@@ -59,20 +62,23 @@ internal sealed class TcpSocket : IDisposable
 #else
 
 /// <summary>
-/// Represents convenient socket model to work with tcp connections.
+/// Represents convenient socket model to work with tcp connections. Uses <see cref="ISocketProxy"/> internally for easier testing.
 /// </summary>
+/// <remarks>
+/// This class is intended for tests and is not intended to be exposed publicly.
+/// </remarks>
 internal sealed class TcpSocket : IDisposable
 {
     /// <summary>
-    /// Internal socket that <see cref="TcpSocket"/> works with
+    /// Internal wrapped socket that <see cref="TcpSocket"/> works with
     /// </summary>
     private readonly ISocketProxy _internalSocket;
     /// <summary>
-    /// An <see cref="TcpSocketReader"/> instance that used to receive data from the entire request.
+    /// An <see cref="TcpSocketReader"/> instance used to receive data from the entire request.
     /// </summary>
     private readonly TcpSocketReader _socketReader = new();
     /// <summary>
-    /// An <see cref="TcpSocketWriter"/> instance that used to send response.
+    /// An <see cref="TcpSocketWriter"/> instance used to send response.
     /// </summary>
     private readonly TcpSocketWriter _socketWriter = new();
 
@@ -86,7 +92,7 @@ internal sealed class TcpSocket : IDisposable
         _internalSocket = new SocketProxy(new Socket(addressFamily, socketType, ProtocolType.Tcp));
 
     /// <summary>
-    /// Creates a <see cref="TcpSocket"/> instance that encapsulates an existing <see cref="Socket"/>.
+    /// Creates a <see cref="TcpSocket"/> instance that encapsulates a wrapped <see cref="Socket"/> instance.
     /// </summary>
     /// <param name="socket">
     /// The existing socket to be wrapped and used internally by the <see cref="TcpSocket"/> instance. The
@@ -94,6 +100,9 @@ internal sealed class TcpSocket : IDisposable
     /// </param>
     public TcpSocket(ISocketProxy socket) => _internalSocket = socket;
 
+    /// <summary>
+    /// Dispose encapsulated socket. Use only when you are sure that socket is not needed anymore.
+    /// </summary>
     public void Dispose() => _internalSocket.Dispose();
 
     /// <summary>
@@ -105,7 +114,7 @@ internal sealed class TcpSocket : IDisposable
         _socketReader.ReceiveAsync(_internalSocket, pipe);
 
     /// <summary>
-    /// Reads the response from provided <see cref="Pipe"/> and sends it to client using.
+    /// Reads the response from provided <see cref="Pipe"/> and sends it to client.
     /// </summary>
     /// <param name="pipe">Pipe with response stored in it.</param>
     /// <returns>A <see cref="Task"/> that represents asynchronous send operation.</returns>

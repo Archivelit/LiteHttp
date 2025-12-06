@@ -44,10 +44,10 @@ internal sealed class TcpSocketReader
 
 #if DEBUG
     /// <summary>
-    /// Asynchronously receives data from specified TCP <see cref="Socket"/> and writes
+    /// Asynchronously receives data from specified TCP <see cref="SocketProxy"/> and writes
     /// them into the provided <see cref="Pipe"/>.
     /// </summary>
-    /// <param name="socket">The connected socket from which the request data is received.</param>
+    /// <param name="socket">The wrapee of connected socket from which the request data is received.</param>
     /// <param name="pipe">The pipe used to store received request data.</param>
     public async Task ReceiveAsync(ISocketProxy socket, Pipe pipe)
     {
