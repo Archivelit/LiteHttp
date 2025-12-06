@@ -5,9 +5,6 @@
 /// </summary>
 internal sealed class TcpSocketReader
 {
-    /// <summary>
-    /// Minimal size of the buffer used when receiving request.
-    /// </summary>
     private const int MinBufferSize = 1024;
 
 #if RELEASE
@@ -23,20 +20,20 @@ internal sealed class TcpSocketReader
         {
             try
             {
-                var buffer = pipe.Writer.GetMemory(MinBufferSize);
+                Memory<byte> buffer = pipe.Writer.GetMemory(MinBufferSize);
                 var bytesRead = await socket.ReceiveAsync(buffer);
 
                 if (bytesRead == 0)
                     break;
+
                 pipe.Writer.Advance(bytesRead);
             }
             catch
             {
                 break;
             }
-            
-            var flushResult = await pipe.Writer.FlushAsync();
 
+            var flushResult = await pipe.Writer.FlushAsync();
             if (flushResult.IsCompleted)
                 break;
         }
@@ -63,15 +60,15 @@ internal sealed class TcpSocketReader
 
                 if (bytesRead == 0)
                     break;
+
                 pipe.Writer.Advance(bytesRead);
             }
             catch
             {
                 break;
             }
-            
-            var flushResult = await pipe.Writer.FlushAsync();
 
+            var flushResult = await pipe.Writer.FlushAsync();
             if (flushResult.IsCompleted)
                 break;
         }
