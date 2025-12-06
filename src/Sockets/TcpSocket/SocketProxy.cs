@@ -8,4 +8,5 @@ internal sealed class SocketProxy : ISocketProxy
 
     public ValueTask<int> ReceiveAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) => _socket.ReceiveAsync(buffer, cancellationToken);
     public ValueTask<int> SendAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default) => _socket.SendAsync(buffer, cancellationToken);
+    public void Dispose() => _socket.Dispose();
 }
