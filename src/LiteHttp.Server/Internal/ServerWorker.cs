@@ -29,10 +29,16 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
         {
             var contextBytes = await _receiver.RecieveFromConnection(@event.Connection, cancellationToken).ConfigureAwait(false);
 
+            if (!contextBytes.Success)
+            {
+                await SendResponseAndDisposeConnection(@event.Connection, _responseBuilder.Build(ActionResultFactory.Instance.InternalServerError())).ConfigureAwait(false);
+                return;
+            }
+
             var context = _parser.Parse(contextBytes.Value);
 
             if (!context.Success)
-                await SendResponseAndDisposeConnection(@event.Connection, _responseBuilder.Build(ActionResultFactory.Instance.InternalServerError()).Value).ConfigureAwait(false);
+                await SendResponseAndDisposeConnection(@event.Connection, _responseBuilder.Build(ActionResultFactory.Instance.InternalServerError())).ConfigureAwait(false);
 
             var action = _router.GetAction(context.Value);
 
@@ -41,7 +47,7 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
                 _logger.LogInformation($"Endpoint not found");
                 var notFoundResponse = _responseBuilder.Build(ActionResultFactory.Instance.NotFound());
 
-                await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse.Value).ConfigureAwait(false);
+                await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse).ConfigureAwait(false);
 
                 return;
             }
@@ -53,14 +59,14 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
             var response = actionResult is IActionResult<object> result
                 ? _responseBuilder.Build(result, Encoding.UTF8.GetBytes(result.Result.ToString() ?? string.Empty))
                 : _responseBuilder.Build(actionResult);
-            await SendResponseAndDisposeConnection(@event.Connection, response.Value).ConfigureAwait(false);
+            await SendResponseAndDisposeConnection(@event.Connection, response).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error occured during processing request");
 
             var response = _responseBuilder.Build(ActionResultFactory.Instance.InternalServerError());
-            await SendResponseAndDisposeConnection(@event.Connection, response.Value).ConfigureAwait(false);
+            await SendResponseAndDisposeConnection(@event.Connection, response).ConfigureAwait(false);
         }
     }
 

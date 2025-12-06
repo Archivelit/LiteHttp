@@ -59,7 +59,7 @@ internal sealed class RequestProcessor : IDisposable, IRequestProcessor
         var context = _parser.Parse(request);
 
         if (!context.Success)
-            return new(_responseBuilder.Build(ActionResultFactory.Instance.BadRequest()).Value);
+            return new(_responseBuilder.Build(ActionResultFactory.Instance.BadRequest()));
         
         var action = _router.GetAction(context.Value);
 
@@ -68,14 +68,14 @@ internal sealed class RequestProcessor : IDisposable, IRequestProcessor
             _logger.LogInformation($"Endpoint not found");
             var notFoundResponse = _responseBuilder.Build(ActionResultFactory.Instance.NotFound());
             
-            return new Result<ReadOnlyMemory<byte>>(notFoundResponse.Value);
+            return new Result<ReadOnlyMemory<byte>>(notFoundResponse);
         }
 
         var actionResult = action();
 
         return new (actionResult is IActionResult<object> result
-            ? _responseBuilder.Build(result, Encoding.UTF8.GetBytes(result.Result.ToString() ?? string.Empty)).Value
-            : _responseBuilder.Build(actionResult).Value);
+            ? _responseBuilder.Build(result, Encoding.UTF8.GetBytes(result.Result.ToString() ?? string.Empty))
+            : _responseBuilder.Build(actionResult));
     }
 
     public void Dispose() => _responseBuilder.Dispose();

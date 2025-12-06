@@ -4,7 +4,7 @@ internal sealed class Receiver : IReceiver
 {
     public static readonly Receiver Instance = new();
 
-    public async Task<Result<Memory<byte>>> RecieveFromConnection(Socket connection, CancellationToken ct)
+    public async ValueTask<Result<Memory<byte>>> RecieveFromConnection(Socket connection, CancellationToken ct)
     {
         try
         {

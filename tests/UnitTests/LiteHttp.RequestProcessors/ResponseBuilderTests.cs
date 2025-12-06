@@ -17,7 +17,7 @@ public class ResponseBuilderTests
                        $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n";
 
         // Act
-        var result = Encoding.UTF8.GetString(_responseBuilder.Build(actionResult).Value.Span);
+        var result = Encoding.UTF8.GetString(_responseBuilder.Build(actionResult).Span);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
@@ -37,7 +37,7 @@ public class ResponseBuilderTests
                        "Hello, World!";
 
         // Act
-        var result = Encoding.UTF8.GetString(_responseBuilder.Build(actionResult, Encoding.UTF8.GetBytes(actionResult.Result)).Value.Span);
+        var result = Encoding.UTF8.GetString(_responseBuilder.Build(actionResult, Encoding.UTF8.GetBytes(actionResult.Result)).Span);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
@@ -48,7 +48,7 @@ public class ResponseBuilderTests
     public void Build_ValidActionResults_ReturnsExpectedResponse(ActionResult actionResult, string expectedResponse)
     {
         // Act
-        var actualResponse = Encoding.UTF8.GetString(_responseBuilder.Build(actionResult).Value.Span);
+        var actualResponse = Encoding.UTF8.GetString(_responseBuilder.Build(actionResult).Span);
 
         // Assert
         actualResponse.Should().BeEquivalentTo(expectedResponse);

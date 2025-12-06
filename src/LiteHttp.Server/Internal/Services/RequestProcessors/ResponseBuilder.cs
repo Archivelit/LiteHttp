@@ -41,7 +41,7 @@ public sealed class ResponseBuilder : IResponseBuilder, IDisposable
     public void Dispose() =>
         _owner.Dispose();
 
-    public Result<ReadOnlyMemory<byte>> Build(IActionResult actionResult, ReadOnlyMemory<byte>? responseBody = null)
+    public ReadOnlyMemory<byte> Build(IActionResult actionResult, ReadOnlyMemory<byte>? responseBody = null)
     {
         ResetMessage();
 
@@ -57,7 +57,7 @@ public sealed class ResponseBuilder : IResponseBuilder, IDisposable
         if (responseBody is not null)
             Append(responseBody.Value);
 
-        return new Result<ReadOnlyMemory<byte>>(memory[.._length]);
+        return memory[.._length];
     }
 
     private void BuildHeaders(ReadOnlyMemory<byte>? body)
