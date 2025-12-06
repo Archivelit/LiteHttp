@@ -75,6 +75,7 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
 
         _logger.LogInformation($"Response sent successfully");
 
+        connection.Shutdown(SocketShutdown.Both);
         connection.Close();
         connection.Dispose();
     }
