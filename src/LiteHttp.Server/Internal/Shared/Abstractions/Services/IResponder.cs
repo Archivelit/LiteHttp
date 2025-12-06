@@ -2,5 +2,5 @@
 
 public interface IResponder
 {
-    public ValueTask<int> SendResponse(Socket connection, ReadOnlyMemory<byte> response);
+    public ValueTask<Result<int>> SendResponse(Socket connection, ReadOnlyMemory<byte> response);
 }

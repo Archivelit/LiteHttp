@@ -29,7 +29,13 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
         {
             var contextBytes = await _receiver.RecieveFromConnection(@event.Connection, cancellationToken).ConfigureAwait(false);
 
-            var context = _parser.Parse(contextBytes);
+            if (!contextBytes.Success)
+            {
+                await SendResponseAndDisposeConnection(@event.Connection, _responseBuilder.Build(ActionResultFactory.Instance.InternalServerError())).ConfigureAwait(false);
+                return;
+            }
+
+            var context = _parser.Parse(contextBytes.Value);
 
             if (!context.Success)
                 await SendResponseAndDisposeConnection(@event.Connection, _responseBuilder.Build(ActionResultFactory.Instance.InternalServerError())).ConfigureAwait(false);
