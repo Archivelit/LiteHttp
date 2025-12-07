@@ -12,10 +12,16 @@
   </Folder>
   <Folder Name="/src/Sockets/">
     <Project Path="src/Sockets/TcpSocket/TcpSocket.csproj" />
-    <Project Path="src/Sockets/TcpSocketTests/TcpSocketTests.csproj" Id="3357791c-f5a7-4864-b2f0-e23f90c2abce" />
+    <Project Path="src/Sockets/TcpSocketTests/TcpSocketTests.csproj" Id="3357791c-f5a7-4864-b2f0-e23f90c2abce">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/Benchmarks/Benchmarks.csproj" />
-    <Project Path="tests/UnitTests/UnitTests.csproj" />
+    <Project Path="tests/Benchmarks/Benchmarks.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="tests/UnitTests/UnitTests.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
   </Folder>
 </Solution>
