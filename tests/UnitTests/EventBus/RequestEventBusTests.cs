@@ -1,8 +1,9 @@
 ﻿namespace UnitTests.EventBus;
 
+#pragma warning disable xUnit1031
 public class RequestEventBusTests
 {
-    private readonly IEventBus<RequestReceivedEvent> _eventBus = new RequestEventBus();
+    private readonly RequestEventBus _eventBus = new RequestEventBus();
 
     [Fact]
     public async Task ConsumeAsync_WhenChannelIsEmpty_ShouldWaitEventPublishment()

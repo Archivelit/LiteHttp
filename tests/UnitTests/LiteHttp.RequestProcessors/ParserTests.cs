@@ -99,13 +99,11 @@ public class ParserTests
         result.Body.Value.ToArray().Should().BeEquivalentTo(expectedBody);
     }
 
-    private static void ParseHeadersToStrings(HttpContext result, out Dictionary<string, string> actualHeaders)
-    {
+    private static void ParseHeadersToStrings(HttpContext result, out Dictionary<string, string> actualHeaders) => 
         actualHeaders = result.Headers.ToDictionary(
             h => Encoding.UTF8.GetString(h.Key.Span),
             h => Encoding.UTF8.GetString(h.Value.Span)
         );
-    }
 
     [Fact]
     public void Parse_InvalidRequest_WithoutHttpVersion_ShouldReturn_ResultWithError_InvalidRequestSyntax()

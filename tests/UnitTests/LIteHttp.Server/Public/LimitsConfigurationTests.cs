@@ -7,10 +7,7 @@ public class LimitsConfigurationTests
     public void KeepAliveTimeout_TimeSpanZeroAssigned_ShouldThrow_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.KeepAliveTimeout = TimeSpan.Zero;
-        });
+        var action = () => new LimitsConfiguration(options => options.KeepAliveTimeout = TimeSpan.Zero);
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -20,10 +17,7 @@ public class LimitsConfigurationTests
     public void KeepAliveTimeout_NegativeTimeSpanAssigned_ShouldThrow_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.KeepAliveTimeout = TimeSpan.FromSeconds(-15);
-        });
+        var action = () => new LimitsConfiguration(options => options.KeepAliveTimeout = TimeSpan.FromSeconds(-15));
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -36,10 +30,7 @@ public class LimitsConfigurationTests
         var expected = TimeSpan.MaxValue;
 
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.KeepAliveTimeout = Timeout.InfiniteTimeSpan;
-        });
+        var configuration = new LimitsConfiguration(options => options.KeepAliveTimeout = Timeout.InfiniteTimeSpan);
 
         // Assert
         configuration.KeepAliveTimeout.Should().Be(expected);
@@ -52,10 +43,7 @@ public class LimitsConfigurationTests
         var expected = TimeSpan.FromSeconds(40);
 
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.KeepAliveTimeout = expected;
-        });
+        var configuration = new LimitsConfiguration(options => options.KeepAliveTimeout = expected);
 
         // Assert
         configuration.KeepAliveTimeout.Should().Be(expected);
@@ -67,10 +55,7 @@ public class LimitsConfigurationTests
     public void RequestHeadersTimeout_TimeSpanZeroAssigned_ShouldThrow_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.RequestHeadersTimeout = TimeSpan.Zero;
-        });
+        var action = () => new LimitsConfiguration(options => options.RequestHeadersTimeout = TimeSpan.Zero);
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -80,10 +65,7 @@ public class LimitsConfigurationTests
     public void RequestHeadersTimeout_NegativeTimeSpanAssigned_ShouldThrow_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.RequestHeadersTimeout = TimeSpan.FromSeconds(-15);
-        });
+        var action = () => new LimitsConfiguration(options => options.RequestHeadersTimeout = TimeSpan.FromSeconds(-15));
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -96,10 +78,7 @@ public class LimitsConfigurationTests
         var expected = TimeSpan.MaxValue;
 
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.RequestHeadersTimeout = Timeout.InfiniteTimeSpan;
-        });
+        var configuration = new LimitsConfiguration(options => options.RequestHeadersTimeout = Timeout.InfiniteTimeSpan);
 
         // Assert
         configuration.RequestHeadersTimeout.Should().Be(expected);
@@ -112,10 +91,7 @@ public class LimitsConfigurationTests
         var expected = TimeSpan.FromSeconds(40);
 
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.RequestHeadersTimeout = expected;
-        });
+        var configuration = new LimitsConfiguration(options => options.RequestHeadersTimeout = expected);
 
         // Assert
         configuration.RequestHeadersTimeout.Should().Be(expected);
@@ -127,10 +103,7 @@ public class LimitsConfigurationTests
     public void MaxConcurrentConnections_ZeroAssigned_ShouldThrow_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.MaxConcurrentConnections = 0;
-        });
+        var action = () => new LimitsConfiguration(options => options.MaxConcurrentConnections = 0);
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -140,10 +113,7 @@ public class LimitsConfigurationTests
     public void MaxConcurrentConnections_NegativeNumberAssigned_ShouldThrow_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.MaxConcurrentConnections = -15;
-        });
+        var action = () => new LimitsConfiguration(options => options.MaxConcurrentConnections = -15);
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -153,10 +123,7 @@ public class LimitsConfigurationTests
     public void MaxConcurrentConnections_NullAssigned_Should_BeNull()
     {
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.MaxConcurrentConnections = null;
-        });
+        var configuration = new LimitsConfiguration(options => options.MaxConcurrentConnections = null);
 
         // Assert
         configuration.MaxConcurrentConnections.Should().BeNull();
@@ -169,10 +136,7 @@ public class LimitsConfigurationTests
         var expected = 30;
 
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.MaxConcurrentConnections = expected;
-        });
+        var configuration = new LimitsConfiguration(options => options.MaxConcurrentConnections = expected);
 
         // Assert
         configuration.MaxConcurrentConnections.Should().Be(expected);
@@ -187,10 +151,7 @@ public class LimitsConfigurationTests
         var expected = 0;
 
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.MaxConcurrentUpgradedConnections = expected;
-        });
+        var configuration = new LimitsConfiguration(options => options.MaxConcurrentUpgradedConnections = expected);
 
         // Assert
         configuration.MaxConcurrentUpgradedConnections.Should().Be(expected);
@@ -200,10 +161,7 @@ public class LimitsConfigurationTests
     public void MaxConcurrentUpgradedConnections_NegativeNumberAssigned_ShouldThrow_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.MaxConcurrentConnections = -15;
-        });
+        var action = () => new LimitsConfiguration(options => options.MaxConcurrentConnections = -15);
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -213,10 +171,7 @@ public class LimitsConfigurationTests
     public void MaxConcurrentUpgradedConnections_NullAssigned_Should_BeNull()
     {
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.MaxConcurrentConnections = null;
-        });
+        var configuration = new LimitsConfiguration(options => options.MaxConcurrentConnections = null);
 
         // Assert
         configuration.MaxConcurrentConnections.Should().BeNull();
@@ -229,10 +184,7 @@ public class LimitsConfigurationTests
         var expected = 30;
 
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.MaxConcurrentConnections = expected;
-        });
+        var configuration = new LimitsConfiguration(options => options.MaxConcurrentConnections = expected);
 
         // Assert
         configuration.MaxConcurrentConnections.Should().Be(expected);
@@ -244,10 +196,7 @@ public class LimitsConfigurationTests
     public void MaxRequestHeaderCount_ZeroAssigned_Should_Throw_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.MaxRequestHeaderCount = 0;
-        });
+        var action = () => new LimitsConfiguration(options => options.MaxRequestHeaderCount = 0);
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -257,10 +206,7 @@ public class LimitsConfigurationTests
     public void MaxRequestHeaderCount_NegativeNumberAssigned_ShouldThrow_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.MaxRequestHeaderCount = -15;
-        });
+        var action = () => new LimitsConfiguration(options => options.MaxRequestHeaderCount = -15);
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -273,10 +219,7 @@ public class LimitsConfigurationTests
         var expected = 30;
 
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.MaxRequestHeaderCount = expected;
-        });
+        var configuration = new LimitsConfiguration(options => options.MaxRequestHeaderCount = expected);
 
         // Assert
         configuration.MaxRequestHeaderCount.Should().Be(expected);
@@ -287,10 +230,7 @@ public class LimitsConfigurationTests
     {
         // Act
         var configuration1 = new LimitsConfiguration(o => { });
-        var configuration2 = new LimitsConfiguration(options =>
-        {
-            options.MaxRequestHeaderCount = configuration1.MaxRequestHeaderCount;
-        });
+        var configuration2 = new LimitsConfiguration(options => options.MaxRequestHeaderCount = configuration1.MaxRequestHeaderCount);
 
         // Assert
         configuration1.MaxRequestHeaderCount.Should().Be(configuration2.MaxRequestHeaderCount);
@@ -302,10 +242,7 @@ public class LimitsConfigurationTests
     public void MaxResponseBufferSize_ZeroAssigned_ShouldThrow_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.MaxResponseBufferSize = 0;
-        });
+        var action = () => new LimitsConfiguration(options => options.MaxResponseBufferSize = 0);
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -315,10 +252,7 @@ public class LimitsConfigurationTests
     public void MaxResponseBufferSize_NegativeNumberAssigned_ShouldThrow_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.MaxResponseBufferSize = -15;
-        });
+        var action = () => new LimitsConfiguration(options => options.MaxResponseBufferSize = -15);
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -328,10 +262,7 @@ public class LimitsConfigurationTests
     public void MaxResponseBufferSize_NullAssigned_Should_BeNull()
     {
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.MaxResponseBufferSize = null;
-        });
+        var configuration = new LimitsConfiguration(options => options.MaxResponseBufferSize = null);
 
         // Assert
         configuration.MaxResponseBufferSize.Should().BeNull();
@@ -344,10 +275,7 @@ public class LimitsConfigurationTests
         var expected = 30;
 
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.MaxResponseBufferSize = expected;
-        });
+        var configuration = new LimitsConfiguration(options => options.MaxResponseBufferSize = expected);
 
         // Assert
         configuration.MaxResponseBufferSize.Should().Be(expected);
@@ -359,10 +287,7 @@ public class LimitsConfigurationTests
     public void MaxRequestBufferSize_ZeroAssigned_ShouldThrow_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.MaxRequestBufferSize = 0;
-        });
+        var action = () => new LimitsConfiguration(options => options.MaxRequestBufferSize = 0);
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -372,10 +297,7 @@ public class LimitsConfigurationTests
     public void MaxRequestBufferSize_NegativeNumberAssigned_ShouldThrow_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.MaxRequestBufferSize = -15;
-        });
+        var action = () => new LimitsConfiguration(options => options.MaxRequestBufferSize = -15);
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -385,10 +307,7 @@ public class LimitsConfigurationTests
     public void MaxRequestBufferSize_NullAssigned_Should_BeNull()
     {
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.MaxRequestBufferSize = null;
-        });
+        var configuration = new LimitsConfiguration(options => options.MaxRequestBufferSize = null);
 
         // Assert
         configuration.MaxRequestBufferSize.Should().BeNull();
@@ -401,10 +320,7 @@ public class LimitsConfigurationTests
         var expected = 30;
 
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.MaxRequestBufferSize = expected;
-        });
+        var configuration = new LimitsConfiguration(options => options.MaxRequestBufferSize = expected);
 
         // Assert
         configuration.MaxRequestBufferSize.Should().Be(expected);
@@ -416,10 +332,7 @@ public class LimitsConfigurationTests
     public void MaxRequestLineSize_ZeroAssigned_ShouldThrow_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.MaxRequestLineSize = 0;
-        });
+        var action = () => new LimitsConfiguration(options => options.MaxRequestLineSize = 0);
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -429,10 +342,7 @@ public class LimitsConfigurationTests
     public void MaxRequestLineSize_NegativeNumberAssigned_ShouldThrow_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.MaxRequestLineSize = -15;
-        });
+        var action = () => new LimitsConfiguration(options => options.MaxRequestLineSize = -15);
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -445,10 +355,7 @@ public class LimitsConfigurationTests
         var expected = 30;
 
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.MaxRequestLineSize = expected;
-        });
+        var configuration = new LimitsConfiguration(options => options.MaxRequestLineSize = expected);
 
         // Assert
         configuration.MaxRequestLineSize.Should().Be(expected);
@@ -460,10 +367,7 @@ public class LimitsConfigurationTests
     public void MaxRequestBodySize_NegativeNumberAssigned_ShouldThrow_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.MaxRequestBodySize = -1;
-        });
+        var action = () => new LimitsConfiguration(options => options.MaxRequestBodySize = -1);
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -473,10 +377,7 @@ public class LimitsConfigurationTests
     public void MaxRequestBodySize_NullAssigned_Should_BeNull()
     {
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.MaxRequestBodySize = null;
-        });
+        var configuration = new LimitsConfiguration(options => options.MaxRequestBodySize = null);
 
         // Assert
         configuration.MaxRequestBodySize.Should().BeNull();
@@ -489,10 +390,7 @@ public class LimitsConfigurationTests
         var expected = 123;
 
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.MaxRequestBodySize = expected;
-        });
+        var configuration = new LimitsConfiguration(options => options.MaxRequestBodySize = expected);
 
         // Assert
         configuration.MaxRequestBodySize.Should().Be(expected);
@@ -504,10 +402,7 @@ public class LimitsConfigurationTests
     public void MaxRequestHeadersTotalSize_ZeroAssigned_ShouldThrow_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.MaxRequestHeadersTotalSize = 0;
-        });
+        var action = () => new LimitsConfiguration(options => options.MaxRequestHeadersTotalSize = 0);
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -517,10 +412,7 @@ public class LimitsConfigurationTests
     public void MaxRequestHeadersTotalSize_NegativeNumberAssigned_ShouldThrow_ArgumentOutOfRangeException()
     {
         // Act
-        var action = () => new LimitsConfiguration(options =>
-        {
-            options.MaxRequestHeadersTotalSize = -15;
-        });
+        var action = () => new LimitsConfiguration(options => options.MaxRequestHeadersTotalSize = -15);
 
         // Assert
         action.Should().Throw<ArgumentOutOfRangeException>();
@@ -533,10 +425,7 @@ public class LimitsConfigurationTests
         var expected = 30;
 
         // Act
-        var configuration = new LimitsConfiguration(options =>
-        {
-            options.MaxRequestHeadersTotalSize = expected;
-        });
+        var configuration = new LimitsConfiguration(options => options.MaxRequestHeadersTotalSize = expected);
 
         // Assert
         configuration.MaxRequestHeadersTotalSize.Should().Be(expected);

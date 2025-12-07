@@ -2,7 +2,7 @@
 
 public class EndpointComparerTests
 {
-    private readonly IEqualityComparer<Endpoint> _comparer = new EndpointComparer();
+    private readonly EndpointComparer _comparer = new EndpointComparer();
 
     [Fact]
     public void CheckEndpointEquality_DifferentMethods_ShouldReturnFalse()
