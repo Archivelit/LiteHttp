@@ -12,6 +12,7 @@
   </Folder>
   <Folder Name="/src/Sockets/">
     <Project Path="src/Sockets/TcpSocket/TcpSocket.csproj" />
+    <Project Path="src/Sockets/TcpSocketTests/TcpSocketTests.csproj" Id="3357791c-f5a7-4864-b2f0-e23f90c2abce" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Benchmarks/Benchmarks.csproj" />
