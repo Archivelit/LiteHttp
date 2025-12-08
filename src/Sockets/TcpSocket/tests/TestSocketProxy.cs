@@ -10,7 +10,7 @@ internal sealed class TestSocketProxy : ISocketProxy
     {
         var request = _receiveQueue.Dequeue();
         request.CopyTo(buffer);
-        return new(buffer.Length);
+        return new(request.Length);
     }
 
     public ValueTask<int> SendAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default) => 

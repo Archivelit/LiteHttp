@@ -7,14 +7,16 @@ namespace LiteHttp.Sockets.TcpSocketTests;
 public class TcpSocketReaderTests
 {
     private readonly TcpSocketReader _tcpSocketReader = new();
-
+    
     [Fact]
-    public async ValueTask ReceiveAsync_RegularRequest_Should_WriteToPipe_ExpectedRequest()
+    public async Task ReceiveAsync_RegularRequest_Should_WriteToPipe_ExpectedRequest()
     {
         // Arrange
         var socket = new TestSocketProxy();
-        var pipe = new Pipe();
         var expectedRequest = Encoding.ASCII.GetBytes("GET / HTTP/1.1\r\nHost: localhost\r\n\r\n");
+        
+        var pipe = new Pipe();
+        var reader = pipe.Reader;
         
         socket.SetReceiveData(expectedRequest);
         
@@ -22,23 +24,26 @@ public class TcpSocketReaderTests
         await _tcpSocketReader.ReceiveAsync(socket, pipe);
 
         // Assert
-        var reader = pipe.Reader;
-        var requestBuilder = new List<byte>(); // Used to accumulate received bytes
-
-        while (reader.TryRead(out var result))
+        var requestBuilder = new List<byte>(expectedRequest.Length); // Used to accumulate received bytes
+        
+        while (true)
         {
+            reader.TryRead(out var result);
+            var buffer = result.Buffer;
+            
+            requestBuilder.AddRange(buffer.ToArray());
+            
+            reader.AdvanceTo(buffer.Start, buffer.End);
+            
             if (result.IsCompleted)
                 break;
-
-            requestBuilder.AddRange(result.Buffer.ToArray());
-            reader.AdvanceTo(result.Buffer.End);
         }
-
-        reader.Complete();
-
+        
+        await reader.CompleteAsync();
         var actualRequest = requestBuilder.ToArray();
-
+        
         actualRequest.Should().BeEquivalentTo(expectedRequest);
     }
 }
+
 #endif
