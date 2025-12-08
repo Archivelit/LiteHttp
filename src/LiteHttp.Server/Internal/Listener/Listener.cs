@@ -64,8 +64,6 @@ internal sealed partial class Listener : IListener, IDisposable
             {
                 var connection = await Socket.AcceptAsync(stoppingToken).ConfigureAwait(false);
 
-                _logger.LogInformation($"Request accepted");
-
                 OnRequestReceived(new RequestReceivedEvent(connection), stoppingToken);
             }
         }

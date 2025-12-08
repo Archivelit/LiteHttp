@@ -47,6 +47,8 @@ internal sealed class InternalServer : IServer, IDisposable
                 tasks.Add(workerTask);
             }
 
+            _logger.LogInformation($"Server started successfully. Waiting for incoming connections.");
+
             await Task.WhenAll(tasks);
         }
         catch (OperationCanceledException)

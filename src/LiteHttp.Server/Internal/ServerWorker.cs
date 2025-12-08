@@ -78,11 +78,7 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private async ValueTask SendResponseAndDisposeConnection(Socket connection, ReadOnlyMemory<byte> response)
     {
-        _logger.LogDebug($"Sending response");
-
         _ = await _responder.SendResponse(connection, response).ConfigureAwait(false);
-
-        _logger.LogInformation($"Response sent successfully");
 
         connection.Shutdown(SocketShutdown.Both);
         connection.Close();
