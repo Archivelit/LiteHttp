@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\src\TcpSocket\TcpSocket.csproj" />
-    <ProjectReference Include="..\TcpSocket\TcpSocket.csproj" />
   </ItemGroup>
   
   <ItemGroup>
