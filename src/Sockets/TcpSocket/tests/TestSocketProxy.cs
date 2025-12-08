@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Sockets.TcpSocketTests;
 
-internal sealed class TestScoketProxy : ISocketProxy
+internal sealed class TestSocketProxy : ISocketProxy
 {
     private readonly Queue<byte[]> _receiveQueue = new();
 

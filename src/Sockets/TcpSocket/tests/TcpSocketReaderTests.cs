@@ -12,7 +12,7 @@ public class TcpSocketReaderTests
     public async ValueTask ReceiveAsync_RegularRequest_Should_WriteToPipe_ExpectedRequest()
     {
         // Arrange
-        var socket = new TestScoketProxy();
+        var socket = new TestSocketProxy();
         var pipe = new Pipe();
         var expectedRequest = Encoding.ASCII.GetBytes("GET / HTTP/1.1\r\nHost: localhost\r\n\r\n");
         
