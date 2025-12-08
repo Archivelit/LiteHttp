@@ -31,7 +31,7 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
 
             if (!contextBytes.Success)
             {
-                await SendResponseAndDisposeConnection(@event.Connection, _responseBuilder.Build(ActionResultFactory.Instance.InternalServerError())).ConfigureAwait(false);
+                await SendResponseAndDisposeConnection(@event.Connection, _responseBuilder.Build(ActionResultFactory.InternalServerError())).ConfigureAwait(false);
                 return;
             }
 
@@ -39,7 +39,7 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
 
             if (!context.Success)
             {
-                await SendResponseAndDisposeConnection(@event.Connection, _responseBuilder.Build(ActionResultFactory.Instance.InternalServerError())).ConfigureAwait(false);
+                await SendResponseAndDisposeConnection(@event.Connection, _responseBuilder.Build(ActionResultFactory.InternalServerError())).ConfigureAwait(false);
                 return;
             }
 
@@ -48,7 +48,7 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
             if (action is null)
             {
                 _logger.LogInformation($"Endpoint not found");
-                var notFoundResponse = _responseBuilder.Build(ActionResultFactory.Instance.NotFound());
+                var notFoundResponse = _responseBuilder.Build(ActionResultFactory.NotFound());
 
                 await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse).ConfigureAwait(false);
 
@@ -68,7 +68,7 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
         {
             _logger.LogError(ex, $"Error occured during processing request");
 
-            var response = _responseBuilder.Build(ActionResultFactory.Instance.InternalServerError());
+            var response = _responseBuilder.Build(ActionResultFactory.InternalServerError());
             await SendResponseAndDisposeConnection(@event.Connection, response).ConfigureAwait(false);
         }
     }

@@ -22,7 +22,7 @@ internal class Program
 
         var server = builder.Build();
 
-        server.MapGet("/", ActionResultFactory.Instance.Ok);
+        server.MapGet("/", ActionResultFactory.Ok);
 
         await server.Start();
     }
