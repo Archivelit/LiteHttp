@@ -2,11 +2,6 @@
 // This is because the Socket abstraction uses SocketProxy.
 #if DEBUG
 
-using System.Buffers;
-using System.IO.Pipelines;
-
-using FluentAssertions;
-
 namespace LiteHttp.Sockets.TcpSocketTests;
 
 public class TcpSocketReaderTests

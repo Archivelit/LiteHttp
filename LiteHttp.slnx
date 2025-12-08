@@ -10,11 +10,13 @@
   <Folder Name="/src/Logging/src/Adapters/">
     <Project Path="src/Logging/src/Adapters/LiteHttp.Logging.Adapters.Serilog/LiteHttp.Logging.Adapters.Serilog.csproj" />
   </Folder>
-  <Folder Name="/src/Sockets/">
-    <Project Path="src/Sockets/TcpSocket/TcpSocket.csproj" />
-    <Project Path="src/Sockets/TcpSocketTests/TcpSocketTests.csproj" Id="3357791c-f5a7-4864-b2f0-e23f90c2abce">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+  <Folder Name="/src/Sockets/" />
+  <Folder Name="/src/Sockets/TcpSocket/" />
+  <Folder Name="/src/Sockets/TcpSocket/src/">
+    <Project Path="src/Sockets/TcpSocket/src/TcpSocket/TcpSocket.csproj" />
+  </Folder>
+  <Folder Name="/src/Sockets/TcpSocket/tests/">
+    <Project Path="src/Sockets/TcpSocket/tests/TcpSocketTests.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Benchmarks/Benchmarks.csproj">
