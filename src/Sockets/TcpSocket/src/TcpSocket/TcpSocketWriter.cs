@@ -12,18 +12,18 @@ internal class TcpSocketWriter
     /// </summary>
     /// <param name="socket">A socket with connection where the response has to be sent.</param>
     /// <param name="pipe">Pipe with response stored in it.</param>
-    public async Task SendAsync(Socket socket, Pipe pipe)
+    public async Task SendAsync(Socket socket, Pipe pipe, CancellationToken ct = default)
     {
         while (true)
         {
-            var result = await pipe.Reader.ReadAsync();
+            var result = await pipe.Reader.ReadAsync(ct);
             if (result.IsCompleted)
                 break;
             
             try
             {
                 foreach (var segment in result.Buffer)
-                    await socket.SendAsync(segment);
+                    await socket.SendAsync(segment, ct);
             }
             catch
             {
@@ -44,18 +44,18 @@ internal class TcpSocketWriter
     /// </summary>
     /// <param name="socket">A wrappee of connected socket where the response has to be sent.</param>
     /// <param name="pipe">Pipe with response stored in it.</param>
-    public async Task SendAsync(ISocketProxy socket, Pipe pipe)
+    public async Task SendAsync(ISocketProxy socket, Pipe pipe, CancellationToken ct = default)
     {
         while (true)
         {
-            var result = await pipe.Reader.ReadAsync();
+            var result = await pipe.Reader.ReadAsync(ct);
             if (result.IsCompleted)
                 break;
 
             try
             {
                 foreach (var segment in result.Buffer)
-                    await socket.SendAsync(segment);
+                    await socket.SendAsync(segment, ct);
             }
             catch
             {

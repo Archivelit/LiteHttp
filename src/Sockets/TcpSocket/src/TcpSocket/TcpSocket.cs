@@ -4,7 +4,7 @@
 /// <summary>
 /// Represents convenient socket model to work with tcp connections.
 /// </summary>
-internal sealed class TcpSocket : IDisposable
+public sealed class TcpSocket : IDisposable
 {
     /// <summary>
     /// Internal socket that <see cref="TcpSocket"/> works with
@@ -47,16 +47,16 @@ internal sealed class TcpSocket : IDisposable
     /// </summary>
     /// <param name="pipe">Pipe used to store request data for further processing.</param>
     /// <returns>A <see cref="Task"/> that represents asynchronous receive operation.</returns>
-    public Task ReceiveAsync(Pipe pipe) =>
-        _socketReader.ReceiveAsync(_internalSocket, pipe);
+    public Task ReceiveAsync(Pipe pipe, CancellationToken ct = default) =>
+        _socketReader.ReceiveAsync(_internalSocket, pipe, ct);
 
     /// <summary>
     /// Reads the response from provided <see cref="Pipe"/> and sends it to client.
     /// </summary>
     /// <param name="pipe">Pipe with response stored in it.</param>
     /// <returns>A <see cref="Task"/> that represents asynchronous send operation.</returns>
-    public Task SendAsync(Pipe pipe) =>
-        _socketWriter.SendAsync(_internalSocket, pipe);
+    public Task SendAsync(Pipe pipe, CancellationToken ct = default) =>
+        _socketWriter.SendAsync(_internalSocket, pipe, ct);
 }
 
 #else
@@ -67,7 +67,7 @@ internal sealed class TcpSocket : IDisposable
 /// <remarks>
 /// This class is intended for tests and is not intended to be exposed publicly.
 /// </remarks>
-internal sealed class TcpSocket : IDisposable
+public sealed class TcpSocket : IDisposable
 {
     /// <summary>
     /// Internal wrapped socket that <see cref="TcpSocket"/> works with
@@ -98,7 +98,7 @@ internal sealed class TcpSocket : IDisposable
     /// The existing socket to be wrapped and used internally by the <see cref="TcpSocket"/> instance. The
     /// <see cref="ProtocolType"/> value has to be Tcp 
     /// </param>
-    public TcpSocket(ISocketProxy socket) => _internalSocket = socket;
+    internal TcpSocket(ISocketProxy socket) => _internalSocket = socket;
 
     /// <summary>
     /// Dispose encapsulated socket. Use only when you are sure that socket is not needed anymore.

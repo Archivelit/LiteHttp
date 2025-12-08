@@ -14,14 +14,14 @@ internal sealed class TcpSocketReader
     /// </summary>
     /// <param name="socket">The connected socket from which the request data is received.</param>
     /// <param name="pipe">The pipe used to store received request data.</param>
-    public async Task ReceiveAsync(Socket socket, Pipe pipe)
+    public async Task ReceiveAsync(Socket socket, Pipe pipe, CancellationToken ct = default)
     {
         while (true)
         {
             try
             {
-                Memory<byte> buffer = pipe.Writer.GetMemory(MinBufferSize);
-                var bytesRead = await socket.ReceiveAsync(buffer);
+                var buffer = pipe.Writer.GetMemory(MinBufferSize);
+                var bytesRead = await socket.ReceiveAsync(buffer, ct);
 
                 if (bytesRead == 0)
                     break;
@@ -33,7 +33,7 @@ internal sealed class TcpSocketReader
                 break;
             }
 
-            var flushResult = await pipe.Writer.FlushAsync();
+            var flushResult = await pipe.Writer.FlushAsync(ct);
             if (flushResult.IsCompleted)
                 break;
         }
@@ -49,14 +49,14 @@ internal sealed class TcpSocketReader
     /// </summary>
     /// <param name="socket">The wrapee of connected socket from which the request data is received.</param>
     /// <param name="pipe">The pipe used to store received request data.</param>
-    public async Task ReceiveAsync(ISocketProxy socket, Pipe pipe)
+    public async Task ReceiveAsync(ISocketProxy socket, Pipe pipe, CancellationToken ct = default)
     {
         while (true)
         {
             try
             {
                 var buffer = pipe.Writer.GetMemory(MinBufferSize);
-                var bytesRead = await socket.ReceiveAsync(buffer);
+                var bytesRead = await socket.ReceiveAsync(buffer, ct);
 
                 if (bytesRead == 0)
                     break;
@@ -68,7 +68,7 @@ internal sealed class TcpSocketReader
                 break;
             }
 
-            var flushResult = await pipe.Writer.FlushAsync();
+            var flushResult = await pipe.Writer.FlushAsync(ct);
             if (flushResult.IsCompleted)
                 break;
         }
