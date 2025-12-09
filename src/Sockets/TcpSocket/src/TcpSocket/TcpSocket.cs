@@ -110,15 +110,15 @@ public sealed class TcpSocket : IDisposable
     /// </summary>
     /// <param name="pipe">Pipe used to store request data for further processing.</param>
     /// <returns>A <see cref="Task"/> that represents asynchronous receive operation.</returns>
-    public Task ReceiveAsync(Pipe pipe) =>
-        _socketReader.ReceiveAsync(_internalSocket, pipe);
+    public Task ReceiveAsync(Pipe pipe, CancellationToken ct = default) =>
+        _socketReader.ReceiveAsync(_internalSocket, pipe, ct);
 
     /// <summary>
     /// Reads the response from provided <see cref="Pipe"/> and sends it to client.
     /// </summary>
     /// <param name="pipe">Pipe with response stored in it.</param>
     /// <returns>A <see cref="Task"/> that represents asynchronous send operation.</returns>
-    public Task SendAsync(Pipe pipe) =>
-        _socketWriter.SendAsync(_internalSocket, pipe);
+    public Task SendAsync(Pipe pipe, CancellationToken ct = default) =>
+        _socketWriter.SendAsync(_internalSocket, pipe, ct);
 }
 #endif
