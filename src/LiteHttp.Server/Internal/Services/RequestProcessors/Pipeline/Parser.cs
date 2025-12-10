@@ -1,4 +1,6 @@
-﻿namespace LiteHttp.RequestProcessors.Pipeline;
+﻿using System.Runtime.InteropServices;
+
+namespace LiteHttp.RequestProcessors.Pipeline;
 
 internal sealed class Parser
 {
