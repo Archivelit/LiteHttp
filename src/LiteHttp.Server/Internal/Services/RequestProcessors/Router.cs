@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-internal sealed class Router : IRouter
+internal sealed class Router
 {
     private IEndpointContext? _endpointContext;
 

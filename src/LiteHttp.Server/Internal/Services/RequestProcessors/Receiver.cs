@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-internal sealed class Receiver : IReceiver
+internal sealed class Receiver
 {
     public static readonly Receiver Instance = new();
 

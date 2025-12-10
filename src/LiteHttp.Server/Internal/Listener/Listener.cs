@@ -1,7 +1,7 @@
 ﻿namespace LiteHttp.Listener;
 
 #pragma warning disable CS8618
-internal sealed partial class Listener : IListener, IDisposable
+internal sealed partial class Listener : IDisposable
 {
     private Socket Socket { get; } = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
     public int ListenerPort { get; private set; }

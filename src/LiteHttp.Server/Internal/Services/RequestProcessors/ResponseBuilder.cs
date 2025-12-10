@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-public sealed class ResponseBuilder : IResponseBuilder, IDisposable
+public sealed class ResponseBuilder : IDisposable
 {
     private readonly IMemoryOwner<byte> _owner = MemoryPool<byte>.Shared.Rent(4096);
     private int _length;

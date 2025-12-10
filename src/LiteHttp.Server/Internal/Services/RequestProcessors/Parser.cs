@@ -1,14 +1,15 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
 #nullable disable
-internal sealed class Parser : IParser
+internal sealed class Parser
 {
     public static readonly Parser Instance = new();
-
-    /// <inheritdoc/>
-    /// <returns><see cref="Result{TResult}"/> wrapee with result or exception wrapped</returns>
-    /// <exception cref="ArgumentException">Returned in <see cref="Result{TResult}"/> wrapee if request has no route or method
-    /// </exception>
+    
+    /// <summary>
+    /// Parses the entire request bytes into <see cref="HttpContext"/> model.
+    /// </summary>
+    /// <param name="request">Entire request bytes.</param>
+    /// <returns><see cref="Result{TResult}"/> wrappee with result or exception wrapped</returns>
     [SkipLocalsInit]
     public Result<HttpContext> Parse(Memory<byte> request)
     {
