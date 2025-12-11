@@ -91,7 +91,7 @@ internal sealed class Parser
 
         return null;
     }
-    
+
     /// <summary>
     /// Extracts request method, route and protocol version from request line
     /// </summary>
@@ -106,14 +106,15 @@ internal sealed class Parser
         method = ReadOnlyMemory<byte>.Empty;
         route = ReadOnlyMemory<byte>.Empty;
         protocolVersion = ReadOnlyMemory<byte>.Empty;
-        
+
         var reader = new SequenceReader<byte>(line);
-        
-        if (!reader.TryReadTo(out ReadOnlySequence<byte> methodSequence, RequestSymbolsAsBytes.Space, false) 
-            || !reader.TryReadTo(out ReadOnlySequence<byte> routeSequence, RequestSymbolsAsBytes.Space, false) 
+
+        if (!reader.TryReadTo(out ReadOnlySequence<byte> methodSequence, RequestSymbolsAsBytes.Space, false)
+            || !reader.TryReadTo(out ReadOnlySequence<byte> routeSequence, RequestSymbolsAsBytes.Space, false)
             || !reader.TryReadTo(out ReadOnlySequence<byte> protocolVersionSequence, RequestSymbolsAsBytes.NewRequestLine,
                 false))
             return new Error(2, "Request line has wrong format");
+        
 
         method = new ReadOnlyMemory<byte>(methodSequence.ToArray());
         route = new ReadOnlyMemory<byte>(routeSequence.ToArray());
