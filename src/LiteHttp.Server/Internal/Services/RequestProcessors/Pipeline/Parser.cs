@@ -1,6 +1,11 @@
-﻿namespace LiteHttp.RequestProcessors.Pipeline;
+﻿using System.Runtime.InteropServices;
+
+namespace LiteHttp.RequestProcessors.Pipeline;
 
 #nullable disable
+// Issue codes and their meaning:
+// 2 - Request line has wrong format
+// 3 - Header has wrong format
 internal sealed class Parser
 {
     private readonly HttpContextBuilder _httpContextBuilder = new();
@@ -31,7 +36,7 @@ internal sealed class Parser
                        false))
             {
                 if (!TryParseLine(line, out var error))
-                    return new(error.Value);
+                    return new(error);
             }
 
             if (result.IsCompleted)
@@ -67,12 +72,13 @@ internal sealed class Parser
             : new Result<HttpContext>(new HttpContext(method.Value, route.Value, headers.Value, requestParts.Body));*/
     }
 
-    private bool TryParseLine(ReadOnlySequence<byte> sequence, out Error? error)
+    private bool TryParseLine(ReadOnlySequence<byte> line, out Error? error)
     {
         switch (_parsingState)
         {
             case ParsingState.RequestLineParsing:
-                var result = ParseRequestLine(sequence, out var method, out var route,
+            {
+                var result = ParseRequestLine(line, out var method, out var route,
                     out var protocolVersion);
 
                 if (!result.Success)
@@ -85,8 +91,21 @@ internal sealed class Parser
                 _httpContextBuilder.WithRoute(route);
                 _httpContextBuilder.WithProtocolVersion(protocolVersion);
 
+                _parsingState = ParsingState.HeadersParsing;
+            }
                 break;
+
             case ParsingState.HeadersParsing:
+            {
+                var result = ParseHeader(line);
+
+                if (!result.Success)
+                {
+                    error = result.Error;
+                    return false;
+                }
+            }
+
                 break;
             case ParsingState.BodyParsing:
                 break;
@@ -94,6 +113,38 @@ internal sealed class Parser
 
         error = null;
         return true;
+    }
+
+    [SkipLocalsInit]
+    private Result ParseHeader(ReadOnlySequence<byte> line)
+    {
+        var reader = new SequenceReader<byte>(line);
+
+        if (!reader.TryReadTo(out ReadOnlySequence<byte> headerTitleSequence, RequestSymbolsAsBytes.Colon, true))
+            return new Result(new Error(3, "Header has wrong format"));
+
+        reader.Advance(1); // Need to skip space
+
+        if (!reader.TryReadTo(out ReadOnlySequence<byte> headerValueSequence, RequestSymbolsAsBytes.CarriageReturnSymbol, true))
+            return new Result(new Error(3, "Header has wrong format"));
+
+        // Only works for single-segment sequences. Returns false if the sequence spans multiple segments.
+        {
+            if (SequenceMarshal.TryGetReadOnlyMemory(headerTitleSequence, out var headerTitle)
+                && SequenceMarshal.TryGetReadOnlyMemory(headerValueSequence, out var headerValue))
+                _httpContextBuilder.AddHeader(headerTitle, headerValue);
+        }
+        
+        // Headers should have length limit, must be safe when limits will be feated
+        using var headerTitleMemoryOwner = MemoryPool<byte>.Shared.Rent((int)headerTitleSequence.Length); 
+        using var headerValueMemoryOwner = MemoryPool<byte>.Shared.Rent((int)headerValueSequence.Length);
+
+        headerTitleSequence.CopyTo(headerTitleMemoryOwner.Memory.Span);
+        headerValueSequence.CopyTo(headerValueMemoryOwner.Memory.Span);
+
+        _httpContextBuilder.AddHeader(headerTitleMemoryOwner.Memory, headerValueMemoryOwner.Memory);
+        
+        return new();
     }
 
     /// <summary>
