@@ -38,6 +38,16 @@ public readonly record struct Result<TResult>
     }
 
     /// <summary>
+    /// Initializes a new instance of the Result class that represents a failed operation with the specified error.
+    /// </summary>
+    /// <param name="error">The error information describing the reason for the failure. Cannot be null.</param>
+    public Result(Error? error)
+    {
+        Error = error;
+        Success = false;
+    }
+
+    /// <summary>
     /// Initializes a new instance of the Result class that represents a successful operation with the specified result value.
     /// </summary>
     /// <param name="result">The value to assign to the result. This value will be accessible through the <see cref="Value"/> property.</param>
@@ -73,6 +83,16 @@ public readonly record struct Result
     /// </summary>
     /// <param name="error">The error information describing the reason for the failure. Cannot be null.</param>
     public Result(Error error)
+    {
+        Error = error;
+        Success = false;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the Result class that represents a failed operation with the specified error.
+    /// </summary>
+    /// <param name="error">The error information describing the reason for the failure. Cannot be null.</param>
+    public Result(Error? error)
     {
         Error = error;
         Success = false;
