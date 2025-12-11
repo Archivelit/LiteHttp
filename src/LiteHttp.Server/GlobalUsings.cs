@@ -13,6 +13,7 @@ global using LiteHttp.Abstractions;
 global using LiteHttp.Abstractions.Limits;
 global using LiteHttp.Constants;
 global using LiteHttp.Enums;
+global using LiteHttp.Server;
 global using LiteHttp.Extensions;
 global using LiteHttp.Logging;
 global using LiteHttp.Logging.Abstractions;

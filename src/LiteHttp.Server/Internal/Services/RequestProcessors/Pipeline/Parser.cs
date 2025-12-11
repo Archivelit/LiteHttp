@@ -1,9 +1,11 @@
-﻿using System.Runtime.InteropServices;
-
-namespace LiteHttp.RequestProcessors.Pipeline;
+﻿namespace LiteHttp.RequestProcessors.Pipeline;
 
 internal sealed class Parser
 {
+    private readonly HttpContextBuilder _httpContextBuilder = new();
+    
+    private ParsingState _parsingState = ParsingState.RequestLineParsing;
+    
     /// <summary>
     /// Parses the entire request bytes into <see cref="HttpContext"/> model.
     /// </summary>
@@ -12,6 +14,8 @@ internal sealed class Parser
     [SkipLocalsInit]
     public async Task<Result<HttpContext>> Parse(Pipe requestPipe)
     {
+        _parsingState = ParsingState.RequestLineParsing;
+            
         while (true)
         {
             var result = await requestPipe.Reader.ReadAsync();
@@ -22,10 +26,12 @@ internal sealed class Parser
             
             var sequenceReader = new SequenceReader<byte>(buffer);
 
-            while (sequenceReader.TryReadTo(out ReadOnlySequence<byte> line, Constants.RequestSymbolsAsBytes.NewLine,
-                false))
+            while (sequenceReader.TryReadTo(out ReadOnlySequence<byte> line, RequestSymbolsAsBytes.NewLine,
+                       false))
             {
-                // ParseLine(line);
+                var error = ParseLine(line);
+                if (error is not null)
+                    return new Result<HttpContext>(error.Value);
             }
 
             if (result.IsCompleted)
@@ -61,68 +67,59 @@ internal sealed class Parser
             : new Result<HttpContext>(new HttpContext(method.Value, route.Value, headers.Value, requestParts.Body));*/
     }
 
-    private void ProcessBytes()
+    private Error? ParseLine(ReadOnlySequence<byte> sequence)
     {
+        switch (_parsingState)
+        {
+            case ParsingState.RequestLineParsing:
+                var error = ParseRequestLine(sequence, out var method, out var route,
+                    out var protocolVersion);
+
+                if (error is not null)
+                    return error;
+
+                _httpContextBuilder.WithMethod(method);
+                _httpContextBuilder.WithRoute(route);
+                _httpContextBuilder.WithProtocolVersion(protocolVersion);
+
+                break;
+            case ParsingState.HeadersParsing:
+                break;
+            case ParsingState.BodyParsing:
+                break;
+        }
+
+        return null;
+    }
+    
+    /// <summary>
+    /// Extracts request method, route and protocol version from request line
+    /// </summary>
+    /// <param name="line">Request line of the entire request</param>
+    /// <param name="method">Method of the entire request</param>
+    /// <param name="route">Route of the entire request</param>
+    /// <param name="protocolVersion">Http protocol version of the entire request</param>
+    /// <returns>Error if operation was not success, otherwise null</returns>
+    private Error? ParseRequestLine(ReadOnlySequence<byte> line, out ReadOnlyMemory<byte> method, out ReadOnlyMemory<byte> route,
+        out ReadOnlyMemory<byte> protocolVersion)
+    {
+        method = ReadOnlyMemory<byte>.Empty;
+        route = ReadOnlyMemory<byte>.Empty;
+        protocolVersion = ReadOnlyMemory<byte>.Empty;
         
-    }
+        var reader = new SequenceReader<byte>(line);
+        
+        if (!reader.TryReadTo(out ReadOnlySequence<byte> methodSequence, RequestSymbolsAsBytes.Space, false) 
+            || !reader.TryReadTo(out ReadOnlySequence<byte> routeSequence, RequestSymbolsAsBytes.Space, false) 
+            || !reader.TryReadTo(out ReadOnlySequence<byte> protocolVersionSequence, RequestSymbolsAsBytes.NewRequestLine,
+                false))
+            return new Error(2, "Request line has wrong format");
 
-    /// <summary>
-    /// Extracts route from <paramref name="firstRequestLine"/>.
-    /// </summary>
-    /// <param name="firstRequestLine">The first line of http request represented in byte array</param>
-    /// <returns><see cref="Result{TReult}"/> wrapee with result or exception wrapped</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Result<Memory<byte>> GetRoute(Memory<byte> firstRequestLine)
-    {
-        var firstSpaceIndex = firstRequestLine.Span.IndexOf(RequestSymbolsAsBytes.Space);
-        var lastSpaceIndex = firstRequestLine.Span.LastIndexOf(RequestSymbolsAsBytes.Space);
-
-        if (firstSpaceIndex == lastSpaceIndex)
-            return new(new Error(ParserErrors.InvalidRequestSyntax,"The request has wrong format"));
-
-        return new(firstRequestLine[(firstSpaceIndex + 1)..lastSpaceIndex]); // space index + 1 to exclude whitespace and get first symbol of route
-    }
-
-    /// <summary>
-    /// Extracts first request line represented in bytes
-    /// </summary>
-    /// <param name="request">Entire request needed to be parsed</param>
-    /// <returns>First request line represented in bytes</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Memory<byte> GetFirstLine(Memory<byte> request) =>
-        request[..request.Span.IndexOf(RequestSymbolsAsBytes.CarriageReturnSymbol)];
-
-    /// <summary>
-    /// Extracts request method from entire request
-    /// </summary>
-    /// <param name="firstRequestLine">First line of the entire request</param>
-    /// <returns>The <see cref="Result{TResult}"/> wrapee with exception or method represented in bytes</returns>
-    /// <exception cref="ArgumentException">Returned if request does not contain method</exception>
-    private Result<Memory<byte>> GetMethod(Memory<byte> firstRequestLine)
-    {
-        var spaceIndex = firstRequestLine.Span.IndexOf(RequestSymbolsAsBytes.Space);
-
-        if (spaceIndex == -1)
-            return new(new Error(ParserErrors.InvalidRequestSyntax, "The request has wrong format"));
-
-        return new(firstRequestLine[..spaceIndex]);
-    }
-
-    /// <summary>
-    /// Splits the entire request to Headers and Body parts
-    /// </summary>
-    /// <param name="request">Entire request</param>
-    /// <returns>Tuple with slices of entire request parts. Body is null if request does not contain it</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private (Memory<byte> Headers, Memory<byte>? Body) SplitRequest(Memory<byte> request)
-    {
-        var splitterIndex = request.Span.IndexOf(RequestSymbolsAsBytes.RequestSplitter);
-
-        if (splitterIndex == -1)
-            return (request, null);
-
-        return (request[..(splitterIndex + RequestSymbolsAsBytes.NewRequestLine.Length)], // NOTE: do not change, it is breaking change. Adding 1 new line symbol for proper header parsing 
-            request[(splitterIndex + RequestSymbolsAsBytes.RequestSplitter.Length)..]);
+        method = new ReadOnlyMemory<byte>(methodSequence.ToArray());
+        route = new ReadOnlyMemory<byte>(routeSequence.ToArray());
+        protocolVersion = new ReadOnlyMemory<byte>(protocolVersionSequence.ToArray());
+        
+        return null;
     }
 
     /// <summary>
@@ -167,7 +164,11 @@ internal sealed class Parser
 
         return new(headersDictionary);
     }
-    
-    
-    
+
+    private enum ParsingState
+    {
+        RequestLineParsing,
+        HeadersParsing,
+        BodyParsing
+    }
 }
