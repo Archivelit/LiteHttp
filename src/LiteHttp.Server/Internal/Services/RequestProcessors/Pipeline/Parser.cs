@@ -1,5 +1,6 @@
 ﻿namespace LiteHttp.RequestProcessors.Pipeline;
 
+#nullable disable
 internal sealed class Parser
 {
     private readonly HttpContextBuilder _httpContextBuilder = new();
@@ -29,9 +30,8 @@ internal sealed class Parser
             while (sequenceReader.TryReadTo(out ReadOnlySequence<byte> line, RequestSymbolsAsBytes.NewLine,
                        false))
             {
-                var error = ParseLine(line);
-                if (error is not null)
-                    return new Result<HttpContext>(error.Value);
+                if (!TryParseLine(line, out var error))
+                    return new(error.Value);
             }
 
             if (result.IsCompleted)
@@ -67,16 +67,19 @@ internal sealed class Parser
             : new Result<HttpContext>(new HttpContext(method.Value, route.Value, headers.Value, requestParts.Body));*/
     }
 
-    private Error? ParseLine(ReadOnlySequence<byte> sequence)
+    private bool TryParseLine(ReadOnlySequence<byte> sequence, out Error? error)
     {
         switch (_parsingState)
         {
             case ParsingState.RequestLineParsing:
-                var error = ParseRequestLine(sequence, out var method, out var route,
+                var result = ParseRequestLine(sequence, out var method, out var route,
                     out var protocolVersion);
 
-                if (error is not null)
-                    return error;
+                if (!result.Success)
+                {
+                    error = result.Error;
+                    return false;
+                }
 
                 _httpContextBuilder.WithMethod(method);
                 _httpContextBuilder.WithRoute(route);
@@ -89,7 +92,8 @@ internal sealed class Parser
                 break;
         }
 
-        return null;
+        error = null;
+        return true;
     }
 
     /// <summary>
@@ -100,7 +104,7 @@ internal sealed class Parser
     /// <param name="route">Route of the entire request</param>
     /// <param name="protocolVersion">Http protocol version of the entire request</param>
     /// <returns>Error if operation was not success, otherwise null</returns>
-    private Error? ParseRequestLine(ReadOnlySequence<byte> line, out ReadOnlyMemory<byte> method, out ReadOnlyMemory<byte> route,
+    private Result ParseRequestLine(ReadOnlySequence<byte> line, out ReadOnlyMemory<byte> method, out ReadOnlyMemory<byte> route,
         out ReadOnlyMemory<byte> protocolVersion)
     {
         method = ReadOnlyMemory<byte>.Empty;
@@ -109,18 +113,19 @@ internal sealed class Parser
 
         var reader = new SequenceReader<byte>(line);
 
-        if (!reader.TryReadTo(out ReadOnlySequence<byte> methodSequence, RequestSymbolsAsBytes.Space, false)
-            || !reader.TryReadTo(out ReadOnlySequence<byte> routeSequence, RequestSymbolsAsBytes.Space, false)
-            || !reader.TryReadTo(out ReadOnlySequence<byte> protocolVersionSequence, RequestSymbolsAsBytes.NewRequestLine,
+        if (reader.TryReadTo(out ReadOnlySequence<byte> methodSequence, RequestSymbolsAsBytes.Space, false)
+            && reader.TryReadTo(out ReadOnlySequence<byte> routeSequence, RequestSymbolsAsBytes.Space, false)
+            && reader.TryReadTo(out ReadOnlySequence<byte> protocolVersionSequence, RequestSymbolsAsBytes.NewRequestLine,
                 false))
-            return new Error(2, "Request line has wrong format");
-        
+        {
+            method = new ReadOnlyMemory<byte>(methodSequence.ToArray());
+            route = new ReadOnlyMemory<byte>(routeSequence.ToArray());
+            protocolVersion = new ReadOnlyMemory<byte>(protocolVersionSequence.ToArray());
 
-        method = new ReadOnlyMemory<byte>(methodSequence.ToArray());
-        route = new ReadOnlyMemory<byte>(routeSequence.ToArray());
-        protocolVersion = new ReadOnlyMemory<byte>(protocolVersionSequence.ToArray());
-        
-        return null;
+            return new();
+        }
+
+        return new(new Error(2, "Request line has wrong format")); // Error can be instantiated only once in constant class and reused
     }
 
     /// <summary>
