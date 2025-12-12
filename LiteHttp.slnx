@@ -1,6 +1,11 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/SampleApp/SampleApp.csproj" />
+    <Project Path="src/SampleApp/SampleApp.csproj">
+      <BuildDependency Project="src/Logging/src/LiteHttp.Logging/LiteHttp.Logging.csproj" />
+      <BuildDependency Project="src/Sockets/TcpSocket/src/TcpSocket/TcpSocket.csproj" />
+      <BuildDependency Project="src/Sockets/TcpSocket/tests/TcpSocketTests.csproj" />
+      <BuildDependency Project="tests/UnitTests/UnitTests.csproj" />
+    </Project>
     <Project Path="src\LiteHttp.Server\LiteHttp.Server.csproj" />
   </Folder>
   <Folder Name="/src/Logging/" />
