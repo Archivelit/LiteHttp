@@ -32,6 +32,8 @@ internal sealed class Parser
             
             while (sequenceReader.TryReadTo(out ReadOnlySequence<byte> line, RequestSymbolsAsBytes.NewLine, false))
             {
+                sequenceReader.Advance(line.Length);
+                
                 if (_parsingState != ParsingState.BodyParsing)
                 {
                     if (!TryParseLine(line, out var error))
