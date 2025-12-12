@@ -32,30 +32,28 @@ internal sealed class Parser
             
             while (sequenceReader.TryReadTo(out ReadOnlySequence<byte> line, RequestSymbolsAsBytes.NewLine, false))
             {
-                sequenceReader.Advance(line.Length);
-                
-                if (_parsingState != ParsingState.BodyParsing)
+                // sequenceReader.Advance(line.Length);
+                if (_parsingState == ParsingState.BodyParsing)
                 {
-                    if (!TryParseLine(line, out var error))
-                        return new(error);
-                    continue;
-                }
-                
-                while (sequenceReader.TryPeek(out var @byte))
-                {
-                    if (@byte != '\r' || @byte != '\n')
+                    while (sequenceReader.TryPeek(out var @byte))
                     {
-                        sequenceReader.Rewind(1);
-                        break;
+                        if (@byte != '\r' || @byte != '\n')
+                        {
+                            sequenceReader.Rewind(1);
+                            break;
+                        }
                     }
-                }
+                    _httpContextBuilder.WithBody(sequenceReader.UnreadSequence);
+                    requestPipe.Reader.AdvanceTo(sequenceReader.Position);
 
-                _httpContextBuilder.WithBody(sequenceReader.UnreadSequence);
+                    break;
+                }
                 
-                break;
+                if (!TryParseLine(line, out var error))
+                    return new(error);
+                
+                requestPipe.Reader.AdvanceTo(sequenceReader.Position);
             }
-            
-            requestPipe.Reader.AdvanceTo(buffer.Start, buffer.End);
             
             if (result.IsCompleted)
                 break;

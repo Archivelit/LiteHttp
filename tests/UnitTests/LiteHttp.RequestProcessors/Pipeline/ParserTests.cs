@@ -9,8 +9,8 @@ public class ParserTests
     private readonly Parser _parser = new();
     private readonly ITestOutputHelper _outputHelper = TestContext.Current.TestOutputHelper;
 
-    [Fact(Skip = "Infinity loop, needs to be fixed")]
-    public async ValueTask Parse_ValidRequest_WithoutBody_WithCRLFOnEnd_ShouldReturn_HttpContext()
+    [Fact(Skip = "Not completed yet")]
+    public async Task Parse_ValidRequest_WithoutBody_WithCRLFOnEnd_ShouldReturn_HttpContext()
     {
         // Arrange
         var request = Encoding.UTF8.GetBytes("GET / HTTP/1.1\r\nHost: test.com\r\n");
@@ -26,21 +26,26 @@ public class ParserTests
 
         var requestPipe = new Pipe();
         var writer = requestPipe.Writer;
-        var buffer = writer.GetMemory(request.Length);
         
-        request.CopyTo(buffer);
+        TestContext.Current.TestOutputHelper?.WriteLine("Writing request to pipe");
+        
+        TestContext.Current.TestOutputHelper?.WriteLine("Writing to pipe buffer");
+        
+        var buffer = writer.GetMemory(request.Length);
+
+        request.CopyTo(buffer.Span);
         writer.Advance(request.Length);
         
-        while (true)
-        {
-            var flushResult = await writer.FlushAsync(TestContext.Current.CancellationToken);
+        TestContext.Current.TestOutputHelper?.WriteLine("Written to pipe buffer");
             
-            if (flushResult.IsCompleted)
-                break;
-        }
+        TestContext.Current.TestOutputHelper?.WriteLine("Flushing");
+        
+        var flushResult = await writer.FlushAsync(TestContext.Current.CancellationToken);
 
         await writer.CompleteAsync();
-
+    
+        TestContext.Current.TestOutputHelper?.WriteLine("Request written to pipe");
+        
         // Act
         var result = await _parser.Parse(requestPipe);
         WriteContextData(result.Value);
@@ -184,7 +189,7 @@ public class ParserTests
         _outputHelper.WriteLine(context.Body.HasValue
             ? $"Request body gained after parsing: {Encoding.UTF8.GetString(context.Body.Value.FirstSpan)}"
             : "Request does not have body");
-        _outputHelper.WriteLine($"The request after parsing contains {context.Headers.Count}");
+        //_outputHelper.WriteLine($"The request after parsing contains {context.Headers.Count}");
         _outputHelper.WriteLine($"Request headers gained after parsing: ");
 
         foreach (var header in context.Headers)
