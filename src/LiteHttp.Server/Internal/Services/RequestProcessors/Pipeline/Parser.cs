@@ -18,7 +18,7 @@ internal sealed class Parser
     /// <param name="requestPipe">Pipe contains bytes of entire request.</param>
     /// <returns><see cref="Result{TResult}"/> wrappee with result or exception wrapped</returns>
     [SkipLocalsInit]
-    public async Task<Result<HttpContext>> Parse(Pipe requestPipe)
+    public async ValueTask<Result<HttpContext>> Parse(Pipe requestPipe)
     {
         _parsingState = ParsingState.RequestLineParsing;
         _httpContextBuilder.Reset();
@@ -26,20 +26,35 @@ internal sealed class Parser
         while (true)
         {
             var result = await requestPipe.Reader.ReadAsync();
-            
             var buffer = result.Buffer;
+            
+            var sequenceReader = new SequenceReader<byte>(buffer);
+            
+            while (sequenceReader.TryReadTo(out ReadOnlySequence<byte> line, RequestSymbolsAsBytes.NewLine, false))
+            {
+                if (_parsingState != ParsingState.BodyParsing)
+                {
+                    if (!TryParseLine(line, out var error))
+                        return new(error);
+                    continue;
+                }
+                
+                while (sequenceReader.TryPeek(out var @byte))
+                {
+                    if (@byte != '\r' || @byte != '\n')
+                    {
+                        sequenceReader.Rewind(1);
+                        break;
+                    }
+                }
+
+                _httpContextBuilder.WithBody(sequenceReader.UnreadSequence);
+                
+                break;
+            }
             
             requestPipe.Reader.AdvanceTo(buffer.Start, buffer.End);
             
-            var sequenceReader = new SequenceReader<byte>(buffer);
-
-            while (sequenceReader.TryReadTo(out ReadOnlySequence<byte> line, RequestSymbolsAsBytes.NewLine,
-                       false))
-            {
-                if (!TryParseLine(line, out var error))
-                    return new(error);
-            }
-
             if (result.IsCompleted)
                 break;
         }
@@ -77,9 +92,6 @@ internal sealed class Parser
                     return false;
                 }
             }
-
-                break;
-            case ParsingState.BodyParsing:
                 break;
         }
 
@@ -90,8 +102,14 @@ internal sealed class Parser
     [SkipLocalsInit]
     private Result ParseHeader(ReadOnlySequence<byte> line)
     {
-        var reader = new SequenceReader<byte>(line);
+        if (line.Length <= 2)
+        {
+            _parsingState = ParsingState.BodyParsing;
+            return new();
+        }
 
+        var reader = new SequenceReader<byte>(line);
+        
         if (!reader.TryReadTo(out ReadOnlySequence<byte> headerTitleSequence, RequestSymbolsAsBytes.Colon, true))
             return new Result(new Error(3, "Header has wrong format"));
 
@@ -109,9 +127,6 @@ internal sealed class Parser
     /// Extracts request method, route and protocol version from request line
     /// </summary>
     /// <param name="line">Request line of the entire request</param>
-    /// <param name="method">Method of the entire request</param>
-    /// <param name="route">Route of the entire request</param>
-    /// <param name="protocolVersion">Http protocol version of the entire request</param>
     /// <returns>Error if operation was not success, otherwise null</returns>
     private Result ParseRequestLine(ReadOnlySequence<byte> line)
     {
