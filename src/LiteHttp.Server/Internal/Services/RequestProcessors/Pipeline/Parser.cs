@@ -35,11 +35,6 @@ internal sealed class Parser
             {
                 if (_parsingState == ParsingState.BodyParsing)
                 {
-                    if (sequenceReader.Remaining <= 4)
-                    {
-                        _httpContextBuilder.WithBody(null);
-                        break;
-                    }
                     while (sequenceReader.TryPeek(out var @byte))
                     {
                         if (@byte != '\r' || @byte != '\n')
@@ -48,9 +43,13 @@ internal sealed class Parser
                             break;
                         }
                     }
+                    if (sequenceReader.UnreadSequence.IsEmpty)
+                    {
+                        _httpContextBuilder.WithBody(null);
+                        break;
+                    }
         
                     _httpContextBuilder.WithBody(sequenceReader.UnreadSequence);
-
                     break;
                 }
                 if (!TryParseLine(line, out var error))

@@ -16,7 +16,7 @@ internal sealed class HttpContextBuilder
         _method = ReadOnlyMemory<byte>.Empty;
         _route = ReadOnlyMemory<byte>.Empty;
         _protocolVersion = ReadOnlyMemory<byte>.Empty;
-        _body = ReadOnlySequence<byte>.Empty;
+        _body = null;
         _headers = new(8);
     }
 
