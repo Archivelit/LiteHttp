@@ -50,7 +50,7 @@ internal sealed class ResponseBuilder
 
         if (context.Body is not null)
             Write(requestPipe.Writer, context.Body.Value);
-
+        
         await requestPipe.Writer.FlushAsync();
         await requestPipe.Writer.CompleteAsync();
     }
