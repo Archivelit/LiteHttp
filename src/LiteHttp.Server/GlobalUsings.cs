@@ -9,6 +9,7 @@ global using System.Text;
 global using System.Threading.Channels;
 global using System.IO.Pipelines;
 global using System.Runtime.InteropServices;
+global using System.Diagnostics.CodeAnalysis;
 
 global using LiteHttp.Abstractions;
 global using LiteHttp.Abstractions.Limits;

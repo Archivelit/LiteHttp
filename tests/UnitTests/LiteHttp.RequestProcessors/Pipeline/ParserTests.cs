@@ -82,7 +82,8 @@ public class ParserTests
         result.Value.Body.Should().BeNull();
     }
 
-    [Fact] public async ValueTask Parse_ValidRequest_WithSimpleBody_ShouldReturn_HttpContext()
+    [Fact] 
+    public async ValueTask Parse_ValidRequest_WithSimpleBody_ShouldReturn_HttpContext()
     {
         // Arrange
         var request = "PUT / HTTP/1.1\r\nHost: test.com\r\nContent-Type: text/plain\r\nContent-Length: 13\r\n\r\nHello, World!";
