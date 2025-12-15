@@ -71,6 +71,8 @@ internal sealed class ResponseBuilder
         Write(requestPipe.Writer, HeaderValuesAsBytes.ContentTextPlain);
 
         Write(requestPipe.Writer, HeadersAsBytes.ContentLength);
+
+        Write(requestPipe.Writer, Encoding.ASCII.GetBytes(context.Body.Value.Length.ToString()));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
