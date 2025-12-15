@@ -1,4 +1,6 @@
-﻿using HttpContext = LiteHttp.Models.PipeContextModels.HttpContext;
+﻿using Xunit.Internal;
+
+using HttpContext = LiteHttp.Models.PipeContextModels.HttpContext;
 using ResponseBuilder = LiteHttp.RequestProcessors.Pipeline.ResponseBuilder;
 
 namespace UnitTests.LiteHttp.RequestProcessors.Pipeline;
@@ -48,9 +50,9 @@ public class ResponseBuilderTests
         var expectedResponse = "HTTP/1.1 200 OK\r\nHost: " +
                                $"{AddressConstants.IPV4_LOOPBACK}" +
                                $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n" +
-                               $"{HeadersAsBytes.ContentType}: " +
-                               $"{HeaderValuesAsBytes.ContentTextPlain}\r\n" +
-                               $"{HeadersAsBytes.ContentLength}: " +
+                               $"{Encoding.ASCII.GetString(HeadersAsBytes.ContentType)}" +
+                               $"{Encoding.ASCII.GetString(HeaderValuesAsBytes.ContentTextPlain)}" +
+                               $"{Encoding.ASCII.GetString(HeadersAsBytes.ContentLength)}" +
                                $"13\r\n\r\n" + 
                                $"Hello, World!";
         var requestPipe = new Pipe();
