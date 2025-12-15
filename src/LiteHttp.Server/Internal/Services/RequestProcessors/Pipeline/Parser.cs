@@ -3,10 +3,6 @@
 using LiteHttp.Models.PipeContextModels;
 
 #nullable disable
-// Issue codes and their meaning:
-// 2 - Request line has wrong format
-// 3 - Header has wrong format
-// Whole code should be reviewed and refactored here
 internal sealed class Parser
 {
     private readonly HttpContextBuilder _httpContextBuilder = new();
@@ -27,6 +23,7 @@ internal sealed class Parser
         while (true)
         {
             var result = await requestPipe.Reader.ReadAsync();
+            
             var buffer = result.Buffer;
             
             var sequenceReader = new SequenceReader<byte>(buffer);
@@ -35,14 +32,8 @@ internal sealed class Parser
             {
                 if (_parsingState == ParsingState.BodyParsing)
                 {
-                    while (sequenceReader.TryPeek(out var @byte))
-                    {
-                        if (@byte != '\r' || @byte != '\n')
-                        {
-                            sequenceReader.Rewind(1);
-                            break;
-                        }
-                    }
+                    SkipToBodyStart(sequenceReader);
+                    
                     if (sequenceReader.UnreadSequence.IsEmpty)
                     {
                         _httpContextBuilder.WithBody(null);
@@ -68,6 +59,18 @@ internal sealed class Parser
         await requestPipe.Reader.CompleteAsync();
 
         return new(_httpContextBuilder.Build());
+    }
+
+    private void SkipToBodyStart(SequenceReader<byte> sequenceReader)
+    {
+        while (sequenceReader.TryPeek(out var @byte))
+        {
+            if (@byte != '\r' || @byte != '\n')
+            {
+                sequenceReader.Rewind(1);
+                break;
+            }
+        }
     }
 
     private bool TryParseLine(ReadOnlySequence<byte> line, out Error? error)
@@ -117,12 +120,12 @@ internal sealed class Parser
         var reader = new SequenceReader<byte>(line);
         
         if (!reader.TryReadTo(out ReadOnlySequence<byte> headerTitleSequence, RequestSymbolsAsBytes.Colon, true))
-            return new Result(new Error(3, "Header has wrong format"));
+            return new Result(new Error(ParserErrors.InvalidRequestSyntax, "Header has wrong format"));
 
         reader.Advance(1); // Need to skip colon and space
 
         if (!reader.TryReadTo(out ReadOnlySequence<byte> headerValueSequence, RequestSymbolsAsBytes.CarriageReturnSymbol, true))
-            return new Result(new Error(3, "Header has wrong format"));
+            return new Result(new Error(ParserErrors.InvalidRequestSyntax, "Header has wrong format"));
 
         _httpContextBuilder.AddHeader(GetReadOnlyMemoryFromSequence(headerTitleSequence), GetReadOnlyMemoryFromSequence(headerValueSequence));
 
@@ -150,7 +153,7 @@ internal sealed class Parser
             return new();
         }
 
-        return new(new Error(2, "Request line has wrong format")); // Error can be instantiated only once in constant class and reused
+        return new(new Error(ParserErrors.InvalidRequestSyntax, "Request line has wrong format")); // Error can be instantiated only once in constant class and reused
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
