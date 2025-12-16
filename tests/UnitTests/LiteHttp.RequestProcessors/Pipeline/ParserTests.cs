@@ -95,9 +95,9 @@ public class ParserTests
             { "Content-Length", "13" }
         };
 
-        var expectedRoute = Encoding.UTF8.GetBytes("/");
+        var expectedRoute = Encoding.ASCII.GetBytes("/");
         var expectedMethod = RequestMethodsAsBytes.Put;
-        var expectedBody = Encoding.UTF8.GetBytes("Hello, World!");
+        var expectedBody = Encoding.ASCII.GetBytes("Hello, World!");
 
         await FillPipeWith(request);
         
@@ -146,6 +146,7 @@ public class ParserTests
         var request = "/ HTTP1.0\r\nHost: test.com";
 
         await FillPipeWith(request);
+        
         // Act
         var result = await _parser.Parse(_requestPipe);
 
@@ -162,6 +163,7 @@ public class ParserTests
         var request = "GET HTTP1.0\r\nHost: test.com";
 
         await FillPipeWith(request);
+        
         // Act
         var result = await _parser.Parse(_requestPipe);
 
@@ -178,6 +180,7 @@ public class ParserTests
         var request = "GET/HTTP1.0\r\nHost: test.com";
 
         await FillPipeWith(request);
+        
         // Act 
         var result = await _parser.Parse(_requestPipe);
 
@@ -202,8 +205,8 @@ public class ParserTests
 
     private void WriteContextData(HttpContext context)
     {
-        _outputHelper.WriteLine($"The request route gained after parsing: {Encoding.UTF8.GetString(context.Route.Span)}");
-        _outputHelper.WriteLine($"The request method gained after parsing: {Encoding.UTF8.GetString(context.Method.Span)}");
+        _outputHelper.WriteLine($"The request route gained after parsing: {Encoding.ASCII.GetString(context.Route.Span)}");
+        _outputHelper.WriteLine($"The request method gained after parsing: {Encoding.ASCII.GetString(context.Method.Span)}");
         _outputHelper.WriteLine(context.Body.HasValue
             ? $"Request body gained after parsing" // : {Encoding.UTF8.GetString(context.Body.Value.FirstSpan)}
             : "Request does not have body");
@@ -211,7 +214,7 @@ public class ParserTests
         _outputHelper.WriteLine($"Request headers gained after parsing: ");
 
         foreach (var header in context.Headers)
-            _outputHelper.WriteLine($"{Encoding.UTF8.GetString(header.Key.Span)}: {Encoding.UTF8.GetString(header.Value.Span)}");
+            _outputHelper.WriteLine($"{Encoding.ASCII.GetString(header.Key.Span)}: {Encoding.ASCII.GetString(header.Value.Span)}");
     }
     
     private static void ParseHeadersToStrings(HttpContext result, out Dictionary<string, string> actualHeaders) => 

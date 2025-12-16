@@ -8,6 +8,7 @@ internal sealed class Parser
     private readonly HttpContextBuilder _httpContextBuilder = new();
     
     private ParsingState _parsingState = ParsingState.RequestLineParsing;
+    private long _contentLength = 0;
     
     /// <summary>
     /// Parses the entire request bytes into <see cref="HttpContext"/> model.
@@ -18,6 +19,7 @@ internal sealed class Parser
     public async ValueTask<Result<HttpContext>> Parse(Pipe requestPipe)
     {
         _parsingState = ParsingState.RequestLineParsing;
+        _contentLength = 0;
         _httpContextBuilder.Reset();
         
         while (true)
@@ -34,22 +36,25 @@ internal sealed class Parser
                 {
                     SkipToBodyStart(sequenceReader);
                     
-                    if (sequenceReader.UnreadSequence.IsEmpty)
-                    {
+                    if (_contentLength == 0)
                         _httpContextBuilder.WithBody(null);
-                        break;
+                    else
+                    {
+                        _httpContextBuilder.WithBody(sequenceReader.UnreadSequence.Slice(
+                            sequenceReader.UnreadSequence.Start,
+                            _contentLength)
+                        );
                     }
-        
-                    _httpContextBuilder.WithBody(sequenceReader.UnreadSequence);
-                    break;
                 }
+
                 if (!TryParseLine(line, out var error))
                 {
                     await requestPipe.Reader.CompleteAsync();
 
                     return new(error);
-                }    
+                }
                 sequenceReader.Advance(1);
+                requestPipe.Reader.AdvanceTo(line.Start);
             }
             
             if (result.IsCompleted)
@@ -61,11 +66,12 @@ internal sealed class Parser
         return new(_httpContextBuilder.Build());
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void SkipToBodyStart(SequenceReader<byte> sequenceReader)
     {
         while (sequenceReader.TryPeek(out var @byte))
         {
-            if (@byte != '\r' || @byte != '\n')
+            if (@byte != '\r' && @byte != '\n')
             {
                 sequenceReader.Rewind(1);
                 break;
@@ -73,6 +79,7 @@ internal sealed class Parser
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool TryParseLine(ReadOnlySequence<byte> line, out Error? error)
     {
         switch (_parsingState)
@@ -127,9 +134,31 @@ internal sealed class Parser
         if (!reader.TryReadTo(out ReadOnlySequence<byte> headerValueSequence, RequestSymbolsAsBytes.CarriageReturnSymbol, true))
             return new Result(new Error(ParserErrors.InvalidRequestSyntax, "Header has wrong format"));
 
-        _httpContextBuilder.AddHeader(GetReadOnlyMemoryFromSequence(headerTitleSequence), GetReadOnlyMemoryFromSequence(headerValueSequence));
+        var headerTitleMemory = GetReadOnlyMemoryFromSequence(headerTitleSequence);
+        var headerValueMemory = GetReadOnlyMemoryFromSequence(headerValueSequence);
+        _httpContextBuilder.AddHeader(headerTitleMemory, headerValueMemory);
 
+        if (IsContentLength(headerTitleMemory.Span))
+        {
+            if (!long.TryParse(headerValueMemory.Span, out var result))
+                return new Result(new Error(ParserErrors.InvalidHeaderValue, ExceptionStrings.InvalidHeaderValueType));
+            
+            _contentLength = result;
+        }
         return new();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsContentLength(ReadOnlySpan<byte> headerTitleSpan)
+    {
+        const byte cByte = (byte)'c';
+        const byte lByte = (byte)'l';
+        const byte nByte = (byte)'h';
+        
+        return (headerTitleSpan[0] | 0x20) == cByte
+               && (headerTitleSpan[8] | 0x20) == lByte
+               && (headerTitleSpan[13] | 0x20) == nByte
+               && ByteSpanComparerIgnoreCase.Equals(HeadersAsBytes.ContentLength, headerTitleSpan);
     }
 
     /// <summary>

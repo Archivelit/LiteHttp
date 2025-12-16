@@ -25,3 +25,4 @@ global using LiteHttp.RequestProcessors;
 global using LiteHttp.Server.Services.Endpoints;
 global using LiteHttp.Server.Services.Limits;
 global using LiteHttp.Constants.ErrorCodes;
+global using LiteHttp.Server.Services.Comparers;
