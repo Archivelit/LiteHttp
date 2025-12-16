@@ -2,17 +2,17 @@
 
 internal static class ByteSpanComparerIgnoreCase
 {
-    public static bool Equals([DisallowNull] ReadOnlySpan<byte> @this, [DisallowNull] ReadOnlySpan<byte> other)
+    public static bool Equals([DisallowNull] ReadOnlySpan<byte> first, [DisallowNull] ReadOnlySpan<byte> second)
     {
         // We do not do ReferenceEquals because this comparer not expected for usage
         // out of pipeline request handling context where references cannot be equivalent
 
-        if (@this.Length != other.Length) return false;
+        if (first.Length != second.Length) return false;
 
-        for (int i = 0; i < @this.Length; i++)
+        for (int i = 0; i < first.Length; i++)
         {
             // 0x20 used to get upper-case letter from lower case
-            if ((@this[i] | 0x20) != (other[i] | 0x20))
+            if ((first[i] | 0x20) != (second[i] | 0x20))
                 return false;
         }
 
