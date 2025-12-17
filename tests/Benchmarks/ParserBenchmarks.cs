@@ -1,21 +1,47 @@
-﻿namespace LiteHttp.Benchmarks;
+﻿using System.IO.Pipelines;
+using System.Threading.Tasks;
+
+namespace LiteHttp.Benchmarks;
 
 [CPUUsageDiagnoser, MemoryDiagnoser, DotNetObjectAllocJobConfiguration, DotNetObjectAllocDiagnoser, CategoriesColumn, Orderer(BenchmarkDotNet.Order.SummaryOrderPolicy.FastestToSlowest)]
 public class ParserBenchmarks
 {
-    private readonly byte[] _request = Encoding.UTF8.GetBytes("GET / HTTP/1.1\r\nHost: localhost\r\n\r\n");
-    private Parser _parser;
+    private readonly byte[] _request = Encoding.ASCII.GetBytes("GET / HTTP/1.1\r\nHost: localhost\r\n\r\n");
+    private RequestProcessors.Pipeline.Parser _parser;
+    private Pipe _requestPipe;
 
     [GlobalSetup]
     public void Setup()
     {
-        _parser = new Parser();
+        _parser = new();
     }
 
     [Params(1_000, 10_000, 1_000_000)]
     public int N;
 
+    [IterationSetup]
+    public void PipeSetup()
+    {
+        _requestPipe = new();
+
+        FillPipe().GetAwaiter().GetResult();
+    }
+
     [Benchmark, BenchmarkCategory("Parsing")]
-    public HttpContext Parse() =>
-        _ = _parser.Parse(_request).Value;
+    public async ValueTask Parse()
+    {
+        await _parser.Parse(_requestPipe);
+    }
+
+    private async Task FillPipe()
+    {
+        var writer = _requestPipe.Writer;
+
+        var buffer = writer.GetSpan(_request.Length);
+        _request.CopyTo(buffer);
+        writer.Advance(_request.Length);
+
+        await writer.FlushAsync();
+        await writer.CompleteAsync();
+    }
 }

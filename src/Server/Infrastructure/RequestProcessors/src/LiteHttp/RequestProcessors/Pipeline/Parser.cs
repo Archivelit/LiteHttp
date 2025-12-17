@@ -1,10 +1,21 @@
 ﻿namespace LiteHttp.RequestProcessors.Pipeline;
 
+using LiteHttp.Models.PipeContextModels;
+
+#nullable disable
 internal sealed class Parser
 {
+    private static readonly Error SRequestLineSyntaxError =
+        new Error(ParserErrors.InvalidRequestSyntax, "Request line has wrong format");
+    private static readonly Error SHeaderSyntaxError = 
+        new Error(ParserErrors.InvalidRequestSyntax, "Header has wrong format");
+    private static readonly Error SInvalidHeaderValueTypeError = 
+        new Error(ParserErrors.InvalidHeaderValue, ExceptionStrings.InvalidHeaderValueType)
+    
     private readonly HttpContextBuilder _httpContextBuilder = new();
     
     private ParsingState _parsingState = ParsingState.RequestLineParsing;
+    private long _contentLength = 0;
     
     /// <summary>
     /// Parses the entire request bytes into <see cref="HttpContext"/> model.
@@ -12,157 +23,187 @@ internal sealed class Parser
     /// <param name="requestPipe">Pipe contains bytes of entire request.</param>
     /// <returns><see cref="Result{TResult}"/> wrappee with result or exception wrapped</returns>
     [SkipLocalsInit]
-    public async Task<Result<HttpContext>> Parse(Pipe requestPipe)
+    public async ValueTask<Result<HttpContext>> Parse(Pipe requestPipe)
     {
         _parsingState = ParsingState.RequestLineParsing;
-            
+        _contentLength = 0;
+        _httpContextBuilder.Reset();
+        
         while (true)
         {
             var result = await requestPipe.Reader.ReadAsync();
             
             var buffer = result.Buffer;
             
-            requestPipe.Reader.AdvanceTo(buffer.Start, buffer.End);
-            
             var sequenceReader = new SequenceReader<byte>(buffer);
-
-            while (sequenceReader.TryReadTo(out ReadOnlySequence<byte> line, RequestSymbolsAsBytes.NewLine,
-                       false))
+            
+            while (sequenceReader.TryReadTo(out ReadOnlySequence<byte> line, RequestSymbolsAsBytes.NewLine, false))
             {
-                var error = ParseLine(line);
-                if (error is not null)
-                    return new Result<HttpContext>(error.Value);
-            }
+                if (_parsingState == ParsingState.BodyParsing)
+                {
+                    SkipToBodyStart(sequenceReader);
+                    
+                    if (_contentLength == 0)
+                        _httpContextBuilder.WithBody(null);
+                    else
+                    {
+                        _httpContextBuilder.WithBody(sequenceReader.UnreadSequence.Slice(
+                            sequenceReader.UnreadSequence.Start,
+                            _contentLength)
+                        );
+                    }
+                }
 
+                if (!TryParseLine(line, out var error))
+                {
+                    await requestPipe.Reader.CompleteAsync();
+
+                    return new(error);
+                }
+                sequenceReader.Advance(1);
+                requestPipe.Reader.AdvanceTo(line.Start);
+            }
+            
             if (result.IsCompleted)
                 break;
         }
 
         await requestPipe.Reader.CompleteAsync();
 
-        throw new NotImplementedException();
-
-        // Old Parser implementation (using Memory<byte> instead of Pipe)
-
-        /*var requestParts = SplitRequest(requestPipe);
-
-        var firstLine = GetFirstLine(requestParts.Headers);
-
-        var method = GetMethod(firstLine);
-
-        if (!method.Success)
-            return new(method.Error.Value);
-
-        var route = GetRoute(firstLine);
-
-        if (!route.Success)
-            return new(route.Error.Value);
-
-        var headerSection = requestParts.Headers[(firstLine.Length + RequestSymbolsAsBytes.NewRequestLine.Length)..]; // First line of request does not contain any header
-
-        var headers = MapHeaders(headerSection);
-
-        return !headers.Success
-            ? new(headers.Error.Value)
-            : new Result<HttpContext>(new HttpContext(method.Value, route.Value, headers.Value, requestParts.Body));*/
+        return new(_httpContextBuilder.Build());
     }
 
-    private Error? ParseLine(ReadOnlySequence<byte> sequence)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void SkipToBodyStart(SequenceReader<byte> sequenceReader)
+    {
+        while (sequenceReader.TryPeek(out var @byte))
+        {
+            if (@byte != '\r' && @byte != '\n')
+            {
+                sequenceReader.Rewind(1);
+                break;
+            }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool TryParseLine(ReadOnlySequence<byte> line, out Error? error)
     {
         switch (_parsingState)
         {
             case ParsingState.RequestLineParsing:
-                var error = ParseRequestLine(sequence, out var method, out var route,
-                    out var protocolVersion);
+            {
+                var result = ParseRequestLine(line);
 
-                if (error is not null)
-                    return error;
+                if (!result.Success)
+                {
+                    error = result.Error;
+                    return false;
+                }
 
-                _httpContextBuilder.WithMethod(method);
-                _httpContextBuilder.WithRoute(route);
-                _httpContextBuilder.WithProtocolVersion(protocolVersion);
-
+                _parsingState = ParsingState.HeadersParsing;
+            }
                 break;
+
             case ParsingState.HeadersParsing:
-                break;
-            case ParsingState.BodyParsing:
+            {
+                var result = ParseHeader(line);
+
+                if (!result.Success)
+                {
+                    error = result.Error;
+                    return false;
+                }
+            }
                 break;
         }
 
-        return null;
+        error = null;
+        return true;
     }
-    
+
+    [SkipLocalsInit]
+    private Result ParseHeader(ReadOnlySequence<byte> line)
+    {
+        if (line.Length <= 2)
+        {
+            _parsingState = ParsingState.BodyParsing;
+            return new();
+        }
+
+        var reader = new SequenceReader<byte>(line);
+        
+        if (!reader.TryReadTo(out ReadOnlySequence<byte> headerTitleSequence, RequestSymbolsAsBytes.Colon, true))
+            return new Result(SHeaderSyntaxError);
+
+        reader.Advance(1); // Need to skip colon and space
+
+        if (!reader.TryReadTo(out ReadOnlySequence<byte> headerValueSequence, RequestSymbolsAsBytes.CarriageReturnSymbol, true))
+            return new Result(SHeaderSyntaxError);
+
+        var headerTitleMemory = GetReadOnlyMemoryFromSequence(headerTitleSequence);
+        var headerValueMemory = GetReadOnlyMemoryFromSequence(headerValueSequence);
+        _httpContextBuilder.AddHeader(headerTitleMemory, headerValueMemory);
+
+        if (IsContentLength(headerTitleMemory.Span))
+        {
+            if (!long.TryParse(headerValueMemory.Span, out var result))
+                return new Result(SInvalidHeaderValueTypeError);
+            
+            _contentLength = result;
+        }
+        return new();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsContentLength(ReadOnlySpan<byte> headerTitleSpan)
+    {
+        const byte cByte = (byte)'c';
+        const byte lByte = (byte)'l';
+        const byte nByte = (byte)'h';
+        
+        return (headerTitleSpan[0] | 0x20) == cByte
+               && (headerTitleSpan[8] | 0x20) == lByte
+               && (headerTitleSpan[13] | 0x20) == nByte
+               && ByteSpanComparerIgnoreCase.Equals(HeadersAsBytes.ContentLength, headerTitleSpan);
+    }
+
     /// <summary>
     /// Extracts request method, route and protocol version from request line
     /// </summary>
     /// <param name="line">Request line of the entire request</param>
-    /// <param name="method">Method of the entire request</param>
-    /// <param name="route">Route of the entire request</param>
-    /// <param name="protocolVersion">Http protocol version of the entire request</param>
     /// <returns>Error if operation was not success, otherwise null</returns>
-    private Error? ParseRequestLine(ReadOnlySequence<byte> line, out ReadOnlyMemory<byte> method, out ReadOnlyMemory<byte> route,
-        out ReadOnlyMemory<byte> protocolVersion)
+    private Result ParseRequestLine(ReadOnlySequence<byte> line)
     {
-        method = ReadOnlyMemory<byte>.Empty;
-        route = ReadOnlyMemory<byte>.Empty;
-        protocolVersion = ReadOnlyMemory<byte>.Empty;
-        
         var reader = new SequenceReader<byte>(line);
-        
-        if (!reader.TryReadTo(out ReadOnlySequence<byte> methodSequence, RequestSymbolsAsBytes.Space, false) 
-            || !reader.TryReadTo(out ReadOnlySequence<byte> routeSequence, RequestSymbolsAsBytes.Space, false) 
-            || !reader.TryReadTo(out ReadOnlySequence<byte> protocolVersionSequence, RequestSymbolsAsBytes.NewRequestLine,
-                false))
-            return new Error(2, "Request line has wrong format");
 
-        method = new ReadOnlyMemory<byte>(methodSequence.ToArray());
-        route = new ReadOnlyMemory<byte>(routeSequence.ToArray());
-        protocolVersion = new ReadOnlyMemory<byte>(protocolVersionSequence.ToArray());
-        
-        return null;
-    }
-
-    /// <summary>
-    /// Maps the entire request header section on specified headers.
-    /// </summary>
-    /// <param name="headers">The entire request header section</param>
-    /// <returns><see cref="Result{TResult}"/> wrapee with exception or headers dictionary.
-    /// The dictionaries key is header title without column</returns>
-    [SkipLocalsInit]
-    private Result<Dictionary<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>>> MapHeaders(Memory<byte> headers)
-    {
-        var headersDictionary = new Dictionary<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>>(8);
-
-        while (headers.Length > 2)
+        if (reader.TryReadTo(out ReadOnlySequence<byte> methodSequence, RequestSymbolsAsBytes.Space, true)
+            && reader.TryReadTo(out ReadOnlySequence<byte> routeSequence, RequestSymbolsAsBytes.Space, true)
+            && reader.TryReadTo(out ReadOnlySequence<byte> protocolVersionSequence, RequestSymbolsAsBytes.CarriageReturnSymbol,
+                true))
         {
-            var eol = headers.Span.IndexOf(RequestSymbolsAsBytes.NewLine);
+            _httpContextBuilder.WithMethod(GetReadOnlyMemoryFromSequence(methodSequence));
+            _httpContextBuilder.WithRoute(GetReadOnlyMemoryFromSequence(routeSequence));
+            _httpContextBuilder.WithProtocolVersion(GetReadOnlyMemoryFromSequence(protocolVersionSequence));
 
-            if (eol == -1)
-            {
-                var colonIndex = headers.Span.IndexOf(RequestSymbolsAsBytes.Colon);
-
-                if (colonIndex == -1)
-                    return new(headersDictionary);
-
-                headersDictionary.Add(headers[..colonIndex], headers[(colonIndex + 2)..]); // +2 to exclude colon and space,
-
-                return new(headersDictionary);
-            }
-
-            var colon = headers.Span[..eol].IndexOf(RequestSymbolsAsBytes.Colon);
-
-            if (colon == -1)
-                return new(new Error(ParserErrors.InvalidRequestSyntax, "The headers had wrong format"));
-
-            var key = headers[..colon];
-            var value = headers[
-                (colon + 2)..(eol - 1)]; // +2 to exclude colon and space, -1 to exclude carriage return (\r) symbol
-
-            headersDictionary[key] = value;
-            headers = headers[(eol + 1)..]; // +1 to exclude eol symbol
+            return new();
         }
 
-        return new(headersDictionary);
+        return new(SRequestLineSyntaxError);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ReadOnlyMemory<byte> GetReadOnlyMemoryFromSequence(ReadOnlySequence<byte> methodSequence)
+    {
+        if (!SequenceMarshal.TryGetReadOnlyMemory(methodSequence, out var memory))
+        {
+            using var methodMemoryOwner = MemoryPool<byte>.Shared.Rent((int)methodSequence.Length);
+            methodSequence.CopyTo(methodMemoryOwner.Memory.Span);
+
+            return methodMemoryOwner.Memory;
+        }
+
+        return memory;
     }
 
     private enum ParsingState

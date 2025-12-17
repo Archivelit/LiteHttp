@@ -16,7 +16,7 @@ internal sealed class HttpContextBuilder
         _method = ReadOnlyMemory<byte>.Empty;
         _route = ReadOnlyMemory<byte>.Empty;
         _protocolVersion = ReadOnlyMemory<byte>.Empty;
-        _body = ReadOnlySequence<byte>.Empty;
+        _body = null;
         _headers = new(8);
     }
 
@@ -32,6 +32,9 @@ internal sealed class HttpContextBuilder
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WithBody(ReadOnlySequence<byte>? body) => _body = body;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AddHeader(ReadOnlyMemory<byte> key, ReadOnlyMemory<byte> value) => _headers.Add(key, value);
 
     public HttpContext Build() => new HttpContext(_method, _route, _headers, _body);
 }
