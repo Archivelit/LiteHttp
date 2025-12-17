@@ -1,0 +1,37 @@
+﻿namespace LiteHttp.RequestProcessors;
+
+using LiteHttp.Models.PipeContextModels;
+
+internal sealed class HttpContextBuilder
+{
+    private ReadOnlyMemory<byte> _method;
+    private ReadOnlyMemory<byte> _route;
+    private ReadOnlyMemory<byte> _protocolVersion;
+    private ReadOnlySequence<byte>? _body;
+    private Dictionary<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>> _headers = new(8);
+    
+    [SkipLocalsInit]
+    public void Reset()
+    {
+        _method = ReadOnlyMemory<byte>.Empty;
+        _route = ReadOnlyMemory<byte>.Empty;
+        _protocolVersion = ReadOnlyMemory<byte>.Empty;
+        _body = ReadOnlySequence<byte>.Empty;
+        _headers = new(8);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WithMethod(ReadOnlyMemory<byte> method) => _method = method;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WithProtocolVersion(ReadOnlyMemory<byte> protocolVersion) => 
+        _protocolVersion = protocolVersion;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WithRoute(ReadOnlyMemory<byte> route) => _route = route;
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WithBody(ReadOnlySequence<byte>? body) => _body = body;
+
+    public HttpContext Build() => new HttpContext(_method, _route, _headers, _body);
+}
