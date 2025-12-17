@@ -5,6 +5,13 @@ using LiteHttp.Models.PipeContextModels;
 #nullable disable
 internal sealed class Parser
 {
+    private static readonly Error SRequestLineSyntaxError =
+        new Error(ParserErrors.InvalidRequestSyntax, "Request line has wrong format");
+    private static readonly Error SHeaderSyntaxError = 
+        new Error(ParserErrors.InvalidRequestSyntax, "Header has wrong format");
+    private static readonly Error SInvalidHeaderValueTypeError = 
+        new Error(ParserErrors.InvalidHeaderValue, ExceptionStrings.InvalidHeaderValueType)
+    
     private readonly HttpContextBuilder _httpContextBuilder = new();
     
     private ParsingState _parsingState = ParsingState.RequestLineParsing;
@@ -127,12 +134,12 @@ internal sealed class Parser
         var reader = new SequenceReader<byte>(line);
         
         if (!reader.TryReadTo(out ReadOnlySequence<byte> headerTitleSequence, RequestSymbolsAsBytes.Colon, true))
-            return new Result(new Error(ParserErrors.InvalidRequestSyntax, "Header has wrong format"));
+            return new Result(SHeaderSyntaxError);
 
         reader.Advance(1); // Need to skip colon and space
 
         if (!reader.TryReadTo(out ReadOnlySequence<byte> headerValueSequence, RequestSymbolsAsBytes.CarriageReturnSymbol, true))
-            return new Result(new Error(ParserErrors.InvalidRequestSyntax, "Header has wrong format"));
+            return new Result(SHeaderSyntaxError);
 
         var headerTitleMemory = GetReadOnlyMemoryFromSequence(headerTitleSequence);
         var headerValueMemory = GetReadOnlyMemoryFromSequence(headerValueSequence);
@@ -141,7 +148,7 @@ internal sealed class Parser
         if (IsContentLength(headerTitleMemory.Span))
         {
             if (!long.TryParse(headerValueMemory.Span, out var result))
-                return new Result(new Error(ParserErrors.InvalidHeaderValue, ExceptionStrings.InvalidHeaderValueType));
+                return new Result(SInvalidHeaderValueTypeError);
             
             _contentLength = result;
         }
@@ -182,7 +189,7 @@ internal sealed class Parser
             return new();
         }
 
-        return new(new Error(ParserErrors.InvalidRequestSyntax, "Request line has wrong format")); // Error can be instantiated only once in constant class and reused
+        return new(SRequestLineSyntaxError);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
