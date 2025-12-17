@@ -1,6 +1,6 @@
-﻿namespace LiteHttp.RequestProcessors.Pipeline;
+﻿using HttpContext = LiteHttp.Models.PipeContextModels.HttpContext;
 
-using LiteHttp.Models.PipeContextModels;
+namespace LiteHttp.RequestProcessors.Pipeline;
 
 #nullable disable
 internal sealed class Parser
@@ -9,8 +9,8 @@ internal sealed class Parser
         new Error(ParserErrors.InvalidRequestSyntax, "Request line has wrong format");
     private static readonly Error SHeaderSyntaxError = 
         new Error(ParserErrors.InvalidRequestSyntax, "Header has wrong format");
-    private static readonly Error SInvalidHeaderValueTypeError = 
-        new Error(ParserErrors.InvalidHeaderValue, ExceptionStrings.InvalidHeaderValueType)
+    private static readonly Error SInvalidHeaderValueTypeError =
+        new Error(ParserErrors.InvalidHeaderValue, ExceptionStrings.InvalidHeaderValueType);
     
     private readonly HttpContextBuilder _httpContextBuilder = new();
     

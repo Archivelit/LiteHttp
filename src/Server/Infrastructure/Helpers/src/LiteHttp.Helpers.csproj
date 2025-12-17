@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Constants\src\LiteHttp.Constants.csproj" />
-    <ProjectReference Include="..\..\Enums\src\LiteHttp.Enums.csproj" />
+    <ProjectReference Include="..\..\..\Core\Enums\src\LiteHttp.Enums.csproj" />
+    <ProjectReference Include="..\..\..\Core\Models\src\LiteHttp.Models.csproj" />
   </ItemGroup>
 
 </Project>

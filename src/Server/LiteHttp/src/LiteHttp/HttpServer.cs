@@ -1,4 +1,6 @@
-﻿namespace LiteHttp;
+﻿
+
+namespace LiteHttp;
 
 /// <summary>
 /// Provides an HTTP server implementation that allows mapping routes to request handlers.

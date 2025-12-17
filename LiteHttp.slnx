@@ -14,6 +14,10 @@
   <Folder Name="/src/Server/Core/Constants/src/">
     <Project Path="src/Server/Core/Constants/src/LiteHttp.Constants.csproj" />
   </Folder>
+  <Folder Name="/src/Server/Core/Enums/" />
+  <Folder Name="/src/Server/Core/Enums/src/">
+    <Project Path="src/Server/Core/Enums/src/LiteHttp.Enums.csproj" />
+  </Folder>
   <Folder Name="/src/Server/Core/ErrorHandling/" />
   <Folder Name="/src/Server/Core/ErrorHandling/src/">
     <Project Path="src/Server/Core/ErrorHandling/src/LiteHttp.ErrorHandling.csproj" />
@@ -39,6 +43,10 @@
   <Folder Name="/src/Server/Infrastructure/Events/" />
   <Folder Name="/src/Server/Infrastructure/Events/src/">
     <Project Path="src/Server/Infrastructure/Events/src/LiteHttp.Infrastructure.Events.csproj" />
+  </Folder>
+  <Folder Name="/src/Server/Infrastructure/Helpers/" />
+  <Folder Name="/src/Server/Infrastructure/Helpers/src/">
+    <Project Path="src/Server/Infrastructure/Helpers/src/LiteHttp.Helpers.csproj" />
   </Folder>
   <Folder Name="/src/Server/Infrastructure/Listener/" />
   <Folder Name="/src/Server/Infrastructure/Listener/src/">

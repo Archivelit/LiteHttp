@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Routing;
 
-internal sealed class Router
+public sealed class Router
 {
     private IEndpointContext? _endpointContext;
 

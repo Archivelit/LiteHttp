@@ -1,5 +1,5 @@
-﻿using LiteHttp.Logging.Adapters.Serilog;
-using LiteHttp.Server;
+﻿using LiteHttp;
+using LiteHttp.Logging.Adapters.Serilog;
 
 using Serilog;
 
@@ -22,7 +22,7 @@ internal class Program
 
         var server = builder.Build();
 
-        server.MapGet("/", ActionResultFactory.Ok);
+        server.MapGet("/", ActionResults.Ok);
 
         await server.Start();
     }

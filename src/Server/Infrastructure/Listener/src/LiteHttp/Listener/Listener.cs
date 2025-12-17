@@ -1,7 +1,15 @@
-﻿namespace LiteHttp.Listener;
+﻿using System.Net;
+using System.Net.Sockets;
+
+using LiteHttp.Constants;
+using LiteHttp.Logging;
+using LiteHttp.Logging.Abstractions;
+using LiteHttp.Models.Events;
+
+namespace LiteHttp.Listener;
 
 #pragma warning disable CS8618
-internal sealed partial class Listener : IDisposable
+public sealed partial class Listener : IDisposable
 {
     private Socket Socket { get; } = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
     public int ListenerPort { get; private set; }
@@ -19,9 +27,6 @@ internal sealed partial class Listener : IDisposable
         Initialize();
     }
 
-    public Listener(int port)
-        : this(AddressConstants.IPV4_LOOPBACK, port) { }
-
     public Listener(IPAddress address)
         : this(address, AddressConstants.DEFAULT_SERVER_PORT) { }
 
@@ -33,7 +38,7 @@ internal sealed partial class Listener : IDisposable
         Initialize(endPoint.Address, endPoint.Port);
     }
 
-    public Listener(IPAddress address, int port, ILogger<Listener>? logger = null)
+    public Listener(IPAddress address, int port = AddressConstants.DEFAULT_SERVER_PORT, ILogger<Listener>? logger = null)
     {
         if (logger is not null)
             _logger = logger;
@@ -81,7 +86,7 @@ internal sealed partial class Listener : IDisposable
     public void Dispose() =>
         Socket.Dispose();
 
-    internal Listener SetIpAddress(IPAddress address)
+    public Listener SetIpAddress(IPAddress address)
     {
         if (_isListening)
             throw new InvalidOperationException("Ip address cannot be changed while server listening");
@@ -92,7 +97,7 @@ internal sealed partial class Listener : IDisposable
         return this;
     }
 
-    internal Listener SetPort(int port)
+    public Listener SetPort(int port)
     {
         if (_isListening)
             throw new InvalidOperationException("Port cannot be changed while server listening");

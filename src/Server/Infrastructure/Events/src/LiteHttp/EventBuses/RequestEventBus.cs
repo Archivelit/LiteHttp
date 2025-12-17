@@ -1,6 +1,8 @@
-﻿namespace LiteHttp.Server;
+﻿
 
-internal sealed class RequestEventBus : IEventBus<RequestReceivedEvent>
+namespace LiteHttp.Server;
+
+public sealed class RequestEventBus : IEventBus<RequestReceivedEvent>
 {
     private readonly Channel<RequestReceivedEvent> _channel = Channel.CreateUnbounded<RequestReceivedEvent>();
 

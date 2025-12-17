@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-internal sealed class Responder
+public sealed class Responder
 {
     public static readonly Responder Instance = new();
 

@@ -1,4 +1,7 @@
-﻿namespace LiteHttp.Extensions;
+﻿using LiteHttp.Constants;
+using LiteHttp.Enums;
+
+namespace LiteHttp.Extensions;
 
 public static class ResponseCodeExtensions
 {

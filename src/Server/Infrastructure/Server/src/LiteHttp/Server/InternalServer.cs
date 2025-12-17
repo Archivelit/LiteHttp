@@ -1,22 +1,28 @@
-﻿namespace LiteHttp.Server;
+﻿using LiteHttp.Constants;
+using LiteHttp.Logging;
+using LiteHttp.Logging.Abstractions;
+using LiteHttp.Models;
+using LiteHttp.Routing;
+using LiteHttp.WorkerServices;
+
+namespace LiteHttp.Server;
 
 internal sealed class InternalServer : IServer, IDisposable
 {
     private readonly Listener.Listener _listener = new();
     private readonly RequestEventBus _eventBus = new();
-    private readonly EndpointProviderConfiguration _endpointProviderConfiguration = new();
-
+    
     private readonly ILogger<InternalServer> _logger = NullLogger<InternalServer>.Instance;
     private ServerWorker[]? _workerPool;
+    private IEndpointProviderConfiguration _endpointProviderConfiguration;
 
-    internal InternalServer(int workersCount, IPAddress? address = null, int port = AddressConstants.DEFAULT_SERVER_PORT, ILogger? logger = null, ILimitsProvider? limitsProvider = null)
+    internal InternalServer(int workersCount, IPAddress? address = null, int port = AddressConstants.DEFAULT_SERVER_PORT, ILogger? logger = null)
     {
         _workerPool = new ServerWorker[workersCount];
         logger ??= NullLogger.Instance;
         address ??= IPAddress.Loopback;
-        limitsProvider ??= LimitsProvider.Default;
 
-        Initialize(logger: logger, port: port, address: address, limits: limitsProvider);
+        Initialize(logger: logger, port: port, address: address);
     }
 
     /// <inheritdoc/>
@@ -166,14 +172,14 @@ internal sealed class InternalServer : IServer, IDisposable
     /// <param name="port">The network port number on which the server will listen for incoming requests. Must be in the valid range for
     /// TCP/UDP ports.</param>
     /// <param name="address">The IP address to which the server listener will bind. Cannot be null.</param>
-    private void Initialize(ILogger logger, int port, IPAddress address, ILimitsProvider limits)
+    private void Initialize(ILogger logger, int port, IPAddress address)
     {
         _logger.LogInformation($"Initializing InternalServer...");
 
         _listener.SetPort(port);
         _listener.SetIpAddress(address);
         _listener.SubscribeToRequestReceived(_eventBus.PublishAsync);
-        InitializeWorkers(logger, limits);
+        InitializeWorkers(logger);
 
         _logger.LogInformation($"InternalServer initialized successfully.");
     }
@@ -182,14 +188,14 @@ internal sealed class InternalServer : IServer, IDisposable
     /// Initializes the server worker pool using the specified logger for diagnostic output.
     /// </summary>
     /// <param name="logger">The logger instance used to record informational messages during worker initialization. Cannot be null.</param>
-    private void InitializeWorkers(ILogger logger, ILimitsProvider limits)
+    private void InitializeWorkers(ILogger logger)
     {
         _logger.LogInformation($"Initializing server workers...");
 
         _workerPool ??= new ServerWorker[1];
 
         for (var i = 0; i < _workerPool.Length; i++)
-            _workerPool[i] = new(_endpointProviderConfiguration.EndpointContext, _listener.ListenerAddress.ToString(), _listener.ListenerPort, logger, limits);
+            _workerPool[i] = new(_endpointProviderConfiguration.EndpointContext, _listener.ListenerAddress.ToString(), _listener.ListenerPort, logger);
 
         _logger.LogInformation($"Server workers initialized successfully.");
     }

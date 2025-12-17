@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\ErrorHandling\src\LiteHttp.ErrorHandling.csproj" />
+  </ItemGroup>
+
 </Project>

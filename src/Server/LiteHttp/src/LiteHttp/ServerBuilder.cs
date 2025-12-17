@@ -14,7 +14,6 @@ public class ServerBuilder
     private int _workersCount = Environment.ProcessorCount / 2;
     private int _port = AddressConstants.DEFAULT_SERVER_PORT;
     private IPAddress _address = AddressConstants.IPV4_LOOPBACK;
-    private ILimitsProvider? _limitsProvider;
 
     /// <summary>
     /// Creates and configures a new instance of the <see cref="HttpServer"/> class using the specified worker count,
@@ -29,7 +28,7 @@ public class ServerBuilder
     public HttpServer Build()
     {
         var internalServer = new InternalServer(workersCount: _workersCount, port: _port, address: _address, 
-            logger: _logger, limitsProvider: _limitsProvider);
+            logger: _logger);
 
         return new(internalServer);
     }
@@ -120,7 +119,8 @@ public class ServerBuilder
 
         return this;
     }
-
+    
+    /*
     /// <summary>
     /// Configures server resource limits using the specified settings.
     /// </summary>
@@ -135,4 +135,5 @@ public class ServerBuilder
 
         return this;
     }
+    */
 }

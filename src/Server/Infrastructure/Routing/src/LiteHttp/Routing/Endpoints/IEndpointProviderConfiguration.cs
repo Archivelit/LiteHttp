@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Routing;
 
-internal interface IEndpointProviderConfiguration
+public interface IEndpointProviderConfiguration
 {
     public IEndpointContext EndpointContext { get; }
     public void Freeze();

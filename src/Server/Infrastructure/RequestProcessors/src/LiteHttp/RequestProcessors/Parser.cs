@@ -1,7 +1,9 @@
-﻿namespace LiteHttp.RequestProcessors;
+﻿using HttpContext = LiteHttp.Models.HttpContext;
+
+namespace LiteHttp.RequestProcessors;
 
 #nullable disable
-internal sealed class Parser
+public sealed class Parser
 {
     public static readonly Parser Instance = new();
     

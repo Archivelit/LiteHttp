@@ -2,7 +2,7 @@
 
 using Serilog;
 
-using ILogger = Serilog.ILogger;
+using ILogger = LiteHttp.Logging.Abstractions.ILogger;
 
 namespace LiteHttp.Logging.Adapters.Serilog;
 
@@ -10,7 +10,7 @@ namespace LiteHttp.Logging.Adapters.Serilog;
 /// Logger adapter for <c>Serilog</c> logger.
 /// Implements <see cref="Abstractions.ILogger"/> so can be easily/.
 /// </summary>
-public sealed class SerilogLoggerAdapter : LiteHttp.Logging.Abstractions.ILogger
+public sealed class SerilogLoggerAdapter : ILogger
 {
     /// <summary>
     /// Creates logger with provided configuration and replaces
@@ -51,10 +51,10 @@ public sealed class SerilogLoggerAdapter : LiteHttp.Logging.Abstractions.ILogger
 /// <typeparam name="TCategoryName">
 /// The type defining the logger category.
 /// </typeparam>
-public sealed class SerilogLoggerAdapter<TCategoryName> : LiteHttp.Logging.Abstractions.ILogger<TCategoryName>
+public sealed class SerilogLoggerAdapter<TCategoryName> : ILogger<TCategoryName>
 {
     public static readonly SerilogLoggerAdapter<TCategoryName> Instance = new();
-    private static readonly ILogger Logger = Log.ForContext<TCategoryName>();
+    private static readonly global::Serilog.ILogger Logger = Log.ForContext<TCategoryName>();
 
     public void LogTrace(FormattableString message) =>
         Logger.Verbose(message.Format, message.GetArguments());

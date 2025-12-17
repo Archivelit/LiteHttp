@@ -11,7 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\LiteHttp.Logging\LiteHttp.Logging.csproj" />
+      <ProjectReference Include="..\..\..\..\Server\Infrastructure\Logging\src\LiteHttp.Logging.csproj" />
     </ItemGroup>
 
 </Project>

@@ -4,6 +4,15 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\Constants\src\LiteHttp.Constants.csproj" />
+    <ProjectReference Include="..\..\..\Core\Enums\src\LiteHttp.Enums.csproj" />
+    <ProjectReference Include="..\..\..\Core\ErrorHandling\src\LiteHttp.ErrorHandling.csproj" />
+    <ProjectReference Include="..\..\..\Core\Extensions\src\LiteHttp.Extensions.csproj" />
+    <ProjectReference Include="..\..\..\Core\Models\src\LiteHttp.Models.csproj" />
+  </ItemGroup>
 
 </Project>

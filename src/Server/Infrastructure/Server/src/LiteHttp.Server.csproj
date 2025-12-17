@@ -6,4 +6,16 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\Constants\src\LiteHttp.Constants.csproj" />
+    <ProjectReference Include="..\..\..\Core\Models\src\LiteHttp.Models.csproj" />
+    <ProjectReference Include="..\..\Events\src\LiteHttp.Infrastructure.Events.csproj" />
+    <ProjectReference Include="..\..\Listener\src\LiteHttp.Listener.csproj" />
+    <ProjectReference Include="..\..\Logging\src\LiteHttp.Logging.csproj" />
+    <ProjectReference Include="..\..\RequestProcessors\src\LiteHttp.RequestProcessors.csproj" />
+    <ProjectReference Include="..\..\Routing\src\LiteHttp.Routing.csproj" />
+    <ProjectReference Include="..\..\Sockets\TcpSocket\src\TcpSocket\TcpSocket.csproj" />
+    <ProjectReference Include="..\..\WorkerServices\src\LiteHttp.WorkerServices.csproj" />
+  </ItemGroup>
+
 </Project>

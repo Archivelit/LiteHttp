@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Enums\src\LiteHttp.Enums.csproj" />
+  </ItemGroup>
+
 </Project>

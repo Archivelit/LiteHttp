@@ -6,4 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\Constants\src\LiteHttp.Constants.csproj" />
+    <ProjectReference Include="..\..\Events\src\LiteHttp.Infrastructure.Events.csproj" />
+    <ProjectReference Include="..\..\Logging\src\LiteHttp.Logging.csproj" />
+  </ItemGroup>
+
 </Project>

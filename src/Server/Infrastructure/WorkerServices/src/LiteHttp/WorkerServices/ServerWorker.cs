@@ -1,7 +1,7 @@
 ﻿namespace LiteHttp.WorkerServices;
 
 #pragma warning disable CS8618
-internal sealed class ServerWorker : IServerWorker, IDisposable
+public sealed class ServerWorker : IServerWorker, IDisposable
 {
     private readonly Responder _responder = Responder.Instance;
     private readonly Router _router = new();
@@ -9,12 +9,11 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
     private readonly Receiver _receiver = Receiver.Instance;
     private readonly ResponseBuilder _responseBuilder = new();
 
-    private ILimitsProvider LimitsProvider { get; set; }
     private ILogger<ServerWorker> _logger = NullLogger<ServerWorker>.Instance;
     // TODO: refactor to handle large requests and prevent unexpected errors
 
-    public ServerWorker(IEndpointContext endpointContext, string address, int port, ILogger logger, ILimitsProvider limits) =>
-        Initialize(endpointContext: endpointContext, logger: logger, port: port, address: address, limitsProvider: limits);
+    public ServerWorker(IEndpointContext endpointContext, string address, int port, ILogger logger) =>
+        Initialize(endpointContext: endpointContext, logger: logger, port: port, address: address);
 
     public void SetHostPort(int port) =>
         _responseBuilder.Port = port;
@@ -31,7 +30,7 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
 
             if (!contextBytes.Success)
             {
-                await SendResponseAndDisposeConnection(@event.Connection, _responseBuilder.Build(ActionResultFactory.InternalServerError())).ConfigureAwait(false);
+                await SendResponseAndDisposeConnection(@event.Connection, _responseBuilder.Build(InternalActionResults.InternalServerError())).ConfigureAwait(false);
                 return;
             }
 
@@ -39,7 +38,7 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
 
             if (!context.Success)
             {
-                await SendResponseAndDisposeConnection(@event.Connection, _responseBuilder.Build(ActionResultFactory.InternalServerError())).ConfigureAwait(false);
+                await SendResponseAndDisposeConnection(@event.Connection, _responseBuilder.Build(InternalActionResults.InternalServerError())).ConfigureAwait(false);
                 return;
             }
 
@@ -48,7 +47,7 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
             if (action is null)
             {
                 _logger.LogInformation($"Endpoint not found");
-                var notFoundResponse = _responseBuilder.Build(ActionResultFactory.NotFound());
+                var notFoundResponse = _responseBuilder.Build(InternalActionResults.NotFound());
 
                 await SendResponseAndDisposeConnection(@event.Connection, notFoundResponse).ConfigureAwait(false);
 
@@ -68,7 +67,7 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
         {
             _logger.LogError(ex, $"Error occured during processing request");
 
-            var response = _responseBuilder.Build(ActionResultFactory.InternalServerError());
+            var response = _responseBuilder.Build(InternalActionResults.InternalServerError());
             await SendResponseAndDisposeConnection(@event.Connection, response).ConfigureAwait(false);
         }
     }
@@ -85,13 +84,12 @@ internal sealed class ServerWorker : IServerWorker, IDisposable
         connection.Dispose();
     }
 
-    private void Initialize(IEndpointContext endpointContext, ILogger logger, int port, string address, ILimitsProvider limitsProvider)
+    private void Initialize(IEndpointContext endpointContext, ILogger logger, int port, string address)
     {
         _router.SetContext(endpointContext);
         _logger = logger.ForContext<ServerWorker>();
 
         _responseBuilder.Address = address;
         _responseBuilder.Port = port;
-        LimitsProvider = limitsProvider;
     }
 }

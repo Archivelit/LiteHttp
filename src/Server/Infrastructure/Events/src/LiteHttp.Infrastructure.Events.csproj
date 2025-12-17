@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\Events\src\LiteHttp.Events.csproj" />
+  </ItemGroup>
+
 </Project>

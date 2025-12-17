@@ -1,4 +1,6 @@
-﻿namespace LiteHttp.RequestProcessors;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace LiteHttp.RequestProcessors;
 
 internal static class ByteSpanComparerIgnoreCase
 {

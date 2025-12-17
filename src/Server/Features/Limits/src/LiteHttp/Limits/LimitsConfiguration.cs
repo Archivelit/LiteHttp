@@ -3,7 +3,9 @@
 // Retrieved: 2025-11-27
 // License: MIT license
 
-namespace LiteHttp.Server;
+using LiteHttp.ErrorHandling;
+
+namespace LiteHttp.Limits;
 
 /// <summary>
 /// <see cref="LimitsConfiguration"/> provides an api to configure limits of

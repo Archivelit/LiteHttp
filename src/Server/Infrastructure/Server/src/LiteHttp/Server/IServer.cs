@@ -1,6 +1,6 @@
-﻿using LiteHttp.Server;
+﻿using LiteHttp.Models;
 
-namespace LiteHttp.Abstractions;
+namespace LiteHttp.Server;
 
 public interface IServer
 {

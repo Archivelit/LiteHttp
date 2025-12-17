@@ -6,4 +6,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Enums\src\LiteHttp.Enums.csproj" />
+    <ProjectReference Include="..\..\Core\Models\src\LiteHttp.Models.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\Helpers\src\LiteHttp.Helpers.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\Logging\src\LiteHttp.Logging.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\Server\src\LiteHttp.Server.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -1,6 +1,8 @@
-﻿namespace LiteHttp.Listener;
+﻿using LiteHttp.Models.Events;
 
-internal sealed partial class Listener
+namespace LiteHttp.Listener;
+
+public sealed partial class Listener
 {
     public event Func<RequestReceivedEvent, CancellationToken, ValueTask>? RequestReceived;
 

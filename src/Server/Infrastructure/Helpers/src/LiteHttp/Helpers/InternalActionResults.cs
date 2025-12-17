@@ -1,6 +1,9 @@
-﻿namespace LiteHttp;
+﻿using LiteHttp.Enums;
+using LiteHttp.Models;
 
-public static class ActionResultFactory
+namespace LiteHttp.Helpers;
+
+public static class InternalActionResults
 {
     private static readonly ActionResult _continueResult = new(ResponseCode.Continue);
     private static readonly ActionResult _switchingProtocolsResult = new(ResponseCode.SwitchingProtocols);

@@ -1,6 +1,6 @@
-﻿namespace LiteHttp.RequestProcessors;
+﻿namespace LiteHttp.Enums;
 
-internal enum ResponseCode
+public enum ResponseCode
 {
     //1xx
     Continue,
