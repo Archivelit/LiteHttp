@@ -1,29 +1,76 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/SampleApp/SampleApp.csproj" />
-    <Project Path="src\LiteHttp.Server\LiteHttp.Server.csproj" />
   </Folder>
   <Folder Name="/src/Logging/" />
-  <Folder Name="/src/Logging/src/">
-    <Project Path="src/Logging/src/LiteHttp.Logging/LiteHttp.Logging.csproj" />
+  <Folder Name="/src/Logging/Adapters/" />
+  <Folder Name="/src/Logging/Adapters/Serilog/" />
+  <Folder Name="/src/Logging/Adapters/Serilog/src/">
+    <Project Path="src/Logging/Adapters/Serilog/src/LiteHttp.Logging.Adapters.Serilog.csproj" />
   </Folder>
-  <Folder Name="/src/Logging/src/Adapters/">
-    <Project Path="src/Logging/src/Adapters/LiteHttp.Logging.Adapters.Serilog/LiteHttp.Logging.Adapters.Serilog.csproj" />
+  <Folder Name="/src/Server/" />
+  <Folder Name="/src/Server/Core/" />
+  <Folder Name="/src/Server/Core/Constants/" />
+  <Folder Name="/src/Server/Core/Constants/src/">
+    <Project Path="src/Server/Core/Constants/src/LiteHttp.Constants.csproj" />
   </Folder>
-  <Folder Name="/src/Sockets/" />
-  <Folder Name="/src/Sockets/TcpSocket/" />
-  <Folder Name="/src/Sockets/TcpSocket/src/">
-    <Project Path="src/Sockets/TcpSocket/src/TcpSocket/TcpSocket.csproj" />
+  <Folder Name="/src/Server/Core/ErrorHandling/" />
+  <Folder Name="/src/Server/Core/ErrorHandling/src/">
+    <Project Path="src/Server/Core/ErrorHandling/src/LiteHttp.ErrorHandling.csproj" />
   </Folder>
-  <Folder Name="/src/Sockets/TcpSocket/tests/">
-    <Project Path="src/Sockets/TcpSocket/tests/TcpSocketTests.csproj" />
+  <Folder Name="/src/Server/Core/Events/" />
+  <Folder Name="/src/Server/Core/Events/src/">
+    <Project Path="src/Server/Core/Events/src/LiteHttp.Events.csproj" />
   </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/Benchmarks/Benchmarks.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
-    <Project Path="tests/UnitTests/UnitTests.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+  <Folder Name="/src/Server/Core/Extensions/" />
+  <Folder Name="/src/Server/Core/Extensions/src/">
+    <Project Path="src/Server/Core/Extensions/src/LiteHttp.Extensions.csproj" />
+  </Folder>
+  <Folder Name="/src/Server/Core/Models/" />
+  <Folder Name="/src/Server/Core/Models/src/">
+    <Project Path="src/Server/Core/Models/src/LiteHttp.Models.csproj" />
+  </Folder>
+  <Folder Name="/src/Server/Features/" />
+  <Folder Name="/src/Server/Features/Limits/" />
+  <Folder Name="/src/Server/Features/Limits/src/">
+    <Project Path="src/Server/Features/Limits/src/LiteHttp.Limits.csproj" />
+  </Folder>
+  <Folder Name="/src/Server/Infrastructure/" />
+  <Folder Name="/src/Server/Infrastructure/Events/" />
+  <Folder Name="/src/Server/Infrastructure/Events/src/">
+    <Project Path="src/Server/Infrastructure/Events/src/LiteHttp.Infrastructure.Events.csproj" />
+  </Folder>
+  <Folder Name="/src/Server/Infrastructure/Listener/" />
+  <Folder Name="/src/Server/Infrastructure/Listener/src/">
+    <Project Path="src/Server/Infrastructure/Listener/src/LiteHttp.Listener.csproj" />
+  </Folder>
+  <Folder Name="/src/Server/Infrastructure/Logging/" />
+  <Folder Name="/src/Server/Infrastructure/Logging/src/">
+    <Project Path="src/Server/Infrastructure/Logging/src/LiteHttp.Logging.csproj" />
+  </Folder>
+  <Folder Name="/src/Server/Infrastructure/RequestProcessors/" />
+  <Folder Name="/src/Server/Infrastructure/RequestProcessors/src/">
+    <Project Path="src/Server/Infrastructure/RequestProcessors/src/LiteHttp.RequestProcessors.csproj" />
+  </Folder>
+  <Folder Name="/src/Server/Infrastructure/Routing/" />
+  <Folder Name="/src/Server/Infrastructure/Routing/src/">
+    <Project Path="src/Server/Infrastructure/Routing/src/LiteHttp.Routing.csproj" />
+  </Folder>
+  <Folder Name="/src/Server/Infrastructure/Server/" />
+  <Folder Name="/src/Server/Infrastructure/Server/src/">
+    <Project Path="src/Server/Infrastructure/Server/src/LiteHttp.Server.csproj" />
+  </Folder>
+  <Folder Name="/src/Server/Infrastructure/Sockets/" />
+  <Folder Name="/src/Server/Infrastructure/Sockets/TcpSocket/" />
+  <Folder Name="/src/Server/Infrastructure/Sockets/TcpSocket/src/">
+    <Project Path="src/Server/Infrastructure/Sockets/TcpSocket/src/TcpSocket/TcpSocket.csproj" />
+  </Folder>
+  <Folder Name="/src/Server/Infrastructure/WorkerServices/" />
+  <Folder Name="/src/Server/Infrastructure/WorkerServices/src/">
+    <Project Path="src/Server/Infrastructure/WorkerServices/src/LiteHttp.WorkerServices.csproj" />
+  </Folder>
+  <Folder Name="/src/Server/LiteHttp/" />
+  <Folder Name="/src/Server/LiteHttp/src/">
+    <Project Path="src/Server/LiteHttp/src/LiteHttp.csproj" />
   </Folder>
 </Solution>
