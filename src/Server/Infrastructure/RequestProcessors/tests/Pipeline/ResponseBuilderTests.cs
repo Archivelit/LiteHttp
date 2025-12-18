@@ -1,6 +1,4 @@
-﻿using Xunit.Internal;
-
-using HttpContext = LiteHttp.Models.PipeContextModels.HttpContext;
+﻿using HttpContext = LiteHttp.Models.PipeContextModels.HttpContext;
 using ResponseBuilder = LiteHttp.RequestProcessors.Pipeline.ResponseBuilder;
 
 namespace UnitTests.LiteHttp.RequestProcessors.Pipeline;
@@ -14,7 +12,7 @@ public class ResponseBuilderTests
     public async ValueTask Build_OkResponse_Should_BeSameAs_Expected()
     {
         // Arrange
-        var actionResult = ActionResultFactory.Ok();
+        var actionResult = InternalActionResults.Ok();
         var expectedResponse = "HTTP/1.1 200 OK\r\nHost: " +
                        $"{AddressConstants.IPV4_LOOPBACK}" +
                        $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n";
@@ -46,7 +44,7 @@ public class ResponseBuilderTests
     public async ValueTask Build_OkResponse_WithBody_Should_BeSameAs_Expected()
     {
         // Arrange
-        var actionResult = ActionResultFactory.Ok();
+        var actionResult = InternalActionResults.Ok();
         var expectedResponse = "HTTP/1.1 200 OK\r\nHost: " +
                                $"{AddressConstants.IPV4_LOOPBACK}" +
                                $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n" +

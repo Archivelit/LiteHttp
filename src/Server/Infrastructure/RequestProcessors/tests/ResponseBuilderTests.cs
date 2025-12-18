@@ -9,7 +9,7 @@ public class ResponseBuilderTests
     public void Build_ValidRequest()
     {
         // Arrange
-        var actionResult = ActionResultFactory.Ok();
+        var actionResult = InternalActionResults.Ok();
         var expected = "HTTP/1.1 200 OK\r\nHost: " +
                        $"{AddressConstants.IPV4_LOOPBACK}" +
                        $":{AddressConstants.DEFAULT_SERVER_PORT}\r\n\r\n";

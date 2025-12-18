@@ -1,6 +1,4 @@
-﻿using LiteHttp.Server.Services.Comparers;
-
-namespace UnitTests.LiteHttp.Server;
+﻿namespace UnitTests.LiteHttp.Server;
 
 public class ByteSpanComparerIgnoreCaseTests
 {

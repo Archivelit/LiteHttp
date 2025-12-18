@@ -1,6 +1,4 @@
-﻿using LiteHttp.Constants.ErrorCodes;
-
-namespace UnitTests.LiteHttp.RequestProcessors;
+﻿namespace UnitTests.LiteHttp.RequestProcessors;
 
 #nullable disable
 public class ParserTests

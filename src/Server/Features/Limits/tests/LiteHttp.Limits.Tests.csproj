@@ -19,11 +19,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Xunit" />
+    <ProjectReference Include="..\src\LiteHttp.Limits.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Server\Features\Limits\src\LiteHttp.Limits.csproj" />
+    <Using Include="Xunit" />
   </ItemGroup>
 
 </Project>
