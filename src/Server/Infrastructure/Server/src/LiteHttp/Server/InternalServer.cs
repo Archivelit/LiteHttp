@@ -14,13 +14,14 @@ internal sealed class InternalServer : IServer, IDisposable
     
     private readonly ILogger<InternalServer> _logger = NullLogger<InternalServer>.Instance;
     private ServerWorker[]? _workerPool;
-    private IEndpointProviderConfiguration _endpointProviderConfiguration;
+    private readonly IEndpointProviderConfiguration _endpointProviderConfiguration;
 
     internal InternalServer(int workersCount, IPAddress? address = null, int port = AddressConstants.DEFAULT_SERVER_PORT, ILogger? logger = null)
     {
         _workerPool = new ServerWorker[workersCount];
         logger ??= NullLogger.Instance;
         address ??= IPAddress.Loopback;
+        _endpointProviderConfiguration = new EndpointProviderConfiguration();
 
         Initialize(logger: logger, port: port, address: address);
     }

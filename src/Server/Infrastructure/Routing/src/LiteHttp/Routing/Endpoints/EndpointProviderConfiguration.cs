@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.Routing;
 
-internal sealed class EndpointProviderConfiguration : IEndpointProviderConfiguration
+public sealed class EndpointProviderConfiguration : IEndpointProviderConfiguration
 {
     private readonly EndpointContext _endpointContext = new();
     private readonly EndpointProvider _endpointProvider = new();
