@@ -35,14 +35,8 @@ Use clear naming, avoid hidden side effects, and document only when logic isn’
 
 ## Commit Messages and Branches
 
-Use semantic, descriptive commits (e.g., Fix(startup): exception occurring during startup #12345; Add 402 response code support).  
+Commit messages should be short and descreptive (e.g., `Add 402 response code support` or `Fix route parameter resolving #12345`).  
 One PR = one logical purpose. Don’t mix unrelated changes.
-
-## Security and Vulnerabilities
-
-Do **not** disclose security issues publicly.  
-Report them through a private channel (email to repository owner etc.).  
-Security-sensitive changes require additional review and tests covering exploit scenarios.
 
 ## Documentation
 
@@ -50,12 +44,6 @@ Documentation should stay minimal and consistent.
 Use XML documentation in your code for clarity.  
 Discuss updating the README or other documentation before modifying it. This rule **does not apply to typo fixes**.
 
-## Release Process
-
-The project uses semantic versioning.  
-For each release: update the changelog, tag the release, and ensure CI passes.  
-Automated publishing may run depending on repository configuration.
-
 ## Support and Communication
 
-Use issues for questions, bug reports, and proposals.  
+Use issues for questions, bug reports, and proposals. 

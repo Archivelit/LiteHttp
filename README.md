@@ -1,4 +1,5 @@
-# LiteHttp ![version](https://img.shields.io/badge/version-2.0.0-blue.svg) ![license](https://img.shields.io/badge/license-MIT-green.svg)
+<!-- ![version](https://img.shields.io/badge/version-10.0.0-blue.svg) -->
+# LiteHttp ![license](https://img.shields.io/badge/license-MIT-green.svg)
 
 - Lightweight and dependency-free
 - Built with System.* only
@@ -18,13 +19,13 @@ By default, LiteHttp listens on **localhost:30000**
 The following example shows a small app with one endpoint:
 
 ```csharp
-using LiteHttp.Server;
+using LiteHttp;
 
 var builder = new ServerBuilder();
 
 var server = builder.Build();
 
-server.MapGet("/", () => ActionResultFactory.Instance.Ok());
+server.MapGet("/", () => ActionResults.Ok());
 
 await server.Start();
 ```
@@ -79,7 +80,7 @@ builder.WithPort(8000);
 
 var server = builder.Build();
 
-server.MapGet("/", () => ActionResultFactory.Instance.Ok());
+server.MapGet("/", () => ActionResuls.Ok());
 
 await server.Start();
 ```
@@ -95,7 +96,9 @@ The `WithAddress` method also has overload `ServerBuilder WithAddress(string add
 
 ### Average response time: **444 microseconds**
 
-### Maximum reached short-term rps: **22600**
+### Maximum reached short-term rps: **23800**
+
+**Note:** the tests was provided with single worker thread, using multiple working thread on current version can decrease rps by 3-5%
 
 *Test was provided via **k6** on Machine with next configuration:*
 > - CPU: Ryzen r7 5800X
@@ -147,5 +150,4 @@ Main goals:
 - High optimization
 - Aim for zero allocation
 - Avoid using non-system libraries
-- Minimal realisation
-- High customization
+- High configurationability
