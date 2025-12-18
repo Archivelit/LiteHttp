@@ -56,6 +56,10 @@ public readonly record struct Result<TResult>
         Value = result;
         Success = true;
     }
+
+    public static implicit operator Result<TResult>(TResult result) => new(result);
+    public static implicit operator Result<TResult>(Error error) => new(error);
+    public static implicit operator Result<TResult>(Error? error) => new(error);
 }
 
 /// <summary>
@@ -103,4 +107,7 @@ public readonly record struct Result
     /// </summary>
     /// <param name="result">The value to assign to the result. This value will be accessible through the <see cref="Value"/> property.</param>
     public Result() => Success = true;
+
+    public static implicit operator Result(Error error) => new(error);
+    public static implicit operator Result(Error? error) => new(error);
 }
