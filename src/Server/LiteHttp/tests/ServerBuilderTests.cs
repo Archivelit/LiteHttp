@@ -1,4 +1,6 @@
-﻿namespace UnitTests.LiteHttp.Server.Public;
+﻿using LiteHttp;
+
+namespace UnitTests.LiteHttp.Server.Public;
 
 public class ServerBuilderTests
 {

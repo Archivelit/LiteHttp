@@ -22,8 +22,5 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Server\LiteHttp\src\LiteHttp.csproj" />
-  </ItemGroup>
 
 </Project>
