@@ -81,4 +81,20 @@
   <Folder Name="/src/Server/LiteHttp/src/">
     <Project Path="src/Server/LiteHttp/src/LiteHttp.csproj" />
   </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/LiteHttp.Infrastructure.Events.Tests/">
+    <Project Path="tests/LiteHttp.Infrastructure.Events.Tests/LiteHttp.Infrastructure.Events.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/LiteHttp.Limits.Tests/">
+    <Project Path="tests/LiteHttp.Limits.Tests/LiteHttp.Limits.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/LiteHttp.RequestProcessors.Tests/">
+    <Project Path="tests/LiteHttp.RequestProcessors.Tests/LiteHttp.RequestProcessors.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/LiteHttp.Routing.Tests/">
+    <Project Path="tests/LiteHttp.Routing.Tests/LiteHttp.Routing.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/LiteHttp.Tests/">
+    <Project Path="tests/LiteHttp.Tests/LiteHttp.Tests.csproj" />
+  </Folder>
 </Solution>
