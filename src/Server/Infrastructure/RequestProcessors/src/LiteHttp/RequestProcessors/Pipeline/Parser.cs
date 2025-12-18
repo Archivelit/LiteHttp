@@ -58,7 +58,7 @@ internal sealed class Parser
                 {
                     await requestPipe.Reader.CompleteAsync();
 
-                    return new(error);
+                    return error;
                 }
                 sequenceReader.Advance(1);
                 requestPipe.Reader.AdvanceTo(line.Start);
@@ -70,7 +70,7 @@ internal sealed class Parser
 
         await requestPipe.Reader.CompleteAsync();
 
-        return new(_httpContextBuilder.Build());
+        return _httpContextBuilder.Build();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -189,7 +189,7 @@ internal sealed class Parser
             return new();
         }
 
-        return new(SRequestLineSyntaxError);
+        return SRequestLineSyntaxError;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

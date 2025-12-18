@@ -22,20 +22,20 @@ public sealed class Parser
         var method = GetMethod(firstLine);
 
         if (!method.Success)
-            return new(method.Error.Value);
+            return method.Error;
 
         var route = GetRoute(firstLine);
 
         if (!route.Success)
-            return new(route.Error.Value);
+            return route.Error;
 
         var headerSection = requestParts.Headers[(firstLine.Length + RequestSymbolsAsBytes.NewRequestLine.Length)..]; // First line of request does not contain any header
 
         var headers = MapHeaders(headerSection);
 
         return !headers.Success
-            ? new(headers.Error.Value)
-            : new Result<HttpContext>(new HttpContext(method.Value, route.Value, headers.Value, requestParts.Body));
+            ? headers.Error.Value
+            : new HttpContext(method.Value, route.Value, headers.Value, requestParts.Body);
     }
 
     /// <summary>
@@ -50,9 +50,9 @@ public sealed class Parser
         var lastSpaceIndex = firstRequestLine.Span.LastIndexOf(RequestSymbolsAsBytes.Space);
 
         if (firstSpaceIndex == lastSpaceIndex)
-            return new(new Error(ParserErrors.InvalidRequestSyntax,"The request has wrong format"));
+            return new Error(ParserErrors.InvalidRequestSyntax, "The request has wrong format");
 
-        return new(firstRequestLine[(firstSpaceIndex + 1)..lastSpaceIndex]); // space index + 1 to exclude whitespace and get first symbol of route
+        return firstRequestLine[(firstSpaceIndex + 1)..lastSpaceIndex]; // space index + 1 to exclude whitespace and get first symbol of route
     }
 
     /// <summary>
@@ -75,9 +75,9 @@ public sealed class Parser
         var spaceIndex = firstRequestLine.Span.IndexOf(RequestSymbolsAsBytes.Space);
 
         if (spaceIndex == -1)
-            return new(new Error(ParserErrors.InvalidRequestSyntax, "The request has wrong format"));
+            return new Error(ParserErrors.InvalidRequestSyntax, "The request has wrong format");
 
-        return new(firstRequestLine[..spaceIndex]);
+        return firstRequestLine[..spaceIndex];
     }
 
     /// <summary>
@@ -117,17 +117,17 @@ public sealed class Parser
                 var colonIndex = headers.Span.IndexOf(RequestSymbolsAsBytes.Colon);
 
                 if (colonIndex == -1)
-                    return new(headersDictionary);
+                    return headersDictionary;
 
                 headersDictionary.Add(headers[..colonIndex], headers[(colonIndex + 2)..]); // +2 to exclude colon and space,
 
-                return new(headersDictionary);
+                return headersDictionary;
             }
 
             var colon = headers.Span[..eol].IndexOf(RequestSymbolsAsBytes.Colon);
 
             if (colon == -1)
-                return new(new Error(ParserErrors.InvalidRequestSyntax, "The headers had wrong format"));
+                return new Error(ParserErrors.InvalidRequestSyntax, "The headers had wrong format");
 
             var key = headers[..colon];
             var value = headers[
@@ -137,6 +137,6 @@ public sealed class Parser
             headers = headers[(eol + 1)..]; // +1 to exclude eol symbol
         }
 
-        return new(headersDictionary);
+        return headersDictionary;
     }
 }

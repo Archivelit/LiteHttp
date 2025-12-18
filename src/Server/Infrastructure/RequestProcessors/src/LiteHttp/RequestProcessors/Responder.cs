@@ -8,6 +8,6 @@ public sealed class Responder
     public async ValueTask<Result<int>> SendResponse(Socket connection, ReadOnlyMemory<byte> response) 
     {
         await connection.SendAsync(response);
-        return new Result<int>(response.Length);
+        return response.Length;
     }
 }

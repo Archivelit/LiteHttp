@@ -13,11 +13,11 @@ public sealed class Receiver
 
             var receivedLength = await connection.ReceiveAsync(buffer, ct).ConfigureAwait(false);
 
-            return new Result<Memory<byte>>(buffer[..receivedLength]);
+            return buffer[..receivedLength];
         }
         catch (SocketException excpetion)
         {
-            return new Result<Memory<byte>>(new Error(excpetion.ErrorCode, excpetion.Message));
+            return new Error(excpetion.ErrorCode, excpetion.Message);
         }
     }
 }
