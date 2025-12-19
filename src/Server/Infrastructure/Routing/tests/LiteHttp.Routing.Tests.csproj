@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\Constants\src\LiteHttp.Constants.csproj" />
     <ProjectReference Include="..\src\LiteHttp.Routing.csproj" />
   </ItemGroup>
 
