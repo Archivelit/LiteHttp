@@ -14,7 +14,7 @@ internal sealed class Parser
     
     private readonly HttpContextBuilder _httpContextBuilder = new();
     
-    private ParsingState _parsingState = ParsingState.RequestLineParsing;
+    private ParsingState _parsingState = ParsingState.HeadersParsing;
     private long _contentLength = 0;
     
     /// <summary>
@@ -25,53 +25,45 @@ internal sealed class Parser
     [SkipLocalsInit]
     public async ValueTask<Result<HttpContext>> Parse(Pipe requestPipe)
     {
-        _parsingState = ParsingState.RequestLineParsing;
+        // Reset parser state
+        _parsingState = ParsingState.HeadersParsing;
         _contentLength = 0;
         _httpContextBuilder.Reset();
         
+        var requestLineParsingResult = await ParseRequestLine(requestPipe.Reader);
+
+        if (!requestLineParsingResult.Success)
+            return requestLineParsingResult.Error;
+
+        // ParseRequestLine returns unread sequence
+        ReadOnlySequence<byte> unprocessedBytes = requestLineParsingResult.Value;
+        
         while (true)
         {
-            var result = await requestPipe.Reader.ReadAsync();
-            
-            var buffer = result.Buffer;
-            
-            var sequenceReader = new SequenceReader<byte>(buffer);
-            
-            while (sequenceReader.TryReadTo(out ReadOnlySequence<byte> line, RequestSymbolsAsBytes.NewLine, false))
+            var chunkReader = new SequenceReader<byte>(unprocessedBytes);
+            if (!TryParseChunk(chunkReader, out var examined, out var error))
             {
-                if (_parsingState == ParsingState.BodyParsing)
-                {
-                    SkipToBodyStart(sequenceReader);
-                    
-                    if (_contentLength == 0)
-                        _httpContextBuilder.WithBody(null);
-                    else
-                    {
-                        _httpContextBuilder.WithBody(sequenceReader.UnreadSequence.Slice(
-                            sequenceReader.UnreadSequence.Start,
-                            _contentLength)
-                        );
-                    }
-                }
-
-                if (!TryParseLine(line, out var error))
-                {
-                    await requestPipe.Reader.CompleteAsync();
-
-                    return error;
-                }
-                sequenceReader.Advance(1);
-                requestPipe.Reader.AdvanceTo(line.Start);
+                requestPipe.Reader.AdvanceTo(unprocessedBytes.Start, chunkReader.Position);
+                await requestPipe.Reader.CompleteAsync();
+                return error;
             }
+
+            requestPipe.Reader.AdvanceTo(unprocessedBytes.Start, unprocessedBytes.GetPosition(examined));
             
-            if (result.IsCompleted)
-                break;
+            if (_parsingState == ParsingState.Finished)
+                 break;
+            
+            var readResult = await requestPipe.Reader.ReadAsync();
+            unprocessedBytes = readResult.Buffer;
         }
 
         await requestPipe.Reader.CompleteAsync();
 
         return _httpContextBuilder.Build();
     }
+
+    private static bool TryReadLine(SequenceReader<byte> sequenceReader, out ReadOnlySequence<byte> line) => 
+        sequenceReader.TryReadTo(out line, RequestSymbolsAsBytes.NewLine, false);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void SkipToBodyStart(SequenceReader<byte> sequenceReader)
@@ -87,33 +79,44 @@ internal sealed class Parser
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool TryParseLine(ReadOnlySequence<byte> line, out Error? error)
+    private bool TryParseChunk(SequenceReader<byte> chunkReader, out long examined, out Error? error)
     {
+        examined = 0;
+        
         switch (_parsingState)
         {
-            case ParsingState.RequestLineParsing:
-            {
-                var result = ParseRequestLine(line);
-
-                if (!result.Success)
-                {
-                    error = result.Error;
-                    return false;
-                }
-
-                _parsingState = ParsingState.HeadersParsing;
-            }
-                break;
-
             case ParsingState.HeadersParsing:
             {
-                var result = ParseHeader(line);
-
-                if (!result.Success)
+                while (TryReadLine(chunkReader, out var line))
                 {
-                    error = result.Error;
-                    return false;
+                    var result = ParseHeader(line);
+
+                    if (!result.Success)
+                    {
+                        error = result.Error;
+                        return false;
+                    }
+                    
+                    chunkReader.Advance(1);
+                    examined += line.Length;
                 }
+
+                goto case ParsingState.BodyParsing;
+            }
+            
+            // TODO: Implement reading and merging chunks of data from body
+            case ParsingState.BodyParsing:
+            {
+                SkipToBodyStart(chunkReader);
+
+                var body = chunkReader.UnreadSequence.Slice(
+                    chunkReader.UnreadSequence.Start,
+                    _contentLength);
+                
+                _httpContextBuilder.WithBody(body);
+
+                // Value can be assigned because we process body 1 time only
+                examined = body.Length;
             }
                 break;
         }
@@ -122,10 +125,30 @@ internal sealed class Parser
         return true;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private async ValueTask<Result<ReadOnlySequence<byte>>> ParseRequestLine(PipeReader pipeReader)
+    {
+        var readResult = await pipeReader.ReadAsync();
+            
+        var sequenceReader = new SequenceReader<byte>(readResult.Buffer);
+
+        if (!TryReadLine(sequenceReader, out var requestLine))
+            return SRequestLineSyntaxError;
+            
+        var result = ParseRequestLine(requestLine);
+        if (!result.Success)
+            return result.Error;
+
+        return readResult.Buffer.Slice(requestLine.Length);
+    }
+    
     [SkipLocalsInit]
     private Result ParseHeader(ReadOnlySequence<byte> line)
     {
-        if (line.Length <= 2)
+        // Line integrity is already validated during input reading
+        
+        // Request separator line ("\r\n") encountered
+        if (line.Length < 3)
         {
             _parsingState = ParsingState.BodyParsing;
             return new();
@@ -134,24 +157,23 @@ internal sealed class Parser
         var reader = new SequenceReader<byte>(line);
         
         if (!reader.TryReadTo(out ReadOnlySequence<byte> headerTitleSequence, RequestSymbolsAsBytes.Colon, true))
-            return new Result(SHeaderSyntaxError);
+            return SHeaderSyntaxError;
 
-        reader.Advance(1); // Need to skip colon and space
+        reader.Advance(1); // Skip space
 
         if (!reader.TryReadTo(out ReadOnlySequence<byte> headerValueSequence, RequestSymbolsAsBytes.CarriageReturnSymbol, true))
-            return new Result(SHeaderSyntaxError);
+            return SHeaderSyntaxError;
 
         var headerTitleMemory = GetReadOnlyMemoryFromSequence(headerTitleSequence);
         var headerValueMemory = GetReadOnlyMemoryFromSequence(headerValueSequence);
         _httpContextBuilder.AddHeader(headerTitleMemory, headerValueMemory);
 
-        if (IsContentLength(headerTitleMemory.Span))
-        {
-            if (!long.TryParse(headerValueMemory.Span, out var result))
-                return new Result(SInvalidHeaderValueTypeError);
+        if (!IsContentLength(headerTitleMemory.Span)) 
+            return new();
+        if (!long.TryParse(headerValueMemory.Span, out var result))
+            return SInvalidHeaderValueTypeError;
             
-            _contentLength = result;
-        }
+        _contentLength = result;
         return new();
     }
 
@@ -162,10 +184,11 @@ internal sealed class Parser
         const byte lByte = (byte)'l';
         const byte nByte = (byte)'h';
         
-        return (headerTitleSpan[0] | 0x20) == cByte
-               && (headerTitleSpan[8] | 0x20) == lByte
-               && (headerTitleSpan[13] | 0x20) == nByte
-               && ByteSpanComparerIgnoreCase.Equals(HeadersAsBytes.ContentLength, headerTitleSpan);
+        return (headerTitleSpan.Length == 14
+                && (headerTitleSpan[0] | 0x20) == cByte // Bitwise OR 0x20 converts uppercase letter to lowercase 
+                && (headerTitleSpan[8] | 0x20) == lByte
+                && (headerTitleSpan[13] | 0x20) == nByte
+                && ByteSpanComparerIgnoreCase.Equals(HeadersAsBytes.ContentLength, headerTitleSpan));
     }
 
     /// <summary>
@@ -205,11 +228,14 @@ internal sealed class Parser
 
         return memory;
     }
-
+    
+    /// <summary>
+    /// Represents parsing states of parser. Here is no request line parsing state because it's only 1 time operation
+    /// </summary>
     private enum ParsingState
     {
-        RequestLineParsing,
         HeadersParsing,
-        BodyParsing
+        BodyParsing,
+        Finished
     }
 }
