@@ -5,6 +5,7 @@ namespace LiteHttp.RequestProcessors.Pipeline;
 #nullable disable
 internal sealed class Parser
 {
+    // Some pre-allocated errors to prevent extra allocations
     private static readonly Error SRequestLineSyntaxError =
         new Error(ParserErrors.InvalidRequestSyntax, "Request line has wrong format");
     private static readonly Error SHeaderSyntaxError = 
@@ -25,19 +26,16 @@ internal sealed class Parser
     [SkipLocalsInit]
     public async ValueTask<Result<HttpContext>> Parse(Pipe requestPipe)
     {
-        // Reset parser state
-        _parsingState = ParsingState.HeadersParsing;
-        _contentLength = 0;
-        _httpContextBuilder.Reset();
-        
+        ResetState();
+
         var requestLineParsingResult = await ParseRequestLine(requestPipe.Reader);
 
         if (!requestLineParsingResult.Success)
             return requestLineParsingResult.Error;
 
         // ParseRequestLine returns unread sequence
-        ReadOnlySequence<byte> unprocessedBytes = requestLineParsingResult.Value;
-        
+        var unprocessedBytes = requestLineParsingResult.Value;
+
         while (true)
         {
             var chunkReader = new SequenceReader<byte>(unprocessedBytes);
@@ -49,10 +47,10 @@ internal sealed class Parser
             }
 
             requestPipe.Reader.AdvanceTo(unprocessedBytes.Start, unprocessedBytes.GetPosition(examined));
-            
+
             if (_parsingState == ParsingState.Finished)
-                 break;
-            
+                break;
+
             var readResult = await requestPipe.Reader.ReadAsync();
             unprocessedBytes = readResult.Buffer;
         }
@@ -62,22 +60,41 @@ internal sealed class Parser
         return _httpContextBuilder.Build();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void ResetState()
+    {
+        _parsingState = ParsingState.HeadersParsing;
+        _contentLength = 0;
+        _httpContextBuilder.Reset();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryReadLine(SequenceReader<byte> sequenceReader, out ReadOnlySequence<byte> line) => 
         sequenceReader.TryReadTo(out line, RequestSymbolsAsBytes.NewLine, false);
 
+    /// <summary>
+    /// Skips all CR (\r) and LF (\n) bytes until the start of the body.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void SkipToBodyStart(SequenceReader<byte> sequenceReader)
+    private void SkipToBodyStart(ref SequenceReader<byte> sequenceReader)
     {
-        while (sequenceReader.TryPeek(out var @byte))
+        for (var bytesToSkip = 0; sequenceReader.TryPeek(out var @byte); bytesToSkip++)
         {
             if (@byte != '\r' && @byte != '\n')
             {
-                sequenceReader.Rewind(1);
+                sequenceReader.Advance(bytesToSkip);
                 break;
             }
         }
     }
 
+    /// <summary>
+    /// Parses a chunk of data from the provided <paramref name="chunkReader"/>.
+    /// </summary>
+    /// <param name="chunkReader">The <see cref="SequenceReader{T}"/> instance that encapsulates data for sequential reading.</param>
+    /// <param name="examined">The number of item processed by this method.</param>
+    /// <param name="error">An error produced by the method, or null if the operation completed successfully.</param>
+    /// <returns>True if parsing succeeded; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool TryParseChunk(SequenceReader<byte> chunkReader, out long examined, out Error? error)
     {
@@ -97,17 +114,19 @@ internal sealed class Parser
                         return false;
                     }
                     
+                    // For skip LF symbol due to AdvancePastDelimiter: true in TryReadLine method
                     chunkReader.Advance(1);
                     examined += line.Length;
                 }
 
+                _parsingState = ParsingState.BodyParsing;
                 goto case ParsingState.BodyParsing;
             }
             
             // TODO: Implement reading and merging chunks of data from body
             case ParsingState.BodyParsing:
             {
-                SkipToBodyStart(chunkReader);
+                SkipToBodyStart(ref chunkReader);
 
                 var body = chunkReader.UnreadSequence.Slice(
                     chunkReader.UnreadSequence.Start,
@@ -125,6 +144,14 @@ internal sealed class Parser
         return true;
     }
 
+    /// <summary>
+    /// Parses the HTTP request line from the specified pipe reader asynchronously.
+    /// </summary>
+    /// <param name="pipeReader">The <see cref="PipeReader"/> instance from which to read the HTTP request line. The reader must be positioned at
+    /// the start of the request line.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that represents the asynchronous parse operation. The result contains a <see
+    /// cref="ReadOnlySequence{Byte}"/> representing the buffer after the request line if parsing succeeds; otherwise,
+    /// contains an error result indicating the reason for failure.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private async ValueTask<Result<ReadOnlySequence<byte>>> ParseRequestLine(PipeReader pipeReader)
     {
@@ -141,8 +168,20 @@ internal sealed class Parser
 
         return readResult.Buffer.Slice(requestLine.Length);
     }
-    
-    [SkipLocalsInit]
+
+    /// <summary>
+    /// Parses a single HTTP header line from the provided byte sequence and updates the current parsing state and
+    /// context accordingly.
+    /// </summary>
+    /// <remarks>If the provided line is a separator (i.e., an empty line or only contains a line break), the
+    /// method transitions the parser to body parsing state. For valid headers, the method adds the header to the HTTP
+    /// context. Also, current parser version <strong>does not</strong> support the following header syntax: Title:Value
+    /// If the header is Content-Length, the value is parsed and stored; an error result is returned if the
+    /// value is not a valid integer.</remarks>
+    /// <param name="line">The sequence of bytes representing a single header line to parse. Must not be empty and should be properly
+    /// formatted according to HTTP header syntax.</param>
+    /// <returns>A result indicating the outcome of the header parsing operation. Returns a syntax error result if the header is
+    /// malformed, or an invalid value type error if the Content-Length header value is not a valid number.</returns>
     private Result ParseHeader(ReadOnlySequence<byte> line)
     {
         // Line integrity is already validated during input reading
@@ -177,6 +216,15 @@ internal sealed class Parser
         return new();
     }
 
+    /// <summary>
+    /// Determines whether the specified header title span represents the HTTP 'Content-Length' header, using a
+    /// case-insensitive comparison.
+    /// </summary>
+    /// <remarks>This method performs a case-insensitive comparison and expects the header name to be exactly
+    /// 14 bytes long, corresponding to the ASCII encoding of 'Content-Length'.</remarks>
+    /// <param name="headerTitleSpan">A read-only span of bytes containing the header name to compare. The span must represent an ASCII-encoded header
+    /// name.</param>
+    /// <returns>true if the span matches 'Content-Length' (case-insensitive); otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsContentLength(ReadOnlySpan<byte> headerTitleSpan)
     {
@@ -218,17 +266,17 @@ internal sealed class Parser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ReadOnlyMemory<byte> GetReadOnlyMemoryFromSequence(ReadOnlySequence<byte> methodSequence)
     {
-        if (!SequenceMarshal.TryGetReadOnlyMemory(methodSequence, out var memory))
+        if (SequenceMarshal.TryGetReadOnlyMemory(methodSequence, out var memory))
         {
-            using var methodMemoryOwner = MemoryPool<byte>.Shared.Rent((int)methodSequence.Length);
-            methodSequence.CopyTo(methodMemoryOwner.Memory.Span);
-
-            return methodMemoryOwner.Memory;
+            return memory;
         }
 
-        return memory;
+        using var methodMemoryOwner = MemoryPool<byte>.Shared.Rent((int)methodSequence.Length);
+        methodSequence.CopyTo(methodMemoryOwner.Memory.Span);
+
+        return methodMemoryOwner.Memory;
     }
-    
+
     /// <summary>
     /// Represents parsing states of parser. Here is no request line parsing state because it's only 1 time operation
     /// </summary>
