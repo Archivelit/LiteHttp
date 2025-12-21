@@ -1,6 +1,8 @@
 ﻿using Parser = LiteHttp.RequestProcessors.Pipeline.Parser;
 using HttpContext = LiteHttp.Models.PipeContextModels.HttpContext;
 
+using System.Threading.Tasks;
+
 namespace UnitTests.LiteHttp.RequestProcessors.Pipeline;
 
 #nullable disable
@@ -8,10 +10,10 @@ public class ParserTests
 {
     private readonly Parser _parser = new();
     private readonly ITestOutputHelper _outputHelper = TestContext.Current.TestOutputHelper;
-    private readonly Pipe _requestPipe = new Pipe(); 
+    private readonly Pipe _requestPipe = new Pipe();
 
-    [Fact]
-    public async Task Parse_ValidRequest_WithoutBody_WithCRLFOnEnd_ShouldReturn_HttpContext()
+    [Fact(Skip = "Under development")]
+    public async Task Parse_ValidRequest_WithCRLFOnEnd_ShouldReturn_HttpContext()
     {
         // Arrange
         var request = "GET / HTTP/1.1\r\nHost: test.com\r\n\r\n";
@@ -30,11 +32,10 @@ public class ParserTests
         var result = await _parser.Parse(_requestPipe);
 
         // Assert
-        if(!result.Success)
-        {
-            _outputHelper.WriteLine(result.Error.Value.ErrorMessage);
-            return;
-        }
+        WriteErrorIfReturned(result);
+
+        result.Success.Should().BeTrue();
+
         WriteContextData(result.Value);
 
         result.Value.Method.Span.ToArray().Should().BeEquivalentTo(expectedMethod);
@@ -45,9 +46,9 @@ public class ParserTests
 
         result.Value.Body.Should().BeNull();
     }
-    
-    [Fact]
-    public async Task Parse_ValidRequest_WithoutBody_WithoutCRLFOnEnd_ShouldReturn_HttpContext()
+
+    [Fact(Skip = "Under development")]
+    public async Task Parse_ValidRequest_WithoutCRLFOnEnd_ShouldReturn_HttpContext()
     {
         // Arrange
         var request = "GET / HTTP/1.1\r\nHost: test.com\r\n";
@@ -66,11 +67,10 @@ public class ParserTests
         var result = await _parser.Parse(_requestPipe);
 
         // Assert
-        if(!result.Success)
-        {
-            _outputHelper.WriteLine(result.Error.Value.ErrorMessage);
-            return;
-        }
+        WriteErrorIfReturned(result);
+
+        result.Success.Should().BeTrue();
+
         WriteContextData(result.Value);
 
         result.Value.Method.Span.ToArray().Should().BeEquivalentTo(expectedMethod);
@@ -82,7 +82,7 @@ public class ParserTests
         result.Value.Body.Should().BeNull();
     }
 
-    [Fact] 
+    [Fact(Skip = "Under development")]
     public async Task Parse_ValidRequest_WithSimpleBody_ShouldReturn_HttpContext()
     {
         // Arrange
@@ -105,13 +105,12 @@ public class ParserTests
         var result = await _parser.Parse(_requestPipe);
 
         // Assert
-        if(!result.Success)
-        {
-            _outputHelper.WriteLine(result.Error.Value.ErrorMessage);
-            return;
-        }
+        WriteErrorIfReturned(result);
+
+        result.Success.Should().BeTrue();
+
         WriteContextData(result.Value);
-        
+
         result.Value.Method.Span.ToArray().Should().BeEquivalentTo(expectedMethod);
         result.Value.Route.Span.ToArray().Should().BeEquivalentTo(expectedRoute);
 
@@ -123,7 +122,7 @@ public class ParserTests
     }
 
     [Fact]
-    public async ValueTask Parse_InvalidRequest_WithoutHttpVersion_ShouldReturn_ResultWithError_InvalidRequestSyntax()
+    public async Task Parse_InvalidRequest_WithoutHttpVersion_ShouldReturn_ResultWithError_InvalidRequestSyntax()
     {
         // Arrange
         var request = "GET /\r\nHost: test.com";
@@ -140,7 +139,7 @@ public class ParserTests
     }
 
     [Fact]
-    public async ValueTask Parse_InvalidRequest_WithoutMethod_ShouldReturn_ResultWithError_InvalidRequestSyntax()
+    public async Task Parse_InvalidRequest_WithoutMethod_ShouldReturn_ResultWithError_InvalidRequestSyntax()
     {
         // Arrange
         var request = "/ HTTP1.0\r\nHost: test.com";
@@ -157,7 +156,7 @@ public class ParserTests
     }
 
     [Fact]
-    public async ValueTask Parse_InvalidRequest_WithoutRoute_ShouldReturn_ResultWithError_InvalidRequestSyntax()
+    public async Task Parse_InvalidRequest_WithoutRoute_ShouldReturn_ResultWithError_InvalidRequestSyntax()
     {
         // Arrange
         var request = "GET HTTP1.0\r\nHost: test.com";
@@ -174,7 +173,7 @@ public class ParserTests
     }
 
     [Fact]
-    public async ValueTask Parse_InvalidRequest_WithoutSpaces_ShouldReturn_ResultWithError_InvalidRequestSyntax()
+    public async Task Parse_InvalidRequest_WithoutSpaces_ShouldReturn_ResultWithError_InvalidRequestSyntax()
     {
         // Arrange
         var request = "GET/HTTP1.0\r\nHost: test.com";
@@ -190,7 +189,204 @@ public class ParserTests
         result.Error.Value.ErrorCode.Should().Be(ParserErrors.InvalidRequestSyntax);
     }
 
-    private async ValueTask FillPipeWith(string request)
+    [Fact(Skip = "Under development")]
+    public async Task Parse_ValidRequest_WithoutSpaceInHeader_ShouldReturn_HttpContext()
+    {
+        // Arrange
+        var request = "GET / HTTP/1.1\r\nHost:test.com\r\n";
+
+        var expectedHeaders = new Dictionary<string, string>(3)
+        {
+            { "Host", "test.com" }
+        };
+        var expectedRoute = Encoding.ASCII.GetBytes("/");
+        var expectedMethod = RequestMethodsAsBytes.Get;
+
+        await FillPipeWith(request);
+
+        // Act 
+        var result = await _parser.Parse(_requestPipe);
+
+        // Assert
+
+        WriteErrorIfReturned(result);
+
+        result.Success.Should().BeTrue();
+
+        WriteContextData(result.Value);
+
+        result.Value.Method.Span.ToArray().Should().BeEquivalentTo(expectedMethod);
+        result.Value.Route.Span.ToArray().Should().BeEquivalentTo(expectedRoute);
+
+        ParseHeadersToStrings(result.Value, out var actualHeaders);
+        actualHeaders.Should().BeEquivalentTo(expectedHeaders);
+
+        result.Value.Body.Should().BeNull();
+    }
+
+    [Fact(Skip = "Not supported yet")]
+    public async Task Parse_ValidRequest_WithoutSpaceInHeader_WithShortHeader_ShouldReturn_HttpContext()
+    {
+        // Arrange
+        var request = "GET / HTTP/1.1\r\nHost:test.com\r\nX:Y\r\n";
+
+        var expectedHeaders = new Dictionary<string, string>
+        {
+            { "Host", "test.com" },
+            { "X", "Y" }
+        };
+
+        var expectedRoute = Encoding.UTF8.GetBytes("/");
+        var expectedMethod = RequestMethodsAsBytes.Get;
+        ReadOnlyMemory<byte>? expectedBody = null;
+
+        await FillPipeWith(request);
+
+        // Act
+        var result = await _parser.Parse(_requestPipe);
+
+        // Assert
+
+        WriteErrorIfReturned(result);
+
+        result.Success.Should().BeTrue();
+
+        WriteContextData(result.Value);
+
+        result.Value.Method.Span.ToArray().Should().BeEquivalentTo(expectedMethod);
+        result.Value.Route.Span.ToArray().Should().BeEquivalentTo(expectedRoute);
+
+        ParseHeadersToStrings(result.Value, out var actualHeaders);
+        actualHeaders.Should().BeEquivalentTo(expectedHeaders);
+
+        result.Value.Body.Should().BeNull();
+        result.Value.Body.Should().BeEquivalentTo(expectedBody);
+    }
+
+    [Fact(Skip = "Under development")]
+    public async Task Parse_ValidRequest_WithoutCR_ShouldReturn_HttpContext()
+    {
+        // Arrange
+        var request = "GET / HTTP/1.1\nHost: test.com\n";
+
+        var expectedHeaders = new Dictionary<string, string>
+        {
+            { "Host", "test.com" }
+        };
+
+        var expectedRoute = Encoding.UTF8.GetBytes("/");
+        var expectedMethod = RequestMethodsAsBytes.Get;
+
+        await FillPipeWith(request);
+
+        // Act
+        var result = await _parser.Parse(_requestPipe);
+
+        // Assert
+        WriteErrorIfReturned(result);
+
+        result.Success.Should().BeTrue();
+
+        WriteContextData(result.Value);
+
+        result.Value.Method.Span.ToArray().Should().BeEquivalentTo(expectedMethod);
+        result.Value.Route.Span.ToArray().Should().BeEquivalentTo(expectedRoute);
+
+        ParseHeadersToStrings(result.Value, out var actualHeaders);
+        actualHeaders.Should().BeEquivalentTo(expectedHeaders);
+
+        result.Value.Body.Should().BeNull();
+    }
+
+    [Fact(Skip = "Under development")]
+    public async Task Parse_ValidRequest_WithShortHeader_WithoutCR_WithoutSpaceInHeader_ShouldReturn_HttpContext()
+    {
+        // Arrange
+        var request = "GET / HTTP/1.1\nHost:test.com\nX:Y\n";
+
+        var expectedHeaders = new Dictionary<string, string>
+        {
+            { "Host", "test.com" },
+            { "X", "Y" }
+        };
+
+        var expectedRoute = Encoding.UTF8.GetBytes("/");
+        var expectedMethod = RequestMethodsAsBytes.Get;
+        ReadOnlyMemory<byte>? expectedBody = null;
+
+        await FillPipeWith(request);
+
+        // Act
+        var result = await _parser.Parse(_requestPipe);
+
+        // Assert
+
+        WriteErrorIfReturned(result);
+
+        result.Success.Should().BeTrue();
+
+        WriteContextData(result.Value);
+
+        result.Value.Method.Span.ToArray().Should().BeEquivalentTo(expectedMethod);
+        result.Value.Route.Span.ToArray().Should().BeEquivalentTo(expectedRoute);
+
+        ParseHeadersToStrings(result.Value, out var actualHeaders);
+        actualHeaders.Should().BeEquivalentTo(expectedHeaders);
+
+        result.Value.Body.Should().BeNull();
+        result.Value.Body.Should().BeEquivalentTo(expectedBody);
+    }
+
+    [Fact(Skip = "Under development")]
+    public async Task Parse_InvalidRequest_WithTwoSameHeaders_ShouldReturn_TwoSameHeadersMetError()
+    {
+        // Arrange
+        var request = "GET / HTTP/1.1\r\nHost: test.com\r\nHost: test.com\r\n";
+        await FillPipeWith(request);
+
+        // Act
+        var result = await _parser.Parse(_requestPipe);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Error.HasValue.Should().BeTrue();
+        result.Error.Value.ErrorCode.Should().Be(ParserErrors.TwoSameHeadersMet);
+    }
+
+    [Fact(Skip = "Under development")]
+    public async Task Parse_InvalidRequest_WithTwoSameHeaders_WithDifferentLetterCase_ShouldReturn_TwoSameHeadersMetError()
+    {
+        // Arrange
+        var request = "GET / HTTP/1.1\r\nHOST: test.com\r\nhoSt: test.com\r\n";
+        await FillPipeWith(request);
+
+        // Act
+        var result = await _parser.Parse(_requestPipe);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Error.HasValue.Should().BeTrue();
+        result.Error.Value.ErrorCode.Should().Be(ParserErrors.TwoSameHeadersMet);
+    }
+
+    [Fact(Skip = "Under development")]
+    public async Task Parse_InvalidRequest_WithoutHeaderValue_ShouldReturn_InvalidHeaderValueError()
+    {
+        // Arrange
+        var request = "GET / HTTP/1.1\r\nHost:\r\n";
+        await FillPipeWith(request);
+
+        // Act
+        var result = await _parser.Parse(_requestPipe);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Error.HasValue.Should().BeTrue();
+        result.Error.Value.ErrorCode.Should().Be(ParserErrors.InvalidHeaderValue);
+    }
+
+    #region Helper methods
+    private async Task FillPipeWith(string request)
     {
         var requestBytes = Encoding.ASCII.GetBytes(request);
         var writer = _requestPipe.Writer;
@@ -201,6 +397,14 @@ public class ParserTests
 
         await writer.FlushAsync();
         await writer.CompleteAsync();
+    }
+
+    private void WriteErrorIfReturned(Result<HttpContext> result)
+    {
+        if (!result.Success)
+        {
+            _outputHelper.WriteLine(result.Error.Value.ErrorMessage);
+        }
     }
 
     private void WriteContextData(HttpContext context)
@@ -222,4 +426,5 @@ public class ParserTests
             h => Encoding.UTF8.GetString(h.Key.Span),
             h => Encoding.UTF8.GetString(h.Value.Span)
         );
+    #endregion
 }

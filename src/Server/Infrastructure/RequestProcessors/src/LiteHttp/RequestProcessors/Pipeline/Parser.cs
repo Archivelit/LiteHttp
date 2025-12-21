@@ -6,11 +6,11 @@ namespace LiteHttp.RequestProcessors.Pipeline;
 internal sealed class Parser
 {
     // Some pre-allocated errors to prevent extra allocations
-    private static readonly Error SRequestLineSyntaxError =
+    private static readonly Error RequestLineSyntaxError =
         new Error(ParserErrors.InvalidRequestSyntax, "Request line has wrong format");
-    private static readonly Error SHeaderSyntaxError = 
+    private static readonly Error HeaderSyntaxError = 
         new Error(ParserErrors.InvalidRequestSyntax, "Header has wrong format");
-    private static readonly Error SInvalidHeaderValueTypeError =
+    private static readonly Error InvalidHeaderValueTypeError =
         new Error(ParserErrors.InvalidHeaderValue, ExceptionStrings.InvalidHeaderValueType);
     
     private readonly HttpContextBuilder _httpContextBuilder = new();
@@ -68,25 +68,6 @@ internal sealed class Parser
         _httpContextBuilder.Reset();
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool TryReadLine(SequenceReader<byte> sequenceReader, out ReadOnlySequence<byte> line) => 
-        sequenceReader.TryReadTo(out line, RequestSymbolsAsBytes.NewLine, false);
-
-    /// <summary>
-    /// Skips all CR (\r) and LF (\n) bytes until the start of the body.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void SkipToBodyStart(ref SequenceReader<byte> sequenceReader)
-    {
-        for (var bytesToSkip = 0; sequenceReader.TryPeek(out var @byte); bytesToSkip++)
-        {
-            if (@byte != '\r' && @byte != '\n')
-            {
-                sequenceReader.Advance(bytesToSkip);
-                break;
-            }
-        }
-    }
 
     /// <summary>
     /// Parses a chunk of data from the provided <paramref name="chunkReader"/>.
@@ -104,6 +85,7 @@ internal sealed class Parser
         {
             case ParsingState.HeadersParsing:
             {
+                // TODO: can't parse all headers if reading stopped in middle of header instead LF
                 while (TryReadLine(chunkReader, out var line))
                 {
                     var result = ParseHeader(line);
@@ -120,13 +102,13 @@ internal sealed class Parser
                 }
 
                 _parsingState = ParsingState.BodyParsing;
-                goto case ParsingState.BodyParsing;
             }
+                break;
             
             // TODO: Implement reading and merging chunks of data from body
             case ParsingState.BodyParsing:
             {
-                SkipToBodyStart(ref chunkReader);
+                SkipToBodyStart(chunkReader);
 
                 var body = chunkReader.UnreadSequence.Slice(
                     chunkReader.UnreadSequence.Start,
@@ -160,83 +142,14 @@ internal sealed class Parser
         var sequenceReader = new SequenceReader<byte>(readResult.Buffer);
 
         if (!TryReadLine(sequenceReader, out var requestLine))
-            return SRequestLineSyntaxError;
+            return RequestLineSyntaxError;
             
         var result = ParseRequestLine(requestLine);
+
         if (!result.Success)
             return result.Error;
 
         return readResult.Buffer.Slice(requestLine.Length);
-    }
-
-    /// <summary>
-    /// Parses a single HTTP header line from the provided byte sequence and updates the current parsing state and
-    /// context accordingly.
-    /// </summary>
-    /// <remarks>If the provided line is a separator (i.e., an empty line or only contains a line break), the
-    /// method transitions the parser to body parsing state. For valid headers, the method adds the header to the HTTP
-    /// context. Also, current parser version <strong>does not</strong> support the following header syntax: Title:Value
-    /// If the header is Content-Length, the value is parsed and stored; an error result is returned if the
-    /// value is not a valid integer.</remarks>
-    /// <param name="line">The sequence of bytes representing a single header line to parse. Must not be empty and should be properly
-    /// formatted according to HTTP header syntax.</param>
-    /// <returns>A result indicating the outcome of the header parsing operation. Returns a syntax error result if the header is
-    /// malformed, or an invalid value type error if the Content-Length header value is not a valid number.</returns>
-    private Result ParseHeader(ReadOnlySequence<byte> line)
-    {
-        // Line integrity is already validated during input reading
-        
-        // Request separator line ("\r\n") encountered
-        if (line.Length < 3)
-        {
-            _parsingState = ParsingState.BodyParsing;
-            return Result.Successful;
-        }
-
-        var reader = new SequenceReader<byte>(line);
-        
-        if (!reader.TryReadTo(out ReadOnlySequence<byte> headerTitleSequence, RequestSymbolsAsBytes.Colon, true))
-            return SHeaderSyntaxError;
-
-        reader.Advance(1); // Skip space
-
-        if (!reader.TryReadTo(out ReadOnlySequence<byte> headerValueSequence, RequestSymbolsAsBytes.CarriageReturnSymbol, true))
-            return SHeaderSyntaxError;
-
-        var headerTitleMemory = GetReadOnlyMemoryFromSequence(headerTitleSequence);
-        var headerValueMemory = GetReadOnlyMemoryFromSequence(headerValueSequence);
-        _httpContextBuilder.AddHeader(headerTitleMemory, headerValueMemory);
-
-        if (!IsContentLength(headerTitleMemory.Span)) 
-            return Result.Successful;
-        if (!long.TryParse(headerValueMemory.Span, out var result))
-            return SInvalidHeaderValueTypeError;
-            
-        _contentLength = result;
-        return Result.Successful;
-    }
-
-    /// <summary>
-    /// Determines whether the specified header title span represents the HTTP 'Content-Length' header, using a
-    /// case-insensitive comparison.
-    /// </summary>
-    /// <remarks>This method performs a case-insensitive comparison and expects the header name to be exactly
-    /// 14 bytes long, corresponding to the ASCII encoding of 'Content-Length'.</remarks>
-    /// <param name="headerTitleSpan">A read-only span of bytes containing the header name to compare. The span must represent an ASCII-encoded header
-    /// name.</param>
-    /// <returns>true if the span matches 'Content-Length' (case-insensitive); otherwise, false.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsContentLength(ReadOnlySpan<byte> headerTitleSpan)
-    {
-        const byte cByte = (byte)'c';
-        const byte lByte = (byte)'l';
-        const byte nByte = (byte)'h';
-        
-        return (headerTitleSpan.Length == 14
-                && (headerTitleSpan[0] | 0x20) == cByte // Bitwise OR 0x20 converts uppercase letter to lowercase 
-                && (headerTitleSpan[8] | 0x20) == lByte
-                && (headerTitleSpan[13] | 0x20) == nByte
-                && ByteSpanComparerIgnoreCase.Equals(HeadersAsBytes.ContentLength, headerTitleSpan));
     }
 
     /// <summary>
@@ -260,7 +173,52 @@ internal sealed class Parser
             return Result.Successful;
         }
 
-        return SRequestLineSyntaxError;
+        return RequestLineSyntaxError;
+    }
+
+    /// <summary>
+    /// Parses a single HTTP header line from the provided byte sequence and updates the current parsing state and
+    /// context accordingly.
+    /// </summary>
+    /// <remarks>If the provided line is a separator (i.e., an empty line or only contains a line break), the
+    /// method transitions the parser to body parsing state. For valid headers, the method adds the header to the HTTP
+    /// context. Also, current parser version <strong>does not</strong> support the following header syntax: Title:Value
+    /// If the header is Content-Length, the value is parsed and stored; an error result is returned if the
+    /// value is not a valid integer.</remarks>
+    /// <param name="line">The sequence of bytes representing a single header line to parse. Must not be empty and should be properly
+    /// formatted according to HTTP header syntax.</param>
+    /// <returns>A result indicating the outcome of the header parsing operation. Returns a syntax error result if the header is
+    /// malformed, or an invalid value type error if the Content-Length header value is not a valid number.</returns>
+    private Result ParseHeader(ReadOnlySequence<byte> line)
+    {
+        // Line integrity is already validated during input reading
+
+        // Request separator line ("\r\n") encountered
+        if (line.Length < 3)
+        {
+            _parsingState = ParsingState.BodyParsing;
+            return Result.Successful;
+        }
+
+        var reader = new SequenceReader<byte>(line);
+
+        if (!reader.TryReadTo(out ReadOnlySequence<byte> headerTitleSequence, RequestSymbolsAsBytes.Colon, true))
+            return HeaderSyntaxError;
+
+        if (!reader.TryReadTo(out ReadOnlySequence<byte> headerValueSequence, RequestSymbolsAsBytes.CarriageReturnSymbol, true))
+            return HeaderSyntaxError;
+
+        var headerTitleMemory = GetReadOnlyMemoryFromSequence(headerTitleSequence);
+        var headerValueMemory = GetReadOnlyMemoryFromSequence(headerValueSequence);
+        _httpContextBuilder.AddHeader(headerTitleMemory, TrimStart(headerValueMemory));
+
+        if (!IsContentLength(headerTitleMemory.Span))
+            return Result.Successful;
+        if (!long.TryParse(headerValueMemory.Span, out var result))
+            return InvalidHeaderValueTypeError;
+
+        _contentLength = result;
+        return Result.Successful;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -276,6 +234,62 @@ internal sealed class Parser
 
         return methodMemoryOwner.Memory;
     }
+
+    /// <summary>
+    /// Determines whether the specified header title span represents the HTTP 'Content-Length' header, using a
+    /// case-insensitive comparison.
+    /// </summary>
+    /// <remarks>This method performs a case-insensitive comparison and expects the header name to be exactly
+    /// 14 bytes long, corresponding to the ASCII encoding of 'Content-Length'.</remarks>
+    /// <param name="headerTitleSpan">A read-only span of bytes containing the header name to compare. The span must represent an ASCII-encoded header
+    /// name.</param>
+    /// <returns>true if the span matches 'Content-Length' (case-insensitive); otherwise, false.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsContentLength(ReadOnlySpan<byte> headerTitleSpan)
+    {
+        const byte cByte = (byte)'c';
+        const byte lByte = (byte)'l';
+        const byte nByte = (byte)'h';
+
+        return headerTitleSpan.Length == 14
+                && (headerTitleSpan[0] | 0x20) == cByte // Bitwise OR 0x20 converts uppercase letter to lowercase 
+                && (headerTitleSpan[8] | 0x20) == lByte
+                && (headerTitleSpan[13] | 0x20) == nByte
+                && ByteSpanComparerIgnoreCase.Equals(HeadersAsBytes.ContentLength, headerTitleSpan);
+    }
+
+    /// <summary>
+    /// Skips all CR (\r) and LF (\n) bytes until the start of the body.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SkipToBodyStart(SequenceReader<byte> sequenceReader)
+    {
+        for (var bytesToSkip = 0; sequenceReader.TryPeek(out var @byte); bytesToSkip++)
+        {
+            if (@byte != '\r' && @byte != '\n')
+            {
+                sequenceReader.Advance(bytesToSkip);
+                break;
+            }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ReadOnlyMemory<byte> TrimStart(ReadOnlyMemory<byte> memory)
+    {
+        int bytesToSkip = 0, current = 0;
+        while (current < memory.Length && memory.Span[current] == ' ')
+        {
+            bytesToSkip += 1;
+            current += 1;
+        }
+
+        return memory[bytesToSkip..];
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryReadLine(SequenceReader<byte> sequenceReader, out ReadOnlySequence<byte> line) =>
+        sequenceReader.TryReadTo(out line, RequestSymbolsAsBytes.NewLine, false);
 
     /// <summary>
     /// Represents parsing states of parser. Here is no request line parsing state because it's only 1 time operation
