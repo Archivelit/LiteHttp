@@ -73,6 +73,11 @@ public readonly record struct Result<TResult>
 public readonly record struct Result
 {
     /// <summary>
+    /// Static result object; used to minimize allocations
+    /// </summary>
+    public static readonly Result Successful = new();
+
+    /// <summary>
     /// Gets the error information associated with the current operation, if any.
     /// </summary>
     public Error? Error { get; }

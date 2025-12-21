@@ -190,7 +190,7 @@ internal sealed class Parser
         if (line.Length < 3)
         {
             _parsingState = ParsingState.BodyParsing;
-            return new();
+            return Result.Successful;
         }
 
         var reader = new SequenceReader<byte>(line);
@@ -208,12 +208,12 @@ internal sealed class Parser
         _httpContextBuilder.AddHeader(headerTitleMemory, headerValueMemory);
 
         if (!IsContentLength(headerTitleMemory.Span)) 
-            return new();
+            return Result.Successful;
         if (!long.TryParse(headerValueMemory.Span, out var result))
             return SInvalidHeaderValueTypeError;
             
         _contentLength = result;
-        return new();
+        return Result.Successful;
     }
 
     /// <summary>
@@ -257,7 +257,7 @@ internal sealed class Parser
             _httpContextBuilder.WithRoute(GetReadOnlyMemoryFromSequence(routeSequence));
             _httpContextBuilder.WithProtocolVersion(GetReadOnlyMemoryFromSequence(protocolVersionSequence));
 
-            return new();
+            return Result.Successful;
         }
 
         return SRequestLineSyntaxError;
