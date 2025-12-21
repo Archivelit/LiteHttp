@@ -152,7 +152,7 @@ public class ParserTests
     public void Parse_InvalidRequest_WithoutSpaces_ShouldReturn_ResultWithError_InvalidRequestSyntax()
     {
         // Arrange
-        var request = Encoding.UTF8.GetBytes("GET/HTTP1.0\r\nHost: test.com");
+        var request = Encoding.UTF8.GetBytes("GET/HTTP1.0\r\nHost:test.com");
 
         // Act 
         var result = _parser.Parse(request);
@@ -161,6 +161,173 @@ public class ParserTests
         result.Success.Should().BeFalse();
         result.Error.Should().BeOfType<Error>();
         result.Error.Value.ErrorCode.Should().Be(ParserErrors.InvalidRequestSyntax);
+    }
+
+    [Fact(Skip = "Not supported yet")]
+    public void Parse_ValidRequest_WithoutSpaceInHeader_ShouldReturn_HttpContext()
+    {
+        // Arrange
+        var request = Encoding.UTF8.GetBytes("GET / HTTP/1.1\r\nHost:test.com\r\n");
+
+        var expectedHeaders = new Dictionary<string, string>
+        {
+            { "Host", "test.com" }
+        };
+
+        var expectedRoute = Encoding.UTF8.GetBytes("/");
+        var expectedMethod = RequestMethodsAsBytes.Get;
+        ReadOnlyMemory<byte>? expectedBody = null;
+
+        // Act
+        var result = _parser.Parse(request).Value;
+        WriteContextData(result);
+
+        // Assert
+        result.Method.Span.ToArray().Should().BeEquivalentTo(expectedMethod);
+        result.Route.Span.ToArray().Should().BeEquivalentTo(expectedRoute);
+
+        ParseHeadersToStrings(result, out var actualHeaders);
+        actualHeaders.Should().BeEquivalentTo(expectedHeaders);
+
+        result.Body.Should().BeNull();
+        result.Body.Should().BeEquivalentTo(expectedBody);
+    }
+
+    [Fact(Skip = "Not supported yet")]
+    public void Parse_ValidRequest_WithoutSpaceInHeader_WithShortHeader_ShouldReturn_HttpContext()
+    {
+        // Arrange
+        var request = Encoding.UTF8.GetBytes("GET / HTTP/1.1\r\nHost:test.com\r\nX:Y\r\n");
+
+        var expectedHeaders = new Dictionary<string, string>
+        {
+            { "Host", "test.com" },
+            { "X", "Y" }
+        };
+
+        var expectedRoute = Encoding.UTF8.GetBytes("/");
+        var expectedMethod = RequestMethodsAsBytes.Get;
+        ReadOnlyMemory<byte>? expectedBody = null;
+
+        // Act
+        var result = _parser.Parse(request).Value;
+        WriteContextData(result);
+
+        // Assert
+        result.Method.Span.ToArray().Should().BeEquivalentTo(expectedMethod);
+        result.Route.Span.ToArray().Should().BeEquivalentTo(expectedRoute);
+
+        ParseHeadersToStrings(result, out var actualHeaders);
+        actualHeaders.Should().BeEquivalentTo(expectedHeaders);
+
+        result.Body.Should().BeNull();
+        result.Body.Should().BeEquivalentTo(expectedBody);
+    }
+
+    [Fact]
+    public void Parse_ValidRequest_WithoutCR_ShouldReturn_HttpContext()
+    {
+        // Arrange
+        var request = Encoding.UTF8.GetBytes("GET / HTTP/1.1\nHost: test.com\n");
+
+        var expectedHeaders = new Dictionary<string, string>
+        {
+            { "Host", "test.com" }
+        };
+
+        var expectedRoute = Encoding.UTF8.GetBytes("/");
+        var expectedMethod = RequestMethodsAsBytes.Get;
+        ReadOnlyMemory<byte>? expectedBody = null;
+
+        // Act
+        var result = _parser.Parse(request).Value;
+        WriteContextData(result);
+
+        // Assert
+        result.Method.Span.ToArray().Should().BeEquivalentTo(expectedMethod);
+        result.Route.Span.ToArray().Should().BeEquivalentTo(expectedRoute);
+
+        ParseHeadersToStrings(result, out var actualHeaders);
+        actualHeaders.Should().BeEquivalentTo(expectedHeaders);
+
+        result.Body.Should().BeNull();
+        result.Body.Should().BeEquivalentTo(expectedBody);
+    }
+
+    [Fact(Skip = "Not supported yet")]
+    public void Parse_ValidRequest_WithShortHeader_WithoutCR_WithoutSpaceInHeader_ShouldReturn_HttpContext()
+    {
+        // Arrange
+        var request = Encoding.UTF8.GetBytes("GET / HTTP/1.1\nHost:test.com\nX:Y\n");
+
+        var expectedHeaders = new Dictionary<string, string>
+        {
+            { "Host", "test.com" },
+            { "X", "Y" }
+        };
+
+        var expectedRoute = Encoding.UTF8.GetBytes("/");
+        var expectedMethod = RequestMethodsAsBytes.Get;
+        ReadOnlyMemory<byte>? expectedBody = null;
+
+        // Act
+        var result = _parser.Parse(request).Value;
+        WriteContextData(result);
+
+        // Assert
+        result.Method.Span.ToArray().Should().BeEquivalentTo(expectedMethod);
+        result.Route.Span.ToArray().Should().BeEquivalentTo(expectedRoute);
+
+        ParseHeadersToStrings(result, out var actualHeaders);
+        actualHeaders.Should().BeEquivalentTo(expectedHeaders);
+
+        result.Body.Should().BeNull();
+        result.Body.Should().BeEquivalentTo(expectedBody);
+    }
+
+    [Fact]
+    public void Parse_InvalidRequest_WithTwoSameHeaders_ShouldReturn_TwoSameHeadersMetError()
+    {
+        // Arrange
+        var request = Encoding.UTF8.GetBytes("GET / HTTP/1.1\r\nHost: test.com\r\nHost: test.com\r\n");
+
+        // Act
+        var result = _parser.Parse(request);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Error.HasValue.Should().BeTrue();
+        result.Error.Value.ErrorCode.Should().Be(ParserErrors.TwoSameHeadersMet);
+    }
+
+    [Fact]
+    public void Parse_InvalidRequest_WithTwoSameHeaders_WithDifferentLetterCase_ShouldReturn_TwoSameHeadersMetError()
+    {
+        // Arrange
+        var request = Encoding.UTF8.GetBytes("GET / HTTP/1.1\r\nHOST: test.com\r\nhoSt: test.com\r\n");
+
+        // Act
+        var result = _parser.Parse(request);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Error.HasValue.Should().BeTrue();
+        result.Error.Value.ErrorCode.Should().Be(ParserErrors.TwoSameHeadersMet);
+    }
+
+    [Fact]
+    public void Parse_InvalidRequest_WithoutHeaderValue_ShouldReturn_InvalidHeaderValueError()
+    {
+        // Arrange
+        var request = Encoding.UTF8.GetBytes("GET / HTTP/1.1\r\nHost:\r\n");
+
+        // Act
+        var result = _parser.Parse(request);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Error.HasValue.Should().BeTrue();
+        result.Error.Value.ErrorCode.Should().Be(ParserErrors.InvalidHeaderValue);
     }
 
     private void WriteContextData(HttpContext context)
