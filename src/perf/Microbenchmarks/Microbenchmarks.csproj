@@ -10,7 +10,4 @@
     <PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.0.36525.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\LiteHttp.Server\LiteHttp.Server.csproj" />
-  </ItemGroup>
 </Project>

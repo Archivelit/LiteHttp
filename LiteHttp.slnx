@@ -8,6 +8,9 @@
   <Folder Name="/src/Logging/Adapters/Serilog/src/">
     <Project Path="src/Logging/Adapters/Serilog/src/LiteHttp.Logging.Adapters.Serilog.csproj" />
   </Folder>
+  <Folder Name="/src/perf/">
+    <Project Path="src/perf/Microbenchmarks/Microbenchmarks.csproj" />
+  </Folder>
   <Folder Name="/src/Server/" />
   <Folder Name="/src/Server/Core/" />
   <Folder Name="/src/Server/Core/Constants/" />

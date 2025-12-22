@@ -1,1 +1,1 @@
-﻿[assembly: InternalsVisibleTo("LiteHttp.RequestProcessors.Tests")]
+﻿
