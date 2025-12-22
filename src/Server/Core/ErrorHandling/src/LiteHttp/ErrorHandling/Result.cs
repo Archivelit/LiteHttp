@@ -70,7 +70,7 @@ public readonly record struct Result<TResult>
 /// successful. This type is commonly used to represent operations that may fail without throwing exceptions, enabling
 /// more explicit error handling.
 /// </remarks>
-public readonly record struct Result
+public readonly struct Result
 {
     /// <summary>
     /// Static result object; used to minimize allocations
