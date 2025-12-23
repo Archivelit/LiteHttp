@@ -18,29 +18,43 @@ internal sealed class DefaultHeaderParser : IHeaderParser
         if (!reader.TryReadTo(out ReadOnlySequence<byte> headerTitleSequence, RequestSymbolsAsBytes.Colon, true))
             return HeaderParsingResult.HeaderSyntaxError;
 
-        if (!reader.TryReadTo(out ReadOnlySequence<byte> headerValueSequence, RequestSymbolsAsBytes.CarriageReturnSymbol, true))
+
+        if (!reader.TryReadExact((int)reader.UnreadSequence.Length, out var headerValueSequence))
             return HeaderParsingResult.HeaderSyntaxError;
 
         var headerTitleMemory = headerTitleSequence.GetReadOnlyMemoryFromSequence();
         var headerValueMemory = headerValueSequence.GetReadOnlyMemoryFromSequence();
-        var addingResult = headerCollection.TryAdd(headerTitleMemory, TrimStart(headerValueMemory));
+        var trimmedValue = Trim(headerValueMemory);
+
+        if (trimmedValue.IsEmpty)
+            return HeaderParsingResult.HeaderSyntaxError;
+
+        var addingResult = headerCollection.TryAdd(headerTitleMemory, trimmedValue);
 
         if (!addingResult.Success)
-            return HeaderParsingResult.TwoSameHeaders;
+            return addingResult.Error;
 
         return HeaderParsingResult.Successful;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static ReadOnlyMemory<byte> TrimStart(ReadOnlyMemory<byte> memory)
+    private static ReadOnlyMemory<byte> Trim(ReadOnlyMemory<byte> memory)
     {
-        int bytesToSkip = 0, current = 0;
+        int current = 0;
         while (current < memory.Length && memory.Span[current] == ' ')
         {
-            bytesToSkip += 1;
             current += 1;
         }
 
-        return memory[bytesToSkip..];
+        memory = memory[current..];
+
+        current = memory.Length - 1; // - 1 to point to the last character
+        while (current >= 0 && (memory.Span[current] == RequestSymbolsAsBytes.Space || memory.Span[current] == RequestSymbolsAsBytes.CarriageReturnSymbol || memory.Span[current] == RequestSymbolsAsBytes.NewLine))
+        {
+            current -= 1;
+        }
+
+        //return memory[..current];
+        return current >= 0 ? memory[..(current + 1)] : ReadOnlyMemory<byte>.Empty;
     }
 }

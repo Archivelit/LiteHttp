@@ -13,9 +13,9 @@ internal sealed class Parser
     
     private readonly HttpContextBuilder _httpContextBuilder = new();
     private readonly IHeaderParser _headerParser = new DefaultHeaderParser();
-    private readonly HeaderCollection _headerCollection = new();
 
     private ParsingState _parsingState = ParsingState.HeadersParsing;
+    private HeaderCollection _headerCollection = new();
     private long _contentLength = 0;
     
     /// <summary>
@@ -23,7 +23,6 @@ internal sealed class Parser
     /// </summary>
     /// <param name="requestPipe">Pipe contains bytes of entire request.</param>
     /// <returns><see cref="Result{TResult}"/> wrappee with result or exception wrapped</returns>
-    [SkipLocalsInit]
     public async ValueTask<Result<HttpContext>> Parse(Pipe requestPipe)
     {
         ResetState();
@@ -39,19 +38,25 @@ internal sealed class Parser
         while (true)
         {
             var chunkReader = new SequenceReader<byte>(unprocessedBytes);
-            if (!TryParseChunk(chunkReader, out var examined, out var error))
+            if (!TryParseChunk(ref chunkReader, out var examined, out var error))
             {
-                requestPipe.Reader.AdvanceTo(unprocessedBytes.Start, chunkReader.Position);
+                Debug.Assert(chunkReader.Consumed >= examined, "Consumed bytes does not correspond to examined bytes");
+
+                requestPipe.Reader.AdvanceTo(chunkReader.Position);
                 await requestPipe.Reader.CompleteAsync();
                 return error;
             }
 
-            requestPipe.Reader.AdvanceTo(unprocessedBytes.Start, unprocessedBytes.GetPosition(examined));
+            requestPipe.Reader.AdvanceTo(unprocessedBytes.GetPosition(examined));
 
             if (_parsingState == ParsingState.Finished)
                 break;
 
             var readResult = await requestPipe.Reader.ReadAsync();
+        
+            if (readResult.IsCompleted && readResult.Buffer.IsEmpty)
+                break;
+
             unprocessedBytes = readResult.Buffer;
         }
 
@@ -66,8 +71,8 @@ internal sealed class Parser
         _parsingState = ParsingState.HeadersParsing;
         _contentLength = 0;
         _httpContextBuilder.Reset();
+        _headerCollection = new();
     }
-
 
     /// <summary>
     /// Parses a chunk of data from the provided <paramref name="chunkReader"/>.
@@ -77,7 +82,7 @@ internal sealed class Parser
     /// <param name="error">An error produced by the method, or null if the operation completed successfully.</param>
     /// <returns>True if parsing succeeded; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool TryParseChunk(SequenceReader<byte> chunkReader, out long examined, out Error? error)
+    private bool TryParseChunk(ref SequenceReader<byte> chunkReader, out long examined, out Error? error)
     {
         examined = 0;
         
@@ -85,30 +90,45 @@ internal sealed class Parser
         {
             case ParsingState.HeadersParsing:
             {
-                // TODO: can't parse all headers if reading stopped in middle of header instead LF
-                while (TryReadLine(chunkReader, out var line))
+                while (TryReadLine(ref chunkReader, out var line))
                 {
                     var result = ParseHeader(line);
 
                     if (!result.Success)
                     {
-                        error = result.Error;
-                        return false;
+                        if (result.Error.Value.ErrorCode != HeaderParsingErrors.StateUpdateRequested.ErrorCode)
+                        {
+                            error = result.Error;
+                            return false;
+                        }
+
+                        _parsingState = ParsingState.BodyParsing;
+                        _httpContextBuilder.WithHeaders(_headerCollection);
+
+                        var contentLengthUpdateResult = UpdateContentLength();                        
+                        if (!contentLengthUpdateResult.Success)
+                        {
+                            error = contentLengthUpdateResult.Error;
+                            return false;
+                        }
+                        chunkReader.Advance(1); // Advance to skip LF ('\n')
+                        examined += line.Length;
+                        break;
                     }
-                    
-                    // For skip LF symbol due to AdvancePastDelimiter: true in TryReadLine method
-                    chunkReader.Advance(1);
-                    examined += line.Length;
+                    examined += line.Length;   
                 }
 
-                _parsingState = ParsingState.BodyParsing;
+                if (_parsingState == ParsingState.BodyParsing)
+                {
+                    goto case ParsingState.BodyParsing;
+                }
             }
                 break;
             
             // TODO: Implement reading and merging chunks of data from body
             case ParsingState.BodyParsing:
             {
-                SkipToBodyStart(chunkReader);
+                SkipToBodyStart(ref chunkReader);
 
                 var body = chunkReader.UnreadSequence.Slice(
                     chunkReader.UnreadSequence.Start,
@@ -116,8 +136,9 @@ internal sealed class Parser
                 
                 _httpContextBuilder.WithBody(body);
 
-                // Value can be assigned because we process body 1 time only
-                examined = body.Length;
+                examined += body.Length;
+
+                _parsingState = ParsingState.Finished;
             }
                 break;
         }
@@ -141,7 +162,7 @@ internal sealed class Parser
             
         var sequenceReader = new SequenceReader<byte>(readResult.Buffer);
 
-        if (!TryReadLine(sequenceReader, out var requestLine))
+        if (!TryReadLine(ref sequenceReader, out var requestLine))
             return RequestLineSyntaxError;
             
         var result = ParseRequestLine(requestLine);
@@ -149,7 +170,7 @@ internal sealed class Parser
         if (!result.Success)
             return result.Error;
 
-        return readResult.Buffer.Slice(requestLine.Length);
+        return readResult.Buffer.Slice(requestLine.Length + 1); // +1 to skip LF ('\n')
     }
 
     /// <summary>
@@ -189,30 +210,15 @@ internal sealed class Parser
     {
         var result = _headerParser.ParseHeader(line, _headerCollection);
 
-        if (!result.Success)
-        {
-            if (result.Error.Value.ErrorCode == HeaderParsingErrorCodes.StateUpdateRequested)
-            {
-                _parsingState = ParsingState.BodyParsing;
-
-                _httpContextBuilder.WithHeaders(_headerCollection);
-
-                var contentLengthUpdateResult = UpdateContentLength();
-                if(!contentLengthUpdateResult.Success)
-                    return contentLengthUpdateResult.Error;
-
-                return Result.Successful;
-            }
-
-            return result.Error;
-        }
-
-        return Result.Successful;
+        return result.Success 
+            ? Result.Successful 
+            : result.Error;
     }
 
     /// <summary>
     /// Updates the content length based on the parsed headers.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result UpdateContentLength()
     {
         if (_headerCollection.Headers.TryGetValue(HeadersAsBytes.ContentLength, out var contentLengthValue))
@@ -230,7 +236,7 @@ internal sealed class Parser
     /// Skips all CR (\r) and LF (\n) bytes until the start of the body.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SkipToBodyStart(SequenceReader<byte> sequenceReader)
+    private static void SkipToBodyStart(ref SequenceReader<byte> sequenceReader)
     {
         for (var bytesToSkip = 0; sequenceReader.TryPeek(out var @byte); bytesToSkip++)
         {
@@ -243,7 +249,7 @@ internal sealed class Parser
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool TryReadLine(SequenceReader<byte> sequenceReader, out ReadOnlySequence<byte> line) =>
+    private static bool TryReadLine(ref SequenceReader<byte> sequenceReader, out ReadOnlySequence<byte> line) =>
         sequenceReader.TryReadTo(out line, RequestSymbolsAsBytes.NewLine, false);
 
     /// <summary>
