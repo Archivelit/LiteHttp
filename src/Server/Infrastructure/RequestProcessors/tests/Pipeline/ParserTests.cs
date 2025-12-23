@@ -1,7 +1,5 @@
-﻿using Parser = LiteHttp.RequestProcessors.Pipeline.Parser;
+﻿using Parser = LiteHttp.RequestProcessors.PipeContext.Parser.Parser;
 using HttpContext = LiteHttp.Models.PipeContextModels.HttpContext;
-
-using System.Threading.Tasks;
 
 namespace UnitTests.LiteHttp.RequestProcessors.Pipeline;
 
@@ -12,8 +10,8 @@ public class ParserTests
     private readonly ITestOutputHelper _outputHelper = TestContext.Current.TestOutputHelper;
     private readonly Pipe _requestPipe = new Pipe();
 
-    [Fact(Skip = "Under development")]
-    public async Task Parse_ValidRequest_WithCRLFOnEnd_ShouldReturn_HttpContext()
+    [Fact]
+    public async Task Parse_ValidRequest_ShouldReturn_HttpContext()
     {
         // Arrange
         var request = "GET / HTTP/1.1\r\nHost: test.com\r\n\r\n";

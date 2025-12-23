@@ -1,5 +1,5 @@
 ﻿using HttpContext = LiteHttp.Models.PipeContextModels.HttpContext;
-using ResponseBuilder = LiteHttp.RequestProcessors.Pipeline.ResponseBuilder;
+using ResponseBuilder = LiteHttp.RequestProcessors.PipeContext.ResponseBuilder;
 
 namespace UnitTests.LiteHttp.RequestProcessors.Pipeline;
 
