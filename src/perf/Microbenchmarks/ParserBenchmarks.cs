@@ -4,7 +4,7 @@
 public class ParserBenchmarks
 {
     private readonly byte[] _request = Encoding.ASCII.GetBytes("GET / HTTP/1.1\r\nHost: localhost\r\n\r\n");
-    private RequestProcessors.Pipeline.Parser _parser;
+    private RequestProcessors.PipeContext.Parser.Parser _parser;
     private Pipe _requestPipe;
 
     [GlobalSetup]

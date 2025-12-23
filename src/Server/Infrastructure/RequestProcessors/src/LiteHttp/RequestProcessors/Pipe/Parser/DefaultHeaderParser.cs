@@ -2,6 +2,7 @@
 
 internal sealed class DefaultHeaderParser : IHeaderParser
 {
+    /// <inheritdoc />
     public HeaderParsingResult ParseHeader(ReadOnlySequence<byte> line, HeaderCollection headerCollection)
     {
         // Line integrity is already validated during input reading

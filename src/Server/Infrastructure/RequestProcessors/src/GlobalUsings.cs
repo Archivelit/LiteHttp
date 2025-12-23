@@ -12,3 +12,5 @@ global using LiteHttp.Constants;
 global using LiteHttp.ErrorHandling;
 global using LiteHttp.ErrorHandling.ErrorCodes;
 global using LiteHttp.Extensions;
+global using LiteHttp.Models.PipeContextModels;
+global using LiteHttp.RequestProcessors.PipeContext.Parser;
