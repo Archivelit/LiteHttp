@@ -1,6 +1,4 @@
-﻿using LiteHttp.Benchmarks;
-
-namespace Benchmarks;
+﻿namespace LiteHttp.Microbenchmarks;
 
 public class Program
 {

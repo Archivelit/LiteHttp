@@ -1,6 +1,7 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
 using LiteHttp.Models.PipeContextModels;
+using LiteHttp.RequestProcessors.PipeContext.Parser;
 
 internal sealed class HttpContextBuilder
 {
@@ -35,6 +36,9 @@ internal sealed class HttpContextBuilder
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddHeader(ReadOnlyMemory<byte> key, ReadOnlyMemory<byte> value) => _headers.Add(key, value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WithHeaders(HeaderCollection headerCollection) => _headers = headerCollection.Headers;
 
     public HttpContext Build() => new HttpContext(_method, _route, _headers, _body);
 }

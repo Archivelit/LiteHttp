@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Server\Infrastructure\Helpers\src\LiteHttp.Helpers.csproj" />
     <ProjectReference Include="..\..\Server\Infrastructure\RequestProcessors\src\LiteHttp.RequestProcessors.csproj" />
   </ItemGroup>
 

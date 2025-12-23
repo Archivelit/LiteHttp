@@ -1,7 +1,4 @@
-﻿using System.IO.Pipelines;
-using System.Threading.Tasks;
-
-namespace LiteHttp.Benchmarks;
+﻿namespace LiteHttp.Microbenchmarks;
 
 [CPUUsageDiagnoser, MemoryDiagnoser, DotNetObjectAllocJobConfiguration, DotNetObjectAllocDiagnoser, CategoriesColumn, Orderer(BenchmarkDotNet.Order.SummaryOrderPolicy.FastestToSlowest)]
 public class ParserBenchmarks

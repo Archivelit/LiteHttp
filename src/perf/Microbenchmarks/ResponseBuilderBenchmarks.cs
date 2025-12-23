@@ -1,4 +1,4 @@
-﻿namespace LiteHttp.Benchmarks;
+﻿namespace LiteHttp.Microbenchmarks;
 
 [CPUUsageDiagnoser, MemoryDiagnoser, DotNetObjectAllocJobConfiguration, DotNetObjectAllocDiagnoser, CategoriesColumn, Orderer(BenchmarkDotNet.Order.SummaryOrderPolicy.FastestToSlowest)]
 public class ResponseBuilderBenchmarks
@@ -20,5 +20,5 @@ public class ResponseBuilderBenchmarks
 
     [Benchmark, BenchmarkCategory("ResponseBuilding")]
     public ReadOnlyMemory<byte> BuildResponse() =>
-       _ = _responseBuilder.Build(new ActionResult(ResponseCode.Ok));
+       _ = _responseBuilder.Build(InternalActionResults.Ok());
 }
