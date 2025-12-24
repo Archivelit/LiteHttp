@@ -1,21 +1,21 @@
-﻿using System.Diagnostics;
+﻿namespace LiteHttp.ObjectPooling;
 
-namespace LiteHttp.ObjectPooling;
-
-public sealed class AsyncObjectOwner<Obj> : IAsyncDisposable where Obj : class
+public struct AsyncObjectOwner<Obj> : IAsyncDisposable where Obj : class
 {
     private readonly Func<Obj, ValueTask> _returnCallback;
     private bool _returned;
 
-    public Obj Object 
+    public readonly Obj Object 
     {
         get 
         {
             Debug.Assert(!_returned, "Accessing returned object");
+
             if (!_returned)
             {
                 return field;
             }
+
             throw new InvalidOperationException("Cannot access returned object");
         } 
     }
