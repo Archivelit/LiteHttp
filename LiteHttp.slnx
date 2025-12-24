@@ -59,6 +59,13 @@
   <Folder Name="/src/Server/Infrastructure/Logging/src/">
     <Project Path="src/Server/Infrastructure/Logging/src/LiteHttp.Logging.csproj" />
   </Folder>
+  <Folder Name="/src/Server/Infrastructure/ObjectPooling/" />
+  <Folder Name="/src/Server/Infrastructure/ObjectPooling/src/">
+    <Project Path="src/Server/Infrastructure/ObjectPooling/src/ObjectPooling/ObjectPooling.csproj" />
+  </Folder>
+  <Folder Name="/src/Server/Infrastructure/ObjectPooling/tests/">
+    <Project Path="src/Server/Infrastructure/ObjectPooling/tests/LitHttp.ObjectPooling.Tests/LitHttp.ObjectPooling.Tests.csproj" />
+  </Folder>
   <Folder Name="/src/Server/Infrastructure/RequestProcessors/" />
   <Folder Name="/src/Server/Infrastructure/RequestProcessors/src/">
     <Project Path="src/Server/Infrastructure/RequestProcessors/src/LiteHttp.RequestProcessors.csproj" />
