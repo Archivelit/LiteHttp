@@ -14,8 +14,17 @@ public static class ObjectPoolInitializationHelper<TObject> where TObject : clas
     /// <param name="objectCount">The number of objects to create and add to the pool. Must be non-negative.</param>
     /// <param name="pool">The object pool to be initialized with new objects.</param>
     /// <param name="factory">A function used to create new instances of the pooled object type.</param>
-    public static void Initalize(int objectCount, ObjectPool<TObject> pool, Func<TObject> factory)
+    public static void Initalize(int objectCount, [DisallowNull] ObjectPool<TObject> pool, 
+        [DisallowNull] Func<TObject> factory)
     {
+        Debug.Assert(factory is not null);
+        Debug.Assert(pool is not null);
+        Debug.Assert(objectCount > 0);
+
+        ArgumentNullException.ThrowIfNull(factory);
+        ArgumentNullException.ThrowIfNull(pool);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(objectCount);
+
         // Do not use Parallel.For here as not guaranteed to be thread safe
         for (int i = 0; i < objectCount; i++)
         {
@@ -35,8 +44,17 @@ public static class ObjectPoolInitializationHelper<TObject> where TObject : clas
     /// <param name="factory">A function used to create new instances of the pooled object type.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the initialization operation.</param>
     /// <returns>A ValueTask that represents the asynchronous initialization operation.</returns>
-    public static async ValueTask InitializeAsync(int objectCount, ObjectPool<TObject> pool, Func<TObject> factory, CancellationToken cancellationToken = default)
+    public static async ValueTask InitializeAsync(int objectCount, [DisallowNull] ObjectPool<TObject> pool, 
+        [DisallowNull] Func<TObject> factory, CancellationToken cancellationToken = default)
     {
+        Debug.Assert(factory is not null);
+        Debug.Assert(pool is not null);
+        Debug.Assert(objectCount > 0);
+
+        ArgumentNullException.ThrowIfNull(factory);
+        ArgumentNullException.ThrowIfNull(pool);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(objectCount);
+
         // Do not use Parallel.For here as not guaranteed to be thread safe
         for (int i = 0; i < objectCount; i++)
         {
@@ -56,8 +74,17 @@ public static class ObjectPoolInitializationHelper<TObject> where TObject : clas
     /// <param name="factory">A function used to create new instances of the pooled object type.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the initialization operation.</param>
     /// <returns>A ValueTask that represents the asynchronous initialization operation.</returns>
-    public static async ValueTask InitializeAsync(int objectCount, ObjectPool<TObject> pool, Func<ValueTask<TObject>> factory, CancellationToken cancellationToken = default)
+    public static async ValueTask InitializeAsync(int objectCount, [DisallowNull] ObjectPool<TObject> pool, 
+        [DisallowNull] Func<ValueTask<TObject>> factory, CancellationToken cancellationToken = default)
     {
+        Debug.Assert(factory is not null);
+        Debug.Assert(pool is not null);
+        Debug.Assert(objectCount > 0);
+
+        ArgumentNullException.ThrowIfNull(factory);
+        ArgumentNullException.ThrowIfNull(pool);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(objectCount);
+
         // Do not use Parallel.For here as not guaranteed to be thread safe
         for (int i = 0; i < objectCount; i++)
         {
@@ -77,8 +104,17 @@ public static class ObjectPoolInitializationHelper<TObject> where TObject : clas
     /// <param name="factory">A function used to create new instances of the pooled object type.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the initialization operation.</param>
     /// <returns>A ValueTask that represents the asynchronous initialization operation.</returns>
-    public static async Task InitializeAsync(int objectCount, ObjectPool<TObject> pool, Func<Task<TObject>> factory, CancellationToken cancellationToken = default)
+    public static async Task InitializeAsync(int objectCount, [DisallowNull] ObjectPool<TObject> pool, [DisallowNull] 
+    Func<Task<TObject>> factory, CancellationToken cancellationToken = default)
     {
+        Debug.Assert(factory is not null);
+        Debug.Assert(pool is not null);
+        Debug.Assert(objectCount > 0);
+
+        ArgumentNullException.ThrowIfNull(factory);
+        ArgumentNullException.ThrowIfNull(pool);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(objectCount);
+
         // Do not use Parallel.For here as not guaranteed to be thread safe
         for (int i = 0; i < objectCount; i++)
         {
