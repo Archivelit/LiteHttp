@@ -1,3 +1,5 @@
+using System.Threading;
+
 namespace LiteHttp.ObjectPooling;
 
 /// <summary>
@@ -42,13 +44,32 @@ public abstract class ObjectPool<TObject> where TObject : class
     /// ensure compatibility with the latest API version.
     /// </summary>
     /// <returns>ValueTask that represents object reading from pool.</returns>
-    protected internal ValueTask<TObject> InternalGetAsync() => _pool.Reader.ReadAsync();
-
+    protected internal async ValueTask<TObject> InternalGetAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            return await _pool.Reader.ReadAsync(ct).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) 
+        {
+            return null!;
+        }
+    }
     /// <summary>
     /// Asynchronously returns an object to the pool. Recommended for use in ReturnAsync implementations to
     /// ensure compatibility with the latest API version.
     /// </summary>
     /// <param name="obj">Object to return back to pool.</param>
     /// <returns>ValueTask that represents returning object to the pool.</returns>
-    protected internal ValueTask InternalReturnAsync(TObject obj) => _pool.Writer.WriteAsync(obj);
+    protected internal async ValueTask InternalReturnAsync(TObject obj, CancellationToken ct = default)
+    {
+        try
+        { 
+            await _pool.Writer.WriteAsync(obj, ct).ConfigureAwait(false);
+        }
+        catch(OperationCanceledException) 
+        {
+            return;
+        }
+    }
 }

@@ -42,9 +42,9 @@ public sealed class AsyncOwnedObjectPool<TObject> : ObjectPool<TObject> where TO
     /// Asynchronously gets an owned object from the pool.
     /// </summary>
     /// <returns>ValueTask that represents get operatoin.</returns>
-    public async ValueTask<AsyncObjectOwner<TObject>> GetAsync()
+    public async ValueTask<AsyncObjectOwner<TObject>> GetAsync(CancellationToken ct = default)
     {
-        var obj = await InternalGetAsync();
+        var obj = await InternalGetAsync(ct);
         return new AsyncObjectOwner<TObject>(obj, _returnCallback);
     }
 

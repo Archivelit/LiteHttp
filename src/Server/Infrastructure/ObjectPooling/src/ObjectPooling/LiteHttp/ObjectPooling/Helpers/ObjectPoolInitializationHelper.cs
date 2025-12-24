@@ -28,7 +28,7 @@ public static class ObjectPoolInitializationHelper<TObject> where TObject : clas
         // Do not use Parallel.For here as not guaranteed to be thread safe
         for (int i = 0; i < objectCount; i++)
         {
-            pool._pool.Writer.TryWrite(factory());
+            pool.InternalTryReturn(factory());
         }
     }
 
@@ -42,10 +42,10 @@ public static class ObjectPoolInitializationHelper<TObject> where TObject : clas
     /// <param name="objectCount">The number of objects to create and add to the pool. Must be non-negative.</param>
     /// <param name="pool">The object pool to be initialized with new objects.</param>
     /// <param name="factory">A function used to create new instances of the pooled object type.</param>
-    /// <param name="cancellationToken">A cancellation token that can be used to cancel the initialization operation.</param>
+    /// <param name="ct">A cancellation token that can be used to cancel the initialization operation.</param>
     /// <returns>A ValueTask that represents the asynchronous initialization operation.</returns>
     public static async ValueTask InitializeAsync(int objectCount, [DisallowNull] ObjectPool<TObject> pool, 
-        [DisallowNull] Func<TObject> factory, CancellationToken cancellationToken = default)
+        [DisallowNull] Func<TObject> factory, CancellationToken ct = default)
     {
         Debug.Assert(factory is not null);
         Debug.Assert(pool is not null);
@@ -58,7 +58,7 @@ public static class ObjectPoolInitializationHelper<TObject> where TObject : clas
         // Do not use Parallel.For here as not guaranteed to be thread safe
         for (int i = 0; i < objectCount; i++)
         {
-            await pool._pool.Writer.WriteAsync(factory(), cancellationToken).ConfigureAwait(false);
+            await pool.InternalReturnAsync(factory(), ct).ConfigureAwait(false);
         }
     }
 
@@ -72,10 +72,10 @@ public static class ObjectPoolInitializationHelper<TObject> where TObject : clas
     /// <param name="objectCount">The number of objects to create and add to the pool. Must be non-negative.</param>
     /// <param name="pool">The object pool to be initialized with new objects.</param>
     /// <param name="factory">A function used to create new instances of the pooled object type.</param>
-    /// <param name="cancellationToken">A cancellation token that can be used to cancel the initialization operation.</param>
+    /// <param name="ct">A cancellation token that can be used to cancel the initialization operation.</param>
     /// <returns>A ValueTask that represents the asynchronous initialization operation.</returns>
     public static async ValueTask InitializeAsync(int objectCount, [DisallowNull] ObjectPool<TObject> pool, 
-        [DisallowNull] Func<ValueTask<TObject>> factory, CancellationToken cancellationToken = default)
+        [DisallowNull] Func<ValueTask<TObject>> factory, CancellationToken ct = default)
     {
         Debug.Assert(factory is not null);
         Debug.Assert(pool is not null);
@@ -88,7 +88,7 @@ public static class ObjectPoolInitializationHelper<TObject> where TObject : clas
         // Do not use Parallel.For here as not guaranteed to be thread safe
         for (int i = 0; i < objectCount; i++)
         {
-            await pool._pool.Writer.WriteAsync(await factory(), cancellationToken).ConfigureAwait(false);
+            await pool.InternalReturnAsync(await factory(), ct).ConfigureAwait(false);
         }
     }
 
@@ -102,10 +102,10 @@ public static class ObjectPoolInitializationHelper<TObject> where TObject : clas
     /// <param name="objectCount">The number of objects to create and add to the pool. Must be non-negative.</param>
     /// <param name="pool">The object pool to be initialized with new objects.</param>
     /// <param name="factory">A function used to create new instances of the pooled object type.</param>
-    /// <param name="cancellationToken">A cancellation token that can be used to cancel the initialization operation.</param>
+    /// <param name="ct">A cancellation token that can be used to cancel the initialization operation.</param>
     /// <returns>A ValueTask that represents the asynchronous initialization operation.</returns>
     public static async Task InitializeAsync(int objectCount, [DisallowNull] ObjectPool<TObject> pool, [DisallowNull] 
-    Func<Task<TObject>> factory, CancellationToken cancellationToken = default)
+    Func<Task<TObject>> factory, CancellationToken ct = default)
     {
         Debug.Assert(factory is not null);
         Debug.Assert(pool is not null);
@@ -118,7 +118,97 @@ public static class ObjectPoolInitializationHelper<TObject> where TObject : clas
         // Do not use Parallel.For here as not guaranteed to be thread safe
         for (int i = 0; i < objectCount; i++)
         {
-            await pool._pool.Writer.WriteAsync(await factory(), cancellationToken).ConfigureAwait(false);
+            await pool.InternalReturnAsync(await factory(), ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Asynchronously initializes the specified object pool by pre-populating it with a given number of objects created 
+    /// by the provided factory function.
+    /// </summary>
+    /// <remarks>This method adds objects to the pool sequentially and does not use parallelization to ensure
+    /// thread safety. If the operation is canceled via the provided cancellation token, not all objects may be added to
+    /// the pool.</remarks>
+    /// <param name="objectCount">The number of objects to create and add to the pool. Must be non-negative.</param>
+    /// <param name="pool">The object pool to be initialized with new objects.</param>
+    /// <param name="factory">A function used to create new instances of the pooled object type.</param>
+    /// <param name="ct">A cancellation token that can be used to cancel the initialization operation.</param>
+    /// <returns>A ValueTask that represents the asynchronous initialization operation.</returns>
+    public static async ValueTask InitializeAsync(int objectCount, [DisallowNull] ObjectPool<TObject> pool,
+        [DisallowNull] Func<CancellationToken, TObject> factory, CancellationToken ct = default)
+    {
+        Debug.Assert(factory is not null);
+        Debug.Assert(pool is not null);
+        Debug.Assert(objectCount > 0);
+
+        ArgumentNullException.ThrowIfNull(factory);
+        ArgumentNullException.ThrowIfNull(pool);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(objectCount);
+
+        // Do not use Parallel.For here as not guaranteed to be thread safe
+        for (int i = 0; i < objectCount; i++)
+        {
+            await pool.InternalReturnAsync(factory(ct), ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Asynchronously initializes the specified object pool by pre-populating it with a given number of objects created 
+    /// by the provided factory function.
+    /// </summary>
+    /// <remarks>This method adds objects to the pool sequentially and does not use parallelization to ensure
+    /// thread safety. If the operation is canceled via the provided cancellation token, not all objects may be added to
+    /// the pool.</remarks>
+    /// <param name="objectCount">The number of objects to create and add to the pool. Must be non-negative.</param>
+    /// <param name="pool">The object pool to be initialized with new objects.</param>
+    /// <param name="factory">A function used to create new instances of the pooled object type.</param>
+    /// <param name="ct">A cancellation token that can be used to cancel the initialization operation.</param>
+    /// <returns>A ValueTask that represents the asynchronous initialization operation.</returns>
+    public static async ValueTask InitializeAsync(int objectCount, [DisallowNull] ObjectPool<TObject> pool,
+        [DisallowNull] Func<CancellationToken, ValueTask<TObject>> factory, CancellationToken ct = default)
+    {
+        Debug.Assert(factory is not null);
+        Debug.Assert(pool is not null);
+        Debug.Assert(objectCount > 0);
+
+        ArgumentNullException.ThrowIfNull(factory);
+        ArgumentNullException.ThrowIfNull(pool);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(objectCount);
+
+        // Do not use Parallel.For here as not guaranteed to be thread safe
+        for (int i = 0; i < objectCount; i++)
+        {
+            await pool.InternalReturnAsync(await factory(ct), ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Asynchronously initializes the specified object pool by pre-populating it with a given number of objects created 
+    /// by the provided factory function.
+    /// </summary>
+    /// <remarks>This method adds objects to the pool sequentially and does not use parallelization to ensure
+    /// thread safety. If the operation is canceled via the provided cancellation token, not all objects may be added to
+    /// the pool.</remarks>
+    /// <param name="objectCount">The number of objects to create and add to the pool. Must be non-negative.</param>
+    /// <param name="pool">The object pool to be initialized with new objects.</param>
+    /// <param name="factory">A function used to create new instances of the pooled object type.</param>
+    /// <param name="ct">A cancellation token that can be used to cancel the initialization operation.</param>
+    /// <returns>A ValueTask that represents the asynchronous initialization operation.</returns>
+    public static async Task InitializeAsync(int objectCount, [DisallowNull] ObjectPool<TObject> pool, [DisallowNull]
+    Func<CancellationToken, Task<TObject>> factory, CancellationToken ct = default)
+    {
+        Debug.Assert(factory is not null);
+        Debug.Assert(pool is not null);
+        Debug.Assert(objectCount > 0);
+
+        ArgumentNullException.ThrowIfNull(factory);
+        ArgumentNullException.ThrowIfNull(pool);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(objectCount);
+
+        // Do not use Parallel.For here as not guaranteed to be thread safe
+        for (int i = 0; i < objectCount; i++)
+        {
+            await pool.InternalReturnAsync(await factory(ct), ct).ConfigureAwait(false);
         }
     }
 }
