@@ -8,16 +8,19 @@ public class ObjectPoolInitializationHelperTests
     public void Initialize_WithValidParameters_ShouldSucceed()
     {
         // Arrange
-        var pool = new DefaultObjectPool<TestObject>(() => new TestObject(0));
+        var pool = new DefaultObjectPool<TestObject>();
 
         ObjectPoolInitializationHelper<TestObject>.Initalize(2, pool, () => new TestObject(2));
 
         // Act
-        var obj1 = pool.GetOrGenerate();
-        var obj2 = pool.GetOrGenerate();
+        var r1 = pool.TryGet(out var obj1);
+        var r2 = pool.TryGet(out var obj2);
 
         // Assert
+        r1.Should().BeTrue();
+        r2.Should().BeFalse();
+
+        obj1!.Id.Should().Be(2);
         obj1.Should().BeEquivalentTo(obj2);
-        obj1.Id.Should().Be(2);
     }
 }
