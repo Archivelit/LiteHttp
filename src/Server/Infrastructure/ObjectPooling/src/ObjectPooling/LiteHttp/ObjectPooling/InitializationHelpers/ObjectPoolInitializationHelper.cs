@@ -7,8 +7,17 @@ internal static class ObjectPoolInitializationHelper<TObject> where TObject : cl
         // Do not use Parallel.For here as not guaranteed to be thread safe
         for (int i = 0; i < objectCount; i++)
         {
-            var obj = CreateObject(factory);
-            pool._pool.Writer.TryWrite(obj);
+            pool._pool.Writer.TryWrite(factory());
+        }
+    }
+
+
+    public static async ValueTask InitalizeAsync(int objectCount, ObjectPool<TObject> pool, Func<TObject> factory, CancellationToken cancellationToken = default)
+    {
+        // Do not use Parallel.For here as not guaranteed to be thread safe
+        for (int i = 0; i < objectCount; i++)
+        {
+            await pool._pool.Writer.WriteAsync(factory(), cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -17,41 +26,16 @@ internal static class ObjectPoolInitializationHelper<TObject> where TObject : cl
         // Do not use Parallel.For here as not guaranteed to be thread safe
         for (int i = 0; i < objectCount; i++)
         {
-            TObject obj;
-            try
-            {
-                obj = await factory().ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                ExceptionDispatchInfo.Capture(ex).Throw();
-                throw; // Unreachable, but required to satisfy the compiler
-            }
-            await pool._pool.Writer.WriteAsync(obj, cancellationToken).ConfigureAwait(false);
+            await pool._pool.Writer.WriteAsync(await factory(), cancellationToken).ConfigureAwait(false);
         }
     }
 
-    public static async ValueTask InitalizeAsync(int objectCount, ObjectPool<TObject> pool, Func<TObject> factory, CancellationToken cancellationToken = default)
+    public static async Task InitializeAsync(int objectCount, ObjectPool<TObject> pool, Func<Task<TObject>> factory, CancellationToken cancellationToken = default)
     {
         // Do not use Parallel.For here as not guaranteed to be thread safe
         for (int i = 0; i < objectCount; i++)
         {
-            await pool._pool.Writer.WriteAsync(CreateObject(factory), cancellationToken).ConfigureAwait(false);
+            await pool._pool.Writer.WriteAsync(await factory(), cancellationToken).ConfigureAwait(false);
         }
-    }
-
-    private static TObject CreateObject(Func<TObject> factory)
-    {
-        TObject obj;
-        try
-        {
-            obj = factory();
-        }
-        catch
-        {
-            throw;
-        }
-
-        return obj;
     }
 }
