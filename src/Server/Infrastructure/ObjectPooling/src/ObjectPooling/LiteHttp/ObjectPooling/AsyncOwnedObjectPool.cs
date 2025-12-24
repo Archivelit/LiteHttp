@@ -4,15 +4,7 @@ public sealed class AsyncOwnedObjectPool<TObject> : ObjectPool<TObject> where TO
 {
     private readonly Func<TObject, ValueTask> _returnCallback;
 
-    public AsyncOwnedObjectPool(Func<TObject> generationCallback) : base(generationCallback) => 
-        _returnCallback = ReturnAsync;
-
-    public AsyncObjectOwner<TObject> GetOrGenerate()
-    {
-        var obj = InternalGetOrGenerate();
-
-        return new AsyncObjectOwner<TObject>(obj, _returnCallback);
-    }
+    public AsyncOwnedObjectPool() : base() => _returnCallback = ReturnAsync;
 
     public bool TryGet([NotNullWhen(true)] out AsyncObjectOwner<TObject>? objectOwner)
     {
