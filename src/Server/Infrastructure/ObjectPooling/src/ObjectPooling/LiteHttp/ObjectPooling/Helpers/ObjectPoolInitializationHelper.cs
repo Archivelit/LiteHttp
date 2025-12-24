@@ -1,6 +1,6 @@
-﻿namespace LiteHttp.ObjectPooling.InitializationHelpers;
+﻿namespace LiteHttp.ObjectPooling.Helpers;
 
-internal static class ObjectPoolInitializationHelper<TObject> where TObject : class
+public static class ObjectPoolInitializationHelper<TObject> where TObject : class
 {
     public static void Initalize(int objectCount, ObjectPool<TObject> pool, Func<TObject> factory)
     {
@@ -11,8 +11,7 @@ internal static class ObjectPoolInitializationHelper<TObject> where TObject : cl
         }
     }
 
-
-    public static async ValueTask InitalizeAsync(int objectCount, ObjectPool<TObject> pool, Func<TObject> factory, CancellationToken cancellationToken = default)
+    public static async ValueTask InitializeAsync(int objectCount, ObjectPool<TObject> pool, Func<TObject> factory, CancellationToken cancellationToken = default)
     {
         // Do not use Parallel.For here as not guaranteed to be thread safe
         for (int i = 0; i < objectCount; i++)
@@ -21,7 +20,7 @@ internal static class ObjectPoolInitializationHelper<TObject> where TObject : cl
         }
     }
 
-    public static async ValueTask InitalizeAsync(int objectCount, ObjectPool<TObject> pool, Func<ValueTask<TObject>> factory, CancellationToken cancellationToken = default)
+    public static async ValueTask InitializeAsync(int objectCount, ObjectPool<TObject> pool, Func<ValueTask<TObject>> factory, CancellationToken cancellationToken = default)
     {
         // Do not use Parallel.For here as not guaranteed to be thread safe
         for (int i = 0; i < objectCount; i++)
