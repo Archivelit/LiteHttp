@@ -14,7 +14,7 @@ public static class ObjectPoolInitializationHelper<TObject> where TObject : clas
     /// <param name="objectCount">The number of objects to create and add to the pool. Must be non-negative.</param>
     /// <param name="pool">The object pool to be initialized with new objects.</param>
     /// <param name="factory">A function used to create new instances of the pooled object type.</param>
-    public static void Initalize(int objectCount, [DisallowNull] ObjectPool<TObject> pool, 
+    public static void Initialize(int objectCount, [DisallowNull] ObjectPool<TObject> pool, 
         [DisallowNull] Func<TObject> factory)
     {
         Debug.Assert(factory is not null);

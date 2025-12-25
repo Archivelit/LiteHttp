@@ -3,7 +3,7 @@
 /// <summary>
 /// Wrapper for an object owned from an <see cref="AsyncOwnedObjectPool{Obj}"/>.
 /// </summary>
-public struct AsyncObjectOwner<Obj> : IAsyncDisposable where Obj : class
+public sealed class AsyncObjectOwner<Obj> : IAsyncDisposable where Obj : class
 {
     /// <summary>
     /// Callback to return the object to the pool.
@@ -18,12 +18,13 @@ public struct AsyncObjectOwner<Obj> : IAsyncDisposable where Obj : class
     /// An object owned from the pool.
     /// </summary>
     /// <remarks>
-    /// Cannot be accessed after the object has been returned to the pool.
+    /// Cannot be accessed after the object has been returned to the pool. Object should not be used 
+    /// after calling <see cref="DisposeAsync" />.
     /// </remarks>
     /// <exception cref="InvalidOperationException">
     /// Thrown if object has been accessed after returning to the pool.
     /// </exception>
-    public readonly Obj Object 
+    public Obj Object 
     {
         get 
         {
@@ -64,8 +65,10 @@ public struct AsyncObjectOwner<Obj> : IAsyncDisposable where Obj : class
         
         if (!_returned)
         {
+            // Not recomended to copy to local variable, used to avoid throwing exception after setting _returned to true
+            var obj = Object;
             _returned = true;
-            return _returnCallback(Object);
+            return _returnCallback(obj);
         }
         
         throw new InvalidOperationException("Object cannot be returned to pool second time");
