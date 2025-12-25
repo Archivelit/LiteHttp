@@ -41,7 +41,8 @@ public sealed class AsyncOwnedObjectPool<TObject> : ObjectPool<TObject> where TO
     /// <summary>
     /// Asynchronously gets an owned object from the pool.
     /// </summary>
-    /// <returns>ValueTask that represents get operatoin.</returns>
+    /// <returns>ValueTask that represents get operatoin. Cancellation does not handled in this method, requires manual 
+    /// handling of <see cref="OperationCanceledException"/>.</returns>
     public async ValueTask<AsyncObjectOwner<TObject>> GetAsync(CancellationToken ct = default)
     {
         var obj = await InternalGetAsync(ct);

@@ -28,15 +28,17 @@ public sealed class DefaultObjectPool<TObject> : ObjectPool<TObject> where TObje
     /// <summary>
     /// Asynchronously gets an object from the pool if available.
     /// </summary>
-    /// <remarks>If no objects available, method will wait when an object becomes available. Safe for concurrent use.</remarks>
+    /// <remarks>If no objects available, method will wait when an object becomes available. Safe for concurrent use. 
+    /// Null returned if operation canceled. Cancellation does not handled in this method, requires manual handling of
+    /// <see cref="OperationCanceledException"/>.</remarks>
     /// <param name="obj">Object got from pool.</param>
     /// <returns>ValueTask that represents object reading from pool.</returns>
     public ValueTask<TObject> GetAsync(CancellationToken ct = default) => InternalGetAsync(ct);
-
     /// <summary>
     /// Asynchronously returns an object to the pool.
     /// </summary>
-    /// <remarks>Safe for concurrent use.</remarks>
+    /// <remarks>Safe for concurrent use. Cancellation does not handled in this method, requires manual handling of
+    /// <see cref="OperationCanceledException"/>.</remarks>
     /// <param name="obj">Object that should be returned. If object got from other sources, no exception will be occured.</param>
     /// <returns>ValueTask that represents returning object to the pool.</returns>
     public ValueTask ReturnAsync(TObject obj, CancellationToken ct = default) => InternalReturnAsync(obj, ct);
