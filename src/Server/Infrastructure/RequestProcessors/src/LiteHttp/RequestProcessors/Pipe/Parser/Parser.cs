@@ -60,8 +60,6 @@ internal sealed class Parser
             unprocessedBytes = readResult.Buffer;
         }
 
-        await requestPipe.Reader.CompleteAsync();
-
         return _httpContextBuilder.Build();
     }
 
