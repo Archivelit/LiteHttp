@@ -115,7 +115,7 @@ internal sealed class InternalServer : IServer, IDisposable
         if (!success)
             throw new InvalidOperationException($"Address {address} wrong formatted");
 
-        _listener.SetIpAddress(iPAddress!);
+        _listener.ListenerAddress = iPAddress!;
 
         foreach (var worker in _workerPool!)
             worker.SetHostAddress(address);
@@ -136,7 +136,7 @@ internal sealed class InternalServer : IServer, IDisposable
 
         _logger.LogInformation($"Setting server address to {addressAsString}...");
 
-        _listener.SetIpAddress(address);
+        _listener.ListenerAddress = address;
 
         foreach (var worker in _workerPool!)
             worker.SetHostAddress(addressAsString);
@@ -152,7 +152,7 @@ internal sealed class InternalServer : IServer, IDisposable
 
         try
         {
-            _listener.SetPort(port);
+            _listener.ListenerPort = port;
 
             foreach (var worker in _workerPool!)
                 worker.SetHostPort(port);
@@ -177,8 +177,8 @@ internal sealed class InternalServer : IServer, IDisposable
     {
         _logger.LogInformation($"Initializing InternalServer...");
 
-        _listener.SetPort(port);
-        _listener.SetIpAddress(address);
+        _listener.ListenerPort = port;
+        _listener.ListenerAddress = address;
         _listener.SubscribeToRequestReceived(_eventBus.PublishAsync);
         InitializeWorkers(logger);
 
