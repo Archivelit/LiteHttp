@@ -1,8 +1,14 @@
 ﻿namespace LiteHttp.Routing;
 
+#nullable disable
 public sealed class RouterEventAdapter
 {
-    private readonly Router _router = new Router();
+    private readonly Router _router;
+
+    public RouterEventAdapter() => _router = new();
+
+    public RouterEventAdapter(Router router) => _router = router;
+
     public void Handle(object? sender, HttpContext httpContext)
     {
         var result = _router.GetAction(httpContext);

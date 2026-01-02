@@ -70,7 +70,7 @@ public sealed class SaeaListener : IDisposable
         _isListening = false;
     }
 
-    public async ValueTask StartListen(CancellationToken cancellationToken)
+    public void StartListen(CancellationToken cancellationToken)
     {
         _cancellationToken = cancellationToken;
 
