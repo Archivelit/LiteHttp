@@ -59,7 +59,7 @@ public sealed class InternalServer : IServer
     public async Task Start(CancellationToken cancellationToken = default)
     {
         EndpointProviderConfiguration.Freeze();
-
+        
         try
         {
             Listener.StartListen(cancellationToken);

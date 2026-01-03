@@ -13,6 +13,7 @@
     <ProjectReference Include="..\..\..\Core\ErrorHandling\src\LiteHttp.ErrorHandling.csproj" />
     <ProjectReference Include="..\..\..\Core\Extensions\src\LiteHttp.Extensions.csproj" />
     <ProjectReference Include="..\..\..\Core\Models\src\LiteHttp.Models.csproj" />
+    <ProjectReference Include="..\..\Helpers\src\LiteHttp.Helpers.csproj" />
   </ItemGroup>
 
 </Project>
