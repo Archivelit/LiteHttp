@@ -1,4 +1,6 @@
-﻿namespace LiteHttp;
+﻿using EventDrivenInternalServer = LiteHttp.Server.EventDriven.InternalServer;
+
+namespace LiteHttp;
 
 /// <summary>
 /// Provides a builder with fluent api for configuring and creating instances of <see cref="HttpServer"/> 
@@ -32,6 +34,8 @@ public class ServerBuilder
 
         return new(internalServer);
     }
+
+    public EventDrivenInternalServer BuildEventDrivenServer() => new(logger: _logger, address: _address, port: _port);
 
     /// <summary>
     /// Configures the server builder to use the specified logger for diagnostic and operational messages.

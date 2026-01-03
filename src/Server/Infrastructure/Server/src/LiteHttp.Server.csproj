@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\Constants\src\LiteHttp.Constants.csproj" />
     <ProjectReference Include="..\..\..\Core\Models\src\LiteHttp.Models.csproj" />
+    <ProjectReference Include="..\..\ConnectionManager\src\LiteHttp.ConnectionManager\LiteHttp.ConnectionManager.csproj" />
     <ProjectReference Include="..\..\Events\src\LiteHttp.Infrastructure.Events.csproj" />
     <ProjectReference Include="..\..\Listener\src\LiteHttp.Listener.csproj" />
     <ProjectReference Include="..\..\Logging\src\LiteHttp.Logging.csproj" />
