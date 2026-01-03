@@ -82,11 +82,6 @@
   <Folder Name="/src/Server/Infrastructure/Server/src/">
     <Project Path="src/Server/Infrastructure/Server/src/LiteHttp.Server.csproj" />
   </Folder>
-  <Folder Name="/src/Server/Infrastructure/Sockets/" />
-  <Folder Name="/src/Server/Infrastructure/Sockets/TcpSocket/" />
-  <Folder Name="/src/Server/Infrastructure/Sockets/TcpSocket/src/">
-    <Project Path="src/Server/Infrastructure/Sockets/TcpSocket/src/TcpSocket/TcpSocket.csproj" />
-  </Folder>
   <Folder Name="/src/Server/Infrastructure/WorkerServices/" />
   <Folder Name="/src/Server/Infrastructure/WorkerServices/src/">
     <Project Path="src/Server/Infrastructure/WorkerServices/src/LiteHttp.WorkerServices.csproj" />
