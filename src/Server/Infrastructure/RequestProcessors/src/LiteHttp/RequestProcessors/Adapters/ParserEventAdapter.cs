@@ -1,4 +1,4 @@
-﻿using HttpContext = LiteHttp.Models.HttpContext;
+﻿using LiteHttp.Models.LiteHttp.Models;
 
 namespace LiteHttp.RequestProcessors.Adapters;
 
@@ -6,17 +6,19 @@ public sealed class ParserEventAdapter
 {
     private readonly Parser _parser = Parser.Instance;
 
-    public void Handle(object? sender, Memory<byte> buffer)
+    public void Handle(ConnectionContext connectionContext)
     {
-        var result = _parser.Parse(buffer);
+        var result = _parser.Parse(connectionContext.Buffer);
 
-        OnParsed(result.Value);
+        connectionContext.HttpContext = result.Value;
+
+        OnParsed(connectionContext);
     }
 
-    private event EventHandler<HttpContext> Parsed;
+    private event Action<ConnectionContext> Parsed;
 
-    private void OnParsed(HttpContext httpContext) => Parsed?.Invoke(this, httpContext);
+    private void OnParsed(ConnectionContext c) => Parsed?.Invoke(c);
     
-    public void SubscribeParsed(EventHandler<HttpContext> handler) => Parsed += handler;
-    public void UnsubscribeParsed(EventHandler<HttpContext> handler) => Parsed += handler;
+    public void SubscribeToParsed(Action<ConnectionContext> handler) => Parsed += handler;
+    public void UnsubscribeParsed(Action<ConnectionContext> handler) => Parsed += handler;
 }

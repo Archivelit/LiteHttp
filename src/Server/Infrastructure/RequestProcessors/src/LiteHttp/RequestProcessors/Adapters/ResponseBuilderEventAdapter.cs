@@ -1,20 +1,23 @@
-﻿namespace LiteHttp.RequestProcessors.Adapters;
+﻿using LiteHttp.Models.LiteHttp.Models;
+
+namespace LiteHttp.RequestProcessors.Adapters;
 
 public sealed class ResponseBuilderEventAdapter
 {
     private readonly ResponseBuilder _responseBuilder = new();
     
-    public void Handle(object? sender, IActionResult actionResult)
+    public void Handle(ConnectionContext context, IActionResult actionResult)
     {
         var result = _responseBuilder.Build(actionResult);
+        context.Buffer = MemoryMarshal.AsMemory(result);
 
-        OnResponseBuilded(result);
+        OnResponseBuilded(context);
     }
 
-    private EventHandler<ReadOnlyMemory<byte>> ResponseBuidled;
+    private Action<ConnectionContext> ResponseBuidled;
     
-    private void OnResponseBuilded(ReadOnlyMemory<byte> response) => ResponseBuidled?.Invoke(this, response);
+    private void OnResponseBuilded(ConnectionContext response) => ResponseBuidled?.Invoke(response);
 
-    public void SubscriveResponseBuilded(EventHandler<ReadOnlyMemory<byte>> handler) => ResponseBuidled += handler;
-    public void UnsubscriveResponseBuilded(EventHandler<ReadOnlyMemory<byte>> handler) => ResponseBuidled -= handler;
+    public void SubscriveResponseBuilded(Action<ConnectionContext> handler) => ResponseBuidled += handler;
+    public void UnsubscriveResponseBuilded(Action<ConnectionContext> handler) => ResponseBuidled -= handler;
 }

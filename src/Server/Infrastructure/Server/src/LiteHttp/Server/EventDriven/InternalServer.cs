@@ -1,5 +1,4 @@
-﻿
-using LiteHttp.Constants;
+﻿using LiteHttp.Constants;
 using LiteHttp.Listener;
 using LiteHttp.Logging;
 using LiteHttp.Logging.Abstractions;
@@ -15,6 +14,8 @@ public sealed class InternalServer : IServer
     internal readonly RouterEventAdapter RouterAdapter;
     internal readonly ResponseBuilderEventAdapter ResponseBuilderAdapter;
     internal readonly SaeaListener Listener;
+    internal readonly ConnectionManager.ConnectionManager ConnectionManager;
+    internal readonly ExecutorEventAdapter ExecutorAdapter;
     private readonly IEndpointProviderConfiguration EndpointProviderConfiguration;
     private readonly ILogger<InternalServer> _logger;
 
@@ -26,6 +27,8 @@ public sealed class InternalServer : IServer
         Listener = new(address, port, logger.ForContext<SaeaListener>());
         ParserAdapter = new();
         ResponseBuilderAdapter = new();
+        ConnectionManager = new();
+        ExecutorAdapter = new();
 
         EndpointProviderConfiguration = new EndpointProviderConfiguration();
 
@@ -48,9 +51,9 @@ public sealed class InternalServer : IServer
     public void MapPut(string route, Func<IActionResult> action) =>
         EndpointProviderConfiguration.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Put, action);
 
-    [Obsolete]
+    [Obsolete("Builder must be used")]
     public void SetAddress(string address) => throw new NotImplementedException("Use builder pattern");
-    [Obsolete]
+    [Obsolete("Builder must be used")]
     public void SetPort(int port) => throw new NotImplementedException("Use builder pattern");
 
     public async Task Start(CancellationToken cancellationToken = default)

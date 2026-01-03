@@ -43,6 +43,10 @@
     <Project Path="src/Server/Features/Limits/src/LiteHttp.Limits.csproj" />
   </Folder>
   <Folder Name="/src/Server/Infrastructure/" />
+  <Folder Name="/src/Server/Infrastructure/ConnectionManager/" />
+  <Folder Name="/src/Server/Infrastructure/ConnectionManager/src/">
+    <Project Path="src/Server/Infrastructure/ConnectionManager/src/LiteHttp.ConnectionManager/LiteHttp.ConnectionManager.csproj" />
+  </Folder>
   <Folder Name="/src/Server/Infrastructure/Events/" />
   <Folder Name="/src/Server/Infrastructure/Events/src/">
     <Project Path="src/Server/Infrastructure/Events/src/LiteHttp.Infrastructure.Events.csproj" />

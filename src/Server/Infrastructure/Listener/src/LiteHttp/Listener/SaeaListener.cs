@@ -117,11 +117,11 @@ public sealed class SaeaListener : IDisposable
     private void StartAccept(SocketAsyncEventArgs acceptEventArg)
     {
         bool willRaiseEvent = false;
-
         while (!willRaiseEvent)
         {
             acceptEventArg.AcceptSocket = null;
             willRaiseEvent = Socket.AcceptAsync(acceptEventArg);
+
             if (!willRaiseEvent)
                 ProcessAccept(acceptEventArg);
         }

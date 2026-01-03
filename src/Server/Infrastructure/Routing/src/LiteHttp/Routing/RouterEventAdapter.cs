@@ -1,4 +1,6 @@
-﻿namespace LiteHttp.Routing;
+﻿using LiteHttp.Models.LiteHttp.Models;
+
+namespace LiteHttp.Routing;
 
 #nullable disable
 public sealed class RouterEventAdapter
@@ -9,16 +11,16 @@ public sealed class RouterEventAdapter
 
     public RouterEventAdapter(Router router) => _router = router;
 
-    public void Handle(object? sender, HttpContext httpContext)
+    public void Handle(ConnectionContext connectionContext)
     {
-        var result = _router.GetAction(httpContext);
+        var result = _router.GetAction(connectionContext.HttpContext);
 
-        OnCompleted(result);
+        OnCompleted(connectionContext, result);
     }
 
-    private event EventHandler<Func<IActionResult>> Completed;
-    private void OnCompleted(Func<IActionResult> action) => Completed?.Invoke(this, action);
+    private event Action<ConnectionContext, Func<IActionResult>> Completed;
+    private void OnCompleted(ConnectionContext context, Func<IActionResult> action) => Completed?.Invoke(context, action);
 
-    public void SubscribeCompleted(EventHandler<Func<IActionResult>> handler) => Completed += handler;
-    public void UnsubscribeCompleted(EventHandler<Func<IActionResult>> handler) => Completed -= handler;
+    public void SubscribeToCompleted(Action<ConnectionContext, Func<IActionResult>> handler) => Completed += handler;
+    public void UnsubscribeCompleted(Action<ConnectionContext, Func<IActionResult>> handler) => Completed -= handler;
 }
