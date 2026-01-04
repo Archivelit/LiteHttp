@@ -2,7 +2,7 @@
 
 namespace LiteHttp.Server;
 
-public interface IServer
+public interface IServer : IDisposable
 {
     /// <summary>
     /// Starts the server asynchronously, allowing cancellation via the provided token.

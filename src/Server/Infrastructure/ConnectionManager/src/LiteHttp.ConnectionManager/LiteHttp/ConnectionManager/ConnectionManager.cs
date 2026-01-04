@@ -4,11 +4,10 @@
 public sealed class ConnectionManager
 {
     private readonly DefaultObjectPool<SocketAsyncEventArgs> _saeaPool;
-    private readonly HashSet<ConnectionContext> _activeConnections;
 
     public ConnectionManager()
     {
-        const int initObjectsCount = 10000;
+        const int initObjectsCount = 50000;
         
         _saeaPool = new();
         ObjectPoolInitializationHelper<SocketAsyncEventArgs>.Initialize(initObjectsCount, _saeaPool, () =>
@@ -17,13 +16,10 @@ public sealed class ConnectionManager
             var saea = new SocketAsyncEventArgs();
 
             saea.Completed += IOCompleted;
-            saea.SetBuffer(new byte[bufferSize]);
+            saea.SetBuffer(new byte[bufferSize], 0, bufferSize);
 
             return saea;
         });
-
-        // Initialize a hashset with capacity that corresponds to the initialized objects count to prevent extra allocations
-        _activeConnections = new HashSet<ConnectionContext>(initObjectsCount, ConnectionComparer.Instance);
     }
 
     public void ReceiveFrom(SocketAsyncEventArgs acceptEventArg)
@@ -32,6 +28,8 @@ public sealed class ConnectionManager
 
         if (_saeaPool.TryGet(out var saea))
         {
+            saea.AcceptSocket = connection;
+
             bool willRaiseEvent = connection.ReceiveAsync(saea);
             
             if (!willRaiseEvent)
@@ -66,6 +64,7 @@ public sealed class ConnectionManager
     private void ProcessSend(SocketAsyncEventArgs saea)
     {
         CloseConnection(saea);
+        saea.AcceptSocket = null;
         _saeaPool.TryReturn(saea);
     }
 
@@ -77,9 +76,9 @@ public sealed class ConnectionManager
 
     private void ProcessReceive(SocketAsyncEventArgs saea)
     {
-        var connectionContext = new ConnectionContext(saea, saea.Buffer.AsMemory()[saea.Offset..saea.BytesTransferred]);
+        var connectionContext = new ConnectionContext(saea);
 
-        _activeConnections.Add(connectionContext);
+        saea.SetBuffer(saea.Offset, saea.Offset + saea.BytesTransferred);
 
         OnDataReceived(connectionContext);
     }

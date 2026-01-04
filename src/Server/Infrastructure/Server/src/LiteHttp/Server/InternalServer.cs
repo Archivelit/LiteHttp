@@ -7,7 +7,7 @@ using LiteHttp.WorkerServices;
 
 namespace LiteHttp.Server;
 
-internal sealed class InternalServer : IServer, IDisposable
+internal sealed class InternalServer : IServer
 {
     private readonly Listener.Listener _listener = new();
     private readonly RequestEventBus _eventBus = new();

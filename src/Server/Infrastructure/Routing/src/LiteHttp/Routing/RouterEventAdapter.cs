@@ -1,6 +1,4 @@
-﻿using LiteHttp.Models.LiteHttp.Models;
-
-namespace LiteHttp.Routing;
+﻿namespace LiteHttp.Routing;
 
 #nullable disable
 public sealed class RouterEventAdapter

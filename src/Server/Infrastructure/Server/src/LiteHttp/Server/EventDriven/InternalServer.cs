@@ -40,6 +40,12 @@ public sealed class InternalServer : IServer
         Binder.Bind(this);
     }
 
+    public void Dispose()
+    {
+        Listener.Dispose();
+        //ConnectionManager.Dispose();
+    }
+
     public void MapDelete(string route, Func<IActionResult> action) =>
         EndpointProviderConfiguration.AddEndpoint(route.AsMemoryByteArray(), RequestMethodsAsBytes.Delete, action);
     public void MapGet(string route, Func<IActionResult> action) =>

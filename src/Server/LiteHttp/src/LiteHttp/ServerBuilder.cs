@@ -27,15 +27,11 @@ public class ServerBuilder
     /// start the server; you must explicitly start the returned.
     /// <see cref="HttpServer"/> instance.</remarks>
     /// <returns>A configured <see cref="HttpServer"/> instance.</returns>
-    public HttpServer Build()
-    {
-        var internalServer = new InternalServer(workersCount: _workersCount, port: _port, address: _address, 
-            logger: _logger);
+    public HttpServer Build() => new(new InternalServer(workersCount: _workersCount, port: _port, 
+        address: _address, logger: _logger));
 
-        return new(internalServer);
-    }
-
-    public EventDrivenInternalServer BuildEventDrivenServer() => new(logger: _logger, address: _address, port: _port);
+    public HttpServer BuildEventDrivenServer() => new(new EventDrivenInternalServer(
+        logger: _logger, address: _address, port: _port));
 
     /// <summary>
     /// Configures the server builder to use the specified logger for diagnostic and operational messages.

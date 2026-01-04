@@ -12,24 +12,28 @@ public sealed class Parser
     /// </summary>
     /// <param name="request">Entire request bytes.</param>
     /// <returns><see cref="Result{TResult}"/> wrappee with result or exception wrapped</returns>
-    [SkipLocalsInit]
     public Result<HttpContext> Parse(Memory<byte> request)
     {
         var requestParts = SplitRequest(request);
 
-        var firstLine = GetFirstLine(requestParts.Headers);
+        var firstLineExtractingResult = GetFirstLine(requestParts.Headers);
 
-        var method = GetMethod(firstLine);
+        if (!firstLineExtractingResult.Success)
+            return firstLineExtractingResult.Error;
+
+        var method = GetMethod(firstLineExtractingResult.Value);
 
         if (!method.Success)
             return method.Error;
 
-        var route = GetRoute(firstLine);
+        var route = GetRoute(firstLineExtractingResult.Value);
 
         if (!route.Success)
             return route.Error;
 
-        var headerSection = requestParts.Headers[(firstLine.Length + RequestSymbolsAsBytes.NewRequestLine.Length)..]; // First line of request does not contain any header
+        // First line of request does not contain any header
+        var headerSection = requestParts.Headers[(firstLineExtractingResult.Value.Length 
+            + RequestSymbolsAsBytes.NewRequestLine.Length)..]; 
 
         var headers = MapHeaders(headerSection);
 
@@ -61,8 +65,22 @@ public sealed class Parser
     /// <param name="request">Entire request needed to be parsed</param>
     /// <returns>First request line represented in bytes</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Memory<byte> GetFirstLine(Memory<byte> request) =>
-        request[..request.Span.IndexOf(RequestSymbolsAsBytes.CarriageReturnSymbol)];
+    private Result<Memory<byte>> GetFirstLine(Memory<byte> request)
+    {
+        var lineEnd = request.Span.IndexOf(RequestSymbolsAsBytes.CarriageReturnSymbol);
+
+        if (lineEnd == -1)
+        {
+            lineEnd = request.Span.IndexOf(RequestSymbolsAsBytes.NewLine);
+            
+            Debug.Assert(lineEnd != -1);
+
+            if (lineEnd == -1)
+                return new Error(ParserErrors.InvalidRequestSyntax);
+        }
+
+        return request[..lineEnd];
+    }
 
     /// <summary>
     /// Extracts request method from entire request
@@ -103,7 +121,6 @@ public sealed class Parser
     /// <param name="headers">The entire request header section</param>
     /// <returns><see cref="Result{TResult}"/> wrapee with exception or headers dictionary.
     /// The dictionaries key is header title without column</returns>
-    [SkipLocalsInit]
     private Result<Dictionary<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>>> MapHeaders(Memory<byte> headers)
     {
         var headersDictionary = new Dictionary<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>>(8);

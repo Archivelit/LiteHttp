@@ -1,6 +1,4 @@
-﻿
-
-namespace LiteHttp;
+﻿namespace LiteHttp;
 
 /// <summary>
 /// Provides an HTTP server implementation that allows mapping routes to request handlers.
@@ -8,16 +6,16 @@ namespace LiteHttp;
 /// <remarks>Use this class to host an HTTP server and define handlers
 /// for HTTP methods such as GET, POST, PUT, PATCH, and DELETE. The server supports asynchronous startup and can be
 /// integrated with cancellation tokens for graceful shutdown. This class is sealed and cannot be inherited. It
-/// implements <see cref="IServer"/> and <see cref="IDisposable"/> for server lifecycle management.</remarks>
-public sealed class HttpServer : IServer, IDisposable
+/// implements <see cref="IServer"/> for server lifecycle management.</remarks>
+public sealed class HttpServer : IServer
 {
-    private readonly InternalServer _internalServer;
-    
+    private readonly IServer _internalServer;
+
     /// <summary>
-    /// Initializes a new instance of the HttpServer class with the specified <see cref="InternalServer"/>.
+    /// Initializes a new instance of the HttpServer class with internal server got in parameters.
     /// </summary>
-    /// <param name="internalServer">Preconfigured <see cref="InternalServer"/> instance.</param>
-    internal HttpServer(InternalServer internalServer) => _internalServer = internalServer;
+    /// <param name="internalServer">Preconfigured <see cref="IServer"/> instance.</param>
+    internal HttpServer(IServer internalServer) => _internalServer = internalServer;
 
     /// <inheritdoc/>
     public Task Start(CancellationToken cancellationToken = default) =>

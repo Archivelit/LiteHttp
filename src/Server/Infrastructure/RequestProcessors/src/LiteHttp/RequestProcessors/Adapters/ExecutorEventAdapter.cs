@@ -1,6 +1,4 @@
-﻿using LiteHttp.Models.LiteHttp.Models;
-
-namespace LiteHttp.RequestProcessors.Adapters;
+﻿namespace LiteHttp.RequestProcessors.Adapters;
 
 public sealed class ExecutorEventAdapter
 {

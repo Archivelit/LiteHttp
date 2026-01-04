@@ -1,6 +1,4 @@
-﻿using LiteHttp.Models.LiteHttp.Models;
-
-namespace LiteHttp.RequestProcessors.Adapters;
+﻿namespace LiteHttp.RequestProcessors.Adapters;
 
 public sealed class ParserEventAdapter
 {
@@ -8,7 +6,8 @@ public sealed class ParserEventAdapter
 
     public void Handle(ConnectionContext connectionContext)
     {
-        var result = _parser.Parse(connectionContext.Buffer);
+        var buffer = connectionContext.SocketEventArgs.Buffer;
+        var result = _parser.Parse(buffer);
 
         connectionContext.HttpContext = result.Value;
 
@@ -16,7 +15,6 @@ public sealed class ParserEventAdapter
     }
 
     private event Action<ConnectionContext> Parsed;
-
     private void OnParsed(ConnectionContext c) => Parsed?.Invoke(c);
     
     public void SubscribeToParsed(Action<ConnectionContext> handler) => Parsed += handler;
