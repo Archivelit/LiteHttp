@@ -3,11 +3,9 @@
 #nullable disable
 public sealed class RouterEventAdapter
 {
-    private readonly Router _router;
+    private readonly IRouter _router;
 
-    public RouterEventAdapter() => _router = new();
-
-    public RouterEventAdapter(Router router) => _router = router;
+    public RouterEventAdapter(IRouter router) => _router = router;
 
     public void Handle(ConnectionContext connectionContext)
     {

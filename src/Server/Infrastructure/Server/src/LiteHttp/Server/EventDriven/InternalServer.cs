@@ -32,8 +32,7 @@ public sealed class InternalServer : IServer
 
         EndpointProviderConfiguration = new EndpointProviderConfiguration();
 
-        var router = new Router();
-        router.SetContext(EndpointProviderConfiguration.EndpointContext);
+        var router = RouterFactory.Build(EndpointProviderConfiguration.EndpointContext);
 
         RouterAdapter = new(router);
 

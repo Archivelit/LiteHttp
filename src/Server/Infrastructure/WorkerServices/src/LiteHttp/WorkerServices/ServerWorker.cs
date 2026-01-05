@@ -4,16 +4,21 @@
 public sealed class ServerWorker : IServerWorker, IDisposable
 {
     private readonly Responder _responder = Responder.Instance;
-    private readonly Router _router = new();
+    private readonly IRouter _router;
     private readonly Parser _parser = Parser.Instance;
     private readonly Receiver _receiver = Receiver.Instance;
     private readonly ResponseBuilder _responseBuilder = new();
-
-    private ILogger<ServerWorker> _logger = NullLogger<ServerWorker>.Instance;
+    private readonly ILogger<ServerWorker> _logger;
     // TODO: refactor to handle large requests and prevent unexpected errors
 
-    public ServerWorker(IEndpointContext endpointContext, string address, int port, ILogger logger) =>
-        Initialize(endpointContext: endpointContext, logger: logger, port: port, address: address);
+    public ServerWorker(IEndpointContext endpointContext, string address, int port, ILogger logger)
+    {
+        _router = RouterFactory.Build(endpointContext);
+        _logger = logger.ForContext<ServerWorker>();
+
+        _responseBuilder.Address = address;
+        _responseBuilder.Port = port;
+    }
 
     public void SetHostPort(int port) =>
         _responseBuilder.Port = port;
@@ -82,14 +87,5 @@ public sealed class ServerWorker : IServerWorker, IDisposable
         connection.Shutdown(SocketShutdown.Both);
         connection.Close();
         connection.Dispose();
-    }
-
-    private void Initialize(IEndpointContext endpointContext, ILogger logger, int port, string address)
-    {
-        _router.SetContext(endpointContext);
-        _logger = logger.ForContext<ServerWorker>();
-
-        _responseBuilder.Address = address;
-        _responseBuilder.Port = port;
     }
 }

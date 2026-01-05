@@ -7,7 +7,7 @@
 /// </summary>
 internal sealed class RequestProcessor : IDisposable, IRequestProcessor
 {
-    private readonly Router _router = new();
+    private readonly IRouter _router;
     private readonly Parser _parser = Parser.Instance;
     private readonly ResponseBuilder _responseBuilder = new();
     private readonly ILogger<RequestProcessor> _logger;
@@ -21,7 +21,7 @@ internal sealed class RequestProcessor : IDisposable, IRequestProcessor
     /// <param name="logger">Logger used by whole app.</param>
     public RequestProcessor(IEndpointContext endpointContext, string address, int port, ILogger logger)
     {
-        _router.SetContext(endpointContext);
+        _router = RouterFactory.Build(endpointContext);
         _logger = logger.ForContext<RequestProcessor>();
 
         _responseBuilder.Address = address;
