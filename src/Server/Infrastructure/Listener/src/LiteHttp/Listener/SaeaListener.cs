@@ -70,7 +70,7 @@ public sealed class SaeaListener : IDisposable
         _isListening = false;
     }
 
-    public void StartListen(CancellationToken cancellationToken)
+    public bool StartListen(CancellationToken cancellationToken)
     {
         _cancellationToken = cancellationToken;
 
@@ -92,7 +92,7 @@ public sealed class SaeaListener : IDisposable
             var acceptEventArg = new SocketAsyncEventArgs();
             acceptEventArg.Completed += AcceptEventArg_Completed;
             
-            StartAccept(acceptEventArg);
+            return ThreadPool.UnsafeQueueUserWorkItem(StartAccept, acceptEventArg, false);
         }
         catch (Exception ex)
         {

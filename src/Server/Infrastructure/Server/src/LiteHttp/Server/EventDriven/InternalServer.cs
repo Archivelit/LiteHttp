@@ -68,13 +68,14 @@ public sealed class InternalServer : IServer
         
         try
         {
-            Listener.StartListen(cancellationToken);
+            if (!Listener.StartListen(cancellationToken))
+                throw new InvalidOperationException(); // TODO: Add exception string
 
             await Task.Delay(Timeout.Infinite, cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Unhandled excpetion occured");
+            _logger.LogError(ex, $"Unhandled exception occured");
             throw;
         }
     }
