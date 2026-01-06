@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\Constants\src\LiteHttp.Constants.csproj" />
     <ProjectReference Include="..\..\..\Core\Models\src\LiteHttp.Models.csproj" />
+    <ProjectReference Include="..\..\Helpers\src\LiteHttp.Helpers.csproj" />
   </ItemGroup>
 
 </Project>
