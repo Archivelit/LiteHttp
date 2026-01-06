@@ -1,13 +1,19 @@
-﻿namespace LiteHttp.ConnectionManager;
+﻿using System.Collections.Concurrent;
+
+namespace LiteHttp.ConnectionManager;
 
 #nullable disable
 public sealed class ConnectionManager
 {
     private readonly DefaultObjectPool<SocketAsyncEventArgs> _saeaPool;
-
+    private readonly ConcurrentDictionary<ulong, ConnectionContext> _connections;
+    private ulong _nextId = 0;
+    
     public ConnectionManager()
     {
         const int initObjectsCount = 50000;
+
+        _connections = new ConcurrentDictionary<ulong, ConnectionContext>(-1, initObjectsCount);
         
         _saeaPool = new();
         ObjectPoolInitializationHelper<SocketAsyncEventArgs>.Initialize(initObjectsCount, _saeaPool, () =>
@@ -41,6 +47,7 @@ public sealed class ConnectionManager
     {
         var socket = connectionContext.SocketEventArgs.AcceptSocket;
         bool willRaiseEvent = socket.SendAsync(connectionContext.SocketEventArgs);
+        
         if (!willRaiseEvent)
             ProcessSend(connectionContext.SocketEventArgs);
     }
@@ -65,19 +72,32 @@ public sealed class ConnectionManager
     {
         CloseConnection(saea);
         saea.AcceptSocket = null;
+        saea.UserToken = null;
+        
         _saeaPool.TryReturn(saea);
     }
 
     private void CloseConnection(SocketAsyncEventArgs saea)
     {
+        var connectionContext = (ConnectionContext)saea.UserToken;
+        
+        if (!_connections.TryRemove(connectionContext.Id, out _))
+            throw new InvalidOperationException($"Cannot remove task {connectionContext.Id}");
+        
         saea.AcceptSocket.Shutdown(SocketShutdown.Both);
         saea.AcceptSocket.Close();
     }
 
     private void ProcessReceive(SocketAsyncEventArgs saea)
     {
-        var connectionContext = new ConnectionContext(saea);
-
+        var connectionContext = new ConnectionContext(Interlocked.Increment(ref _nextId), saea);
+        saea.UserToken = connectionContext;
+        
+        // REVIEW: not thread safe. Should be refactored to support multiple accept loops
+        if (!_connections.TryAdd(connectionContext.Id, connectionContext))
+            throw new InvalidOperationException($"Cannot add task {connectionContext.Id}");
+        
+        
         saea.SetBuffer(saea.Offset, saea.Offset + saea.BytesTransferred);
 
         OnDataReceived(connectionContext);
