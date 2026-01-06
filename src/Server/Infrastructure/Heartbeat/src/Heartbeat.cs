@@ -1,5 +1,5 @@
 ﻿// Based on: ASP.NET Core Kestrel Heartbeat
-// Source: https://github.com/dotnet/aspnetcore/blob/main/src/Servers/Kestrel/Core/src/Internal/Infrastrutcure/Heartbeat.cs
+// Source: https://github.com/dotnet/aspnetcore/blob/main/src/Servers/Kestrel/Core/src/Internal/Infrastructure/Heartbeat.cs
 // Retrieved: 2026-01-06
 // License: MIT license
 

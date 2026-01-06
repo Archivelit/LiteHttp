@@ -4,7 +4,7 @@ public sealed class ExecutorEventAdapter
 {
     private readonly Executor _executor = new();
 
-    public void Handle(ConnectionContext context, Func<IActionResult> action)
+    public void Execute(ConnectionContext context, Func<IActionResult> action)
     {
         var result = _executor.Execute(action);
 

@@ -6,7 +6,7 @@ public sealed class ParserEventAdapter
 {
     private readonly Parser _parser = Parser.Instance;
 
-    public void Handle(ConnectionContext connectionContext)
+    public void ParseRequest(ConnectionContext connectionContext)
     {
         var buffer = connectionContext.SocketEventArgs.Buffer;
         var result = _parser.Parse(buffer);

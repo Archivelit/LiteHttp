@@ -7,7 +7,7 @@ public sealed class RouterEventAdapter
 
     public RouterEventAdapter(IRouter router) => _router = router;
 
-    public void Handle(ConnectionContext connectionContext)
+    public void GetAction(ConnectionContext connectionContext)
     {
         var action = _router.GetAction(connectionContext.HttpContext);
 

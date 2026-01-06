@@ -4,7 +4,7 @@ public sealed class ResponseBuilderEventAdapter
 {
     private readonly SaeaResponseBuilder _responseBuilder = new();
     
-    public void Handle(ConnectionContext context, IActionResult actionResult)
+    public void BuildResponse(ConnectionContext context, IActionResult actionResult)
     {
         var written = _responseBuilder.Build(actionResult, context.SocketEventArgs.Buffer);
         
