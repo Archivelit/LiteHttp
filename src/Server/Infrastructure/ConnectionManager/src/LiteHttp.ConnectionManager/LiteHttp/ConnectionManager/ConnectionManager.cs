@@ -1,19 +1,30 @@
-﻿using System.Collections.Concurrent;
+﻿// This implementation is partially inspired by ASP.NET Core Kestrel server
+// Original source: https://github.com/dotnet/aspnetcore 
+// License: MIT
+// Modifications: "Walk" logic and connection management adapted for our ConcurrentDictionary setup.
+//
+// The rest of the code is written without any inspiration, any similarities are purely coincidental.
+
+using System.Collections.Concurrent;
+
+using LiteHttp.Heartbeat;
 
 namespace LiteHttp.ConnectionManager;
 
 #nullable disable
-public sealed class ConnectionManager
+public sealed class ConnectionManager : IHeartbeatHandler, IDisposable
 {
+    private const int minimalReceiveSpeed = 1024; // 1 KB/s 
+    
     private readonly DefaultObjectPool<SocketAsyncEventArgs> _saeaPool;
-    private readonly ConcurrentDictionary<ulong, ConnectionContext> _connections;
-    private ulong _nextId = 0;
+    private readonly ConcurrentDictionary<long, ConnectionContext> _connections;
+    private long _nextId = 0;
     
     public ConnectionManager()
     {
         const int initObjectsCount = 50000;
 
-        _connections = new ConcurrentDictionary<ulong, ConnectionContext>(-1, initObjectsCount);
+        _connections = new ConcurrentDictionary<long, ConnectionContext>(-1, initObjectsCount);
         
         _saeaPool = new();
         ObjectPoolInitializationHelper<SocketAsyncEventArgs>.Initialize(initObjectsCount, _saeaPool, () =>
@@ -27,7 +38,20 @@ public sealed class ConnectionManager
             return saea;
         });
     }
+    
+    public void OnHeartbeat()
+    {
+        foreach (var kvp in _connections)
+        {
+            var connection = kvp.Value;
+            // Skip if connection opened recently
+            if (connection.CreatedAt.Add(TimeSpan.FromSeconds(1)) < DateTime.Now) continue;
 
+            if (connection.BytesReceived / (DateTime.Now - connection.CreatedAt).Seconds < minimalReceiveSpeed)
+                CloseConnection(connection.SocketEventArgs);
+        }
+    }
+    
     public void ReceiveFrom(SocketAsyncEventArgs acceptEventArg)
     {
         var connection = acceptEventArg.AcceptSocket;
@@ -97,6 +121,7 @@ public sealed class ConnectionManager
         if (!_connections.TryAdd(connectionContext.Id, connectionContext))
             throw new InvalidOperationException($"Cannot add task {connectionContext.Id}");
         
+        connectionContext.IncrementBytesReceived(saea.BytesTransferred);
         
         saea.SetBuffer(saea.Offset, saea.Offset + saea.BytesTransferred);
 
@@ -108,4 +133,10 @@ public sealed class ConnectionManager
 
     public void SubscribeToDataReceived(Action<ConnectionContext> handler) => DataReceived += handler;
     public void UnsubscribeFromDataReceived(Action<ConnectionContext> handler) => DataReceived -= handler;
+
+    public void Dispose()
+    {
+        // REVIEW: uncomment line below when object pool will implement IDisposable
+        // _saeaPool.Dispose();
+    }
 }

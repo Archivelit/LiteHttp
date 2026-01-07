@@ -16,6 +16,7 @@ public sealed class InternalServer : IServer
     internal readonly SaeaListener Listener;
     internal readonly ConnectionManager.ConnectionManager ConnectionManager;
     internal readonly ExecutorEventAdapter ExecutorAdapter;
+    internal readonly Heartbeat.Heartbeat Heartbeat;
     private readonly IEndpointProviderConfiguration EndpointProviderConfiguration;
     private readonly ILogger<InternalServer> _logger;
 
@@ -36,13 +37,15 @@ public sealed class InternalServer : IServer
 
         RouterAdapter = new(router);
 
+        Heartbeat = new Heartbeat.Heartbeat([ConnectionManager], _logger.ForContext<Heartbeat.Heartbeat>());
+        
         Binder.Bind(this);
     }
 
     public void Dispose()
     {
         Listener.Dispose();
-        //ConnectionManager.Dispose();
+        ConnectionManager.Dispose();
     }
 
     public void MapDelete(string route, Func<IActionResult> action) =>
