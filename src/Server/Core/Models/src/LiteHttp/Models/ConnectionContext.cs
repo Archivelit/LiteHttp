@@ -6,7 +6,7 @@ public sealed class ConnectionContext
     public HttpContext HttpContext { get; set; }
     public long Id { get; }
     public long BytesReceived { get; private set; }
-    public DateTime CreatedAt { get; } = DateTime.Now;
+    public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
     
     public ConnectionContext(long id, SocketAsyncEventArgs saea)
     {

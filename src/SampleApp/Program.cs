@@ -19,7 +19,7 @@ internal class Program
         var loggerAdapter = new SerilogLoggerAdapter();
 
         builder.WithLogger(loggerAdapter);
-
+        
         var server = builder.Build();
 
         server.MapGet("/", ActionResults.Ok);

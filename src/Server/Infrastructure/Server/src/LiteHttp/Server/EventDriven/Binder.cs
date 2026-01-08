@@ -5,14 +5,18 @@ internal static class Binder
     public static void Bind(InternalServer server)
     {
         server.Listener.SubscribeToRequestReceived(server.ConnectionManager.ReceiveFrom);
-        server.ConnectionManager.SubscribeToDataReceived(server.ParserAdapter.ParseRequest);
-        server.ParserAdapter.SubscribeToParsed(server.RouterAdapter.GetAction);
-        server.RouterAdapter.SubscribeToCompleted(server.ExecutorAdapter.Execute);
-        server.ExecutorAdapter.SubscribeToExecuted(server.ResponseBuilderAdapter.BuildResponse);
-        server.ResponseBuilderAdapter.SubscriveResponseBuilded(server.ConnectionManager.SendResponse);
-        
-        server.ParserAdapter.SubscribeToParsingError(server.ResponseBuilderAdapter.BuildResponse);
-        
-        server.RouterAdapter.SubscribeToRequestNotFound(server.ResponseBuilderAdapter.BuildResponse);
+        server.ConnectionManager.SubscribeToDataReceived(ctx =>
+        {
+            var pipeline = ThreadLocalPipelines.Current;
+            if (pipeline is null)
+            {
+                pipeline = server.PipelineFactory.BuildPipeline();
+                ThreadLocalPipelines.Current = pipeline;
+
+                pipeline.SubscribeToExecuted(server.ConnectionManager.SendResponse);
+            }
+
+            pipeline.ProcessRequest(ctx);
+        });
     }
 }

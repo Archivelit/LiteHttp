@@ -19,7 +19,7 @@ public sealed class Heartbeat : IDisposable
     private readonly Thread _heartbeatThread;
     private readonly ILogger<Heartbeat> _logger;
     
-    public Heartbeat(IHeartbeatHandler[] heartbeatHandlers, ILogger<Heartbeat> logger)
+    public Heartbeat(Span<IHeartbeatHandler> heartbeatHandlers, ILogger<Heartbeat> logger)
     {
         Debug.Assert(heartbeatHandlers.Length > 0, NoHandlersExceptionString);
 

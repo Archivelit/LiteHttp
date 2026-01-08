@@ -1,22 +1,23 @@
-﻿using LiteHttp.Constants;
+﻿using System.Runtime.InteropServices;
+
+using LiteHttp.Constants;
+using LiteHttp.Heartbeat;
 using LiteHttp.Listener;
 using LiteHttp.Logging;
 using LiteHttp.Logging.Abstractions;
 using LiteHttp.Models;
-using LiteHttp.RequestProcessors.Adapters;
+using LiteHttp.Pipeline;
+using LiteHttp.RequestProcessors;
 using LiteHttp.Routing;
 
 namespace LiteHttp.Server.EventDriven;
 
 public sealed class InternalServer : IServer
 {
-    internal readonly ParserEventAdapter ParserAdapter;
-    internal readonly RouterEventAdapter RouterAdapter;
-    internal readonly ResponseBuilderEventAdapter ResponseBuilderAdapter;
     internal readonly SaeaListener Listener;
     internal readonly ConnectionManager.ConnectionManager ConnectionManager;
-    internal readonly ExecutorEventAdapter ExecutorAdapter;
     internal readonly Heartbeat.Heartbeat Heartbeat;
+    internal readonly PipelineFactory PipelineFactory;
     private readonly IEndpointProviderConfiguration EndpointProviderConfiguration;
     private readonly ILogger<InternalServer> _logger;
 
@@ -25,19 +26,25 @@ public sealed class InternalServer : IServer
         logger ??= NullLogger.Instance;
         _logger = logger.ForContext<InternalServer>();
 
+        var heartbeatHandlers = new List<IHeartbeatHandler>();
+        
         Listener = new(address, port, logger.ForContext<SaeaListener>());
-        ParserAdapter = new();
-        ResponseBuilderAdapter = new();
         ConnectionManager = new();
-        ExecutorAdapter = new();
 
+        heartbeatHandlers.Add(ConnectionManager);
+        
         EndpointProviderConfiguration = new EndpointProviderConfiguration();
+        
+        PipelineFactory = new PipelineFactory(factory =>
+        {
+            factory.ParserFactory = () => Parser.Instance;
+            factory.RouterFactory = () => RouterFactory.Build(EndpointProviderConfiguration.EndpointContext);
+            factory.ResponseBuilderFactory = () => new();
+            factory.ExecutorFactory = () => new();
+        });
 
-        var router = RouterFactory.Build(EndpointProviderConfiguration.EndpointContext);
-
-        RouterAdapter = new(router);
-
-        Heartbeat = new Heartbeat.Heartbeat([ConnectionManager], _logger.ForContext<Heartbeat.Heartbeat>());
+        Heartbeat = new (CollectionsMarshal.AsSpan(heartbeatHandlers), 
+            _logger.ForContext<Heartbeat.Heartbeat>());
         
         Binder.Bind(this);
     }
@@ -72,7 +79,7 @@ public sealed class InternalServer : IServer
         {
             if (!Listener.StartListen(cancellationToken))
                 throw new InvalidOperationException(); // TODO: Add exception string
-
+            
             await Task.Delay(Timeout.Infinite, cancellationToken);
         }
         catch (Exception ex)
