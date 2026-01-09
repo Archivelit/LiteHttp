@@ -4,7 +4,7 @@ internal static class Binder
 {
     public static void Bind(InternalServer server)
     {
-        server.Listener.SubscribeToRequestReceived(server.ConnectionManager.ReceiveFrom);
+        server.Listener.SubscribeToRequestReceived(server.ConnectionManager.HandleAcceptedSocket);
         server.ConnectionManager.SubscribeToDataReceived(ctx =>
         {
             var pipeline = ThreadLocalPipelines.Current;

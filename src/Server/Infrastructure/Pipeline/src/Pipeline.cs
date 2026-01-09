@@ -1,4 +1,6 @@
-﻿namespace LiteHttp.Pipeline;
+﻿using System.Runtime.CompilerServices;
+
+namespace LiteHttp.Pipeline;
 
 public sealed class Pipeline
 {
@@ -14,15 +16,18 @@ public sealed class Pipeline
         _responseBuilder = factory.ResponseBuilderFactory();
         _executor = factory.ExecutorFactory();
     }
-
+    
     public void ProcessRequest(ConnectionContext connectionContext)
     {
         Memory<byte> buffer = connectionContext.SocketEventArgs.Buffer;
         var parsingResult = _parser.Parse(buffer);
+        int responseLength;
         
         if (!parsingResult.Success)
         {
-            _responseBuilder.Build(InternalActionResults.BadRequest(), buffer);
+            responseLength = _responseBuilder.Build(InternalActionResults.BadRequest(), buffer);
+            connectionContext.SocketEventArgs.SetBuffer(0, responseLength);
+            ThreadPool.UnsafeQueueUserWorkItem(OnExecuted, connectionContext, false);
             return;
         }
 
@@ -30,14 +35,16 @@ public sealed class Pipeline
 
         if (action is null)
         {
-            _responseBuilder.Build(InternalActionResults.NotFound(), buffer);
+            responseLength = _responseBuilder.Build(InternalActionResults.NotFound(), buffer);
+            connectionContext.SocketEventArgs.SetBuffer(0, responseLength);
+            ThreadPool.UnsafeQueueUserWorkItem(OnExecuted, connectionContext, false);
             return;
         }
 
         var executionResult = _executor.Execute(action);
 
-        _responseBuilder.Build(executionResult, buffer);
-
+        responseLength = _responseBuilder.Build(executionResult, buffer);
+        connectionContext.SocketEventArgs.SetBuffer(0, responseLength);
         ThreadPool.UnsafeQueueUserWorkItem(OnExecuted, connectionContext, false);
     }
     

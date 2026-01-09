@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Core\Models\src\LiteHttp.Models.csproj" />
     <ProjectReference Include="..\..\..\Heartbeat\src\LiteHttp.Heartbeat.csproj" />
+    <ProjectReference Include="..\..\..\Helpers\src\LiteHttp.Helpers.csproj" />
     <ProjectReference Include="..\..\..\ObjectPooling\src\ObjectPooling\ObjectPooling.csproj" />
   </ItemGroup>
 

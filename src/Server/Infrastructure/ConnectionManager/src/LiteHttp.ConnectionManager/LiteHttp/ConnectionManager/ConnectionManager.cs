@@ -6,8 +6,11 @@
 // The rest of the code is written without any inspiration, any similarities are purely coincidental.
 
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 using LiteHttp.Heartbeat;
+using LiteHttp.Helpers;
 
 namespace LiteHttp.ConnectionManager;
 
@@ -18,9 +21,9 @@ public sealed class ConnectionManager : IHeartbeatHandler, IDisposable
     private const int MinimalReceiveSpeed = 1024; // 1 KB/s 
     private static readonly TimeSpan Second = TimeSpan.FromSeconds(1);
     
-    private readonly DefaultObjectPool<SocketAsyncEventArgs> _saeaPool;
+    private readonly DefaultObjectPool<SocketAsyncEventArgs> _saeaPool = new();
     private readonly ConcurrentDictionary<long, ConnectionContext> _connections;
-    private long _nextId = 0;
+    private readonly ConnectionContextFactory _connectionContextFactory = new();
     
     public ConnectionManager()
     {
@@ -28,7 +31,6 @@ public sealed class ConnectionManager : IHeartbeatHandler, IDisposable
 
         _connections = new ConcurrentDictionary<long, ConnectionContext>(-1, initObjectsCount);
         
-        _saeaPool = new();
         ObjectPoolInitializationHelper<SocketAsyncEventArgs>.Initialize(initObjectsCount, _saeaPool, () =>
         {
             const int bufferSize = 4 * 1024; // 4 KB
@@ -58,31 +60,35 @@ public sealed class ConnectionManager : IHeartbeatHandler, IDisposable
         }
     }
     
-    // TODO: Create ConnectionContext in the Accept-loop via factory shared by all
-    // accept-loops, so each accept-loop owns its acceptEventArg.
-    // Then queue the receive operation with ThreadPool.UnsafeQueueUserWorkItem to
-    // decouple accept-loop from request processing. Ensure that adding to
-    // the global _connections dictionary is refactored or synchronized to safely
-    // support multiple accept-loops without races.
-    public void ReceiveFrom(SocketAsyncEventArgs acceptEventArg)
+    public void HandleAcceptedSocket(SocketAsyncEventArgs acceptEventArg)
     {
-        var connection = acceptEventArg.AcceptSocket;
-
         if (!_saeaPool.TryGet(out var saea)) return;
         
-        saea.AcceptSocket = connection;
+        saea.AcceptSocket = acceptEventArg.AcceptSocket;
         
-        var connectionContext = new ConnectionContext(Interlocked.Increment(ref _nextId), saea);
-        saea.UserToken = connectionContext;
+        ThreadPool.UnsafeQueueUserWorkItem(AdoptAcceptedSocket, saea, false);
+    }
+
+    private void AdoptAcceptedSocket(SocketAsyncEventArgs saea)
+    {
+        var connectionContext = _connectionContextFactory.Create(saea);
+        
+        saea.UserToken = connectionContext.Id;
         
         // REVIEW: not thread safe. Should be refactored to support multiple accept loops
         if (!_connections.TryAdd(connectionContext.Id, connectionContext))
             throw new InvalidOperationException($"Cannot add task {connectionContext.Id}");
         
-        bool willRaiseEvent = connection!.ReceiveAsync(saea);
-            
+        Receive(saea);
+    }
+
+    private void Receive(SocketAsyncEventArgs saea)
+    {
+        var socket = saea.AcceptSocket;
+        bool willRaiseEvent = socket!.ReceiveAsync(saea);
+
         if (!willRaiseEvent)
-            ThreadPool.UnsafeQueueUserWorkItem(ProcessReceive, saea, false);
+            ProcessReceive(saea);
     }
 
     public void SendResponse(ConnectionContext connectionContext)
@@ -119,10 +125,11 @@ public sealed class ConnectionManager : IHeartbeatHandler, IDisposable
 
     private void CloseConnection(SocketAsyncEventArgs saea)
     {
-        var connectionContext = (ConnectionContext)saea.UserToken;
+        var connectionContextId = (long)saea.UserToken;
+        _connections.TryGetValue(connectionContextId, out var connectionContext);
         
         if (!_connections.TryRemove(connectionContext.Id, out _))
-            throw new InvalidOperationException($"Cannot remove task {connectionContext.Id}");
+            throw new InvalidOperationException($"Cannot remove connection {connectionContext.Id}");
         
         saea.AcceptSocket.Shutdown(SocketShutdown.Both);
         saea.AcceptSocket.Close();
@@ -130,12 +137,14 @@ public sealed class ConnectionManager : IHeartbeatHandler, IDisposable
 
     private void ProcessReceive(SocketAsyncEventArgs saea)
     {
-        var connectionContext = (ConnectionContext)saea.UserToken;
+        var connectionContextId = (long)saea.UserToken;
+
+        if (!_connections.TryGetValue(connectionContextId, out var connectionContext))
+            throw new InvalidOperationException($"Cannot get connection {connectionContextId}");
         
         connectionContext.IncrementBytesReceived(saea.BytesTransferred);
         
         saea.SetBuffer(saea.Offset, saea.Offset + saea.BytesTransferred);
-        
         OnDataReceived(connectionContext);
     }
 
