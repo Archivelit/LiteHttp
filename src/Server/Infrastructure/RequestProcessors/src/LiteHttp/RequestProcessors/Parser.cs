@@ -5,14 +5,18 @@ namespace LiteHttp.RequestProcessors;
 #nullable disable
 public sealed class Parser
 {
+    private static Error InvalidHeaderSyntaxErorr = new(ParserErrors.InvalidRequestSyntax, "Headers have wrong format");
+    private static Error InvalidRequestSyntaxError = new(ParserErrors.InvalidRequestSyntax, "Request has wrong format");
+
     public static readonly Parser Instance = new();
-    
+
     /// <summary>
     /// Parses the entire request bytes into <see cref="HttpContext"/> model.
     /// </summary>
     /// <param name="request">Entire request bytes.</param>
     /// <returns><see cref="Result{TResult}"/> wrappee with result or exception wrapped</returns>
-    public Result<HttpContext> Parse(Memory<byte> request)
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    public Result<HttpContext> Parse(in Memory<byte> request)
     {
         var requestParts = SplitRequest(request);
 
@@ -48,13 +52,13 @@ public sealed class Parser
     /// <param name="firstRequestLine">The first line of http request represented in byte array</param>
     /// <returns><see cref="Result{TReult}"/> wrapee with result or exception wrapped</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Result<Memory<byte>> GetRoute(Memory<byte> firstRequestLine)
+    private Result<Memory<byte>> GetRoute(in Memory<byte> firstRequestLine)
     {
         var firstSpaceIndex = firstRequestLine.Span.IndexOf(RequestSymbolsAsBytes.Space);
         var lastSpaceIndex = firstRequestLine.Span.LastIndexOf(RequestSymbolsAsBytes.Space);
 
         if (firstSpaceIndex == lastSpaceIndex)
-            return new Error(ParserErrors.InvalidRequestSyntax, "The request has wrong format");
+            return InvalidRequestSyntaxError;
 
         return firstRequestLine[(firstSpaceIndex + 1)..lastSpaceIndex]; // space index + 1 to exclude whitespace and get first symbol of route
     }
@@ -65,7 +69,7 @@ public sealed class Parser
     /// <param name="request">Entire request needed to be parsed</param>
     /// <returns>First request line represented in bytes</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Result<Memory<byte>> GetFirstLine(Memory<byte> request)
+    private Result<Memory<byte>> GetFirstLine(in Memory<byte> request)
     {
         var lineEnd = request.Span.IndexOf(RequestSymbolsAsBytes.CarriageReturnSymbol);
 
@@ -76,7 +80,7 @@ public sealed class Parser
             Debug.Assert(lineEnd != -1);
 
             if (lineEnd == -1)
-                return new Error(ParserErrors.InvalidRequestSyntax);
+                return InvalidRequestSyntaxError;
         }
 
         return request[..lineEnd];
@@ -88,12 +92,13 @@ public sealed class Parser
     /// <param name="firstRequestLine">First line of the entire request</param>
     /// <returns>The <see cref="Result{TResult}"/> wrapee with exception or method represented in bytes</returns>
     /// <exception cref="ArgumentException">Returned if request does not contain method</exception>
-    private Result<Memory<byte>> GetMethod(Memory<byte> firstRequestLine)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Result<Memory<byte>> GetMethod(in Memory<byte> firstRequestLine)
     {
         var spaceIndex = firstRequestLine.Span.IndexOf(RequestSymbolsAsBytes.Space);
 
         if (spaceIndex == -1)
-            return new Error(ParserErrors.InvalidRequestSyntax, "The request has wrong format");
+            return InvalidRequestSyntaxError;
 
         return firstRequestLine[..spaceIndex];
     }
@@ -104,7 +109,7 @@ public sealed class Parser
     /// <param name="request">Entire request</param>
     /// <returns>Tuple with slices of entire request parts. Body is null if request does not contain it</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private (Memory<byte> Headers, Memory<byte>? Body) SplitRequest(Memory<byte> request)
+    private (Memory<byte> Headers, Memory<byte>? Body) SplitRequest(in Memory<byte> request)
     {
         var splitterIndex = request.Span.IndexOf(RequestSymbolsAsBytes.RequestSplitter);
 
@@ -121,6 +126,7 @@ public sealed class Parser
     /// <param name="headers">The entire request header section</param>
     /// <returns><see cref="Result{TResult}"/> wrapee with exception or headers dictionary.
     /// The dictionaries key is header title without column</returns>
+    [MethodImpl (MethodImplOptions.AggressiveOptimization)]
     private Result<Dictionary<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>>> MapHeaders(Memory<byte> headers)
     {
         var headersDictionary = new Dictionary<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>>(8);
@@ -144,7 +150,7 @@ public sealed class Parser
             var colon = headers.Span[..eol].IndexOf(RequestSymbolsAsBytes.Colon);
 
             if (colon == -1)
-                return new Error(ParserErrors.InvalidRequestSyntax, "The headers had wrong format");
+                return InvalidHeaderSyntaxErorr;
 
             var key = headers[..colon];
             var value = headers[
