@@ -23,5 +23,5 @@ public sealed class PipelineFactory
         if (ExecutorFactory is null) throw new ArgumentNullException(nameof(ExecutorFactory));
     }
 
-    public Pipeline BuildPipeline() => new(this);
+    public Pipeline Create() => new(this);
 }   

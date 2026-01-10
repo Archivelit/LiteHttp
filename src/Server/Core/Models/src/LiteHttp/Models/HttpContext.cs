@@ -1,7 +1,8 @@
 ﻿namespace LiteHttp.Models;
 
+[StructLayout(LayoutKind.Sequential)]
 public record struct HttpContext(
     ReadOnlyMemory<byte> Method,
     ReadOnlyMemory<byte> Route,
-    Dictionary<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>> Headers,
-    ReadOnlyMemory<byte>? Body);
+    ReadOnlyMemory<byte>? Body,
+    Dictionary<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>> Headers);

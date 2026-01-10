@@ -1,12 +1,13 @@
 ﻿namespace LiteHttp.Models;
 
+[StructLayout(LayoutKind.Sequential)]
 public sealed class ConnectionContext
 {
-    public SocketAsyncEventArgs SocketEventArgs { get; init; }
     public HttpContext HttpContext { get; set; }
+    public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
+    public SocketAsyncEventArgs SocketEventArgs { get; init; }
     public long Id { get; }
     public long BytesReceived { get; private set; }
-    public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
     
     public ConnectionContext(long id, SocketAsyncEventArgs saea)
     {

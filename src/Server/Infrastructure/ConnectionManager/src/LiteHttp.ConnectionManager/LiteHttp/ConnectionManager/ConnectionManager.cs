@@ -36,7 +36,7 @@ public sealed class ConnectionManager : IHeartbeatHandler, IDisposable
             const int bufferSize = 4 * 1024; // 4 KB
             var saea = new SocketAsyncEventArgs();
 
-            saea.Completed += IOCompleted;
+            saea.Completed += IoCompleted;
             saea.SetBuffer(new byte[bufferSize], 0, bufferSize);
 
             return saea;
@@ -60,16 +60,16 @@ public sealed class ConnectionManager : IHeartbeatHandler, IDisposable
         }
     }
     
-    public void HandleAcceptedSocket(SocketAsyncEventArgs acceptEventArg)
+    public void HandleAccept(SocketAsyncEventArgs acceptEventArg)
     {
         if (!_saeaPool.TryGet(out var saea)) return;
         
         saea.AcceptSocket = acceptEventArg.AcceptSocket;
         
-        ThreadPool.UnsafeQueueUserWorkItem(AdoptAcceptedSocket, saea, false);
+        ThreadPool.UnsafeQueueUserWorkItem(InitializeConnection, saea, false);
     }
 
-    private void AdoptAcceptedSocket(SocketAsyncEventArgs saea)
+    private void InitializeConnection(SocketAsyncEventArgs saea)
     {
         var connectionContext = _connectionContextFactory.Create(saea);
         
@@ -100,7 +100,7 @@ public sealed class ConnectionManager : IHeartbeatHandler, IDisposable
             ProcessSend(connectionContext.SocketEventArgs);
     }
     
-    private void IOCompleted(object? sender, SocketAsyncEventArgs saea)
+    private void IoCompleted(object? sender, SocketAsyncEventArgs saea)
     {
         switch(saea.LastOperation)
         {

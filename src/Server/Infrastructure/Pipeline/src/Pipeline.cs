@@ -17,6 +17,7 @@ public sealed class Pipeline
         _executor = factory.ExecutorFactory();
     }
     
+    [SkipLocalsInit]
     public void ProcessRequest(ConnectionContext connectionContext)
     {
         Memory<byte> buffer = connectionContext.SocketEventArgs.Buffer;

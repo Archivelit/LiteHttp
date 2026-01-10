@@ -39,7 +39,7 @@ public sealed class Parser
 
         return !headers.Success
             ? headers.Error.Value
-            : new HttpContext(method.Value, route.Value, headers.Value, requestParts.Body);
+            : new HttpContext(method.Value, route.Value, requestParts.Body, headers.Value);
     }
 
     /// <summary>
