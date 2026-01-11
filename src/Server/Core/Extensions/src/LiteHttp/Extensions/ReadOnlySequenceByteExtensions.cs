@@ -8,7 +8,7 @@ public static class ReadOnlySequenceByteExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [SkipLocalsInit]
-    public static ReadOnlyMemory<byte> GetReadOnlyMemoryFromSequence(this ReadOnlySequence<byte> methodSequence)
+    public static ReadOnlyMemory<byte> GetReadOnlyMemoryFromSequence(in this ReadOnlySequence<byte> methodSequence)
     {
         if (SequenceMarshal.TryGetReadOnlyMemory(methodSequence, out var memory))
         {

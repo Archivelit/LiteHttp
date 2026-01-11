@@ -10,7 +10,7 @@ public class ParserTests
     private readonly ITestOutputHelper _outputHelper = TestContext.Current.TestOutputHelper;
     private readonly Pipe _requestPipe = new Pipe();
 
-    [Fact(Skip = "Under development")]
+    [Fact]
     public async Task Parse_ValidRequest_ShouldReturn_HttpContext()
     {
         // Arrange
@@ -45,7 +45,7 @@ public class ParserTests
         result.Value.Body.Should().BeNull();
     }
 
-    [Fact(Skip = "Under development")]
+    [Fact]
     public async Task Parse_ValidRequest_WithoutCRLFOnEnd_ShouldReturn_HttpContext()
     {
         // Arrange
@@ -80,7 +80,7 @@ public class ParserTests
         result.Value.Body.Should().BeNull();
     }
 
-    [Fact(Skip = "Under development")]
+    [Fact]
     public async Task Parse_ValidRequest_WithSimpleBody_ShouldReturn_HttpContext()
     {
         // Arrange
@@ -119,7 +119,7 @@ public class ParserTests
         result.Value.Body.Value.ToArray().Should().BeEquivalentTo(expectedBody);
     }
 
-    [Fact(Skip = "Under development")]
+    [Fact]
     public async Task Parse_InvalidRequest_WithoutHttpVersion_ShouldReturn_ResultWithError_InvalidRequestSyntax()
     {
         // Arrange
@@ -136,7 +136,7 @@ public class ParserTests
         result.Error.Value.ErrorCode.Should().Be(ParserErrors.InvalidRequestSyntax);
     }
 
-    [Fact(Skip = "Under development")]
+    [Fact]
     public async Task Parse_InvalidRequest_WithoutMethod_ShouldReturn_ResultWithError_InvalidRequestSyntax()
     {
         // Arrange
@@ -153,7 +153,7 @@ public class ParserTests
         result.Error.Value.ErrorCode.Should().Be(ParserErrors.InvalidRequestSyntax);
     }
 
-    [Fact(Skip = "Under development")]
+    [Fact]
     public async Task Parse_InvalidRequest_WithoutRoute_ShouldReturn_ResultWithError_InvalidRequestSyntax()
     {
         // Arrange
@@ -170,7 +170,7 @@ public class ParserTests
         result.Error.Value.ErrorCode.Should().Be(ParserErrors.InvalidRequestSyntax);
     }
 
-    [Fact(Skip = "Under development")]
+    [Fact]
     public async Task Parse_InvalidRequest_WithoutSpaces_ShouldReturn_ResultWithError_InvalidRequestSyntax()
     {
         // Arrange
@@ -187,7 +187,7 @@ public class ParserTests
         result.Error.Value.ErrorCode.Should().Be(ParserErrors.InvalidRequestSyntax);
     }
 
-    [Fact(Skip = "Under development")]
+    [Fact]
     public async Task Parse_ValidRequest_WithoutSpaceInHeader_ShouldReturn_HttpContext()
     {
         // Arrange
@@ -222,7 +222,7 @@ public class ParserTests
         result.Value.Body.Should().BeNull();
     }
 
-    [Fact(Skip = "Under development")]
+    [Fact]
     public async Task Parse_ValidRequest_WithoutSpaceInHeader_WithShortHeader_ShouldReturn_HttpContext()
     {
         // Arrange
@@ -261,7 +261,7 @@ public class ParserTests
         result.Value.Body.Should().BeEquivalentTo(expectedBody);
     }
 
-    [Fact(Skip = "Under development")]
+    [Fact]
     public async Task Parse_ValidRequest_WithoutCR_ShouldReturn_HttpContext()
     {
         // Arrange
@@ -296,7 +296,7 @@ public class ParserTests
         result.Value.Body.Should().BeNull();
     }
 
-    [Fact(Skip = "Under development")]
+    [Fact]
     public async Task Parse_ValidRequest_WithShortHeader_WithoutCR_WithoutSpaceInHeader_ShouldReturn_HttpContext()
     {
         // Arrange
@@ -335,7 +335,7 @@ public class ParserTests
         result.Value.Body.Should().BeEquivalentTo(expectedBody);
     }
 
-    [Fact(Skip = "Under development")]
+    [Fact]
     public async Task Parse_InvalidRequest_WithTwoSameHeaders_ShouldReturn_TwoSameHeadersMetError()
     {
         // Arrange
@@ -351,7 +351,7 @@ public class ParserTests
         result.Error.Value.ErrorCode.Should().Be(ParserErrors.TwoSameHeadersMet);
     }
 
-    [Fact(Skip = "Under development")]
+    [Fact]
     public async Task Parse_InvalidRequest_WithTwoSameHeaders_WithDifferentLetterCase_ShouldReturn_TwoSameHeadersMetError()
     {
         // Arrange
@@ -367,7 +367,7 @@ public class ParserTests
         result.Error.Value.ErrorCode.Should().Be(ParserErrors.TwoSameHeadersMet);
     }
 
-    [Fact(Skip = "Under development")]
+    [Fact]
     public async Task Parse_InvalidRequest_WithoutHeaderValue_ShouldReturn_InvalidHeaderValueError()
     {
         // Arrange

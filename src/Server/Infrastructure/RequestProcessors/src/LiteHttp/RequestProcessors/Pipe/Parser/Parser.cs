@@ -7,9 +7,9 @@ internal sealed class Parser
 {
     // Some pre-allocated errors to prevent extra allocations
     private static readonly Error RequestLineSyntaxError =
-        new Error(ParserErrors.InvalidRequestSyntax, "Request line has wrong format");
+        new(ParserErrors.InvalidRequestSyntax, "Request line has wrong format");
     private static readonly Error InvalidHeaderValueTypeError =
-        new Error(ParserErrors.InvalidHeaderValue, ExceptionStrings.InvalidHeaderValueType);
+        new(ParserErrors.InvalidHeaderValue, ExceptionStrings.InvalidHeaderValueType);
     
     private readonly HttpContextBuilder _httpContextBuilder = new();
     private readonly IHeaderParser _headerParser = new DefaultHeaderParser();
@@ -17,12 +17,13 @@ internal sealed class Parser
     private ParsingState _parsingState = ParsingState.HeadersParsing;
     private HeaderCollection _headerCollection = new();
     private long _contentLength = 0;
-    
+
     /// <summary>
     /// Parses the entire request bytes into <see cref="HttpContext"/> model.
     /// </summary>
     /// <param name="requestPipe">Pipe contains bytes of entire request.</param>
     /// <returns><see cref="Result{TResult}"/> wrappee with result or exception wrapped</returns>
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public async ValueTask<Result<HttpContext>> Parse(Pipe requestPipe)
     {
         ResetState();
@@ -43,7 +44,7 @@ internal sealed class Parser
                 Debug.Assert(chunkReader.Consumed >= examined, "Consumed bytes does not correspond to examined bytes");
 
                 requestPipe.Reader.AdvanceTo(chunkReader.Position);
-                await requestPipe.Reader.CompleteAsync();
+
                 return error;
             }
 
@@ -100,26 +101,27 @@ internal sealed class Parser
                             return false;
                         }
 
-                        _parsingState = ParsingState.BodyParsing;
-                        _httpContextBuilder.WithHeaders(_headerCollection);
-
-                        var contentLengthUpdateResult = UpdateContentLength();                        
+                        var contentLengthUpdateResult = UpdateContentLength();
                         if (!contentLengthUpdateResult.Success)
                         {
                             error = contentLengthUpdateResult.Error;
                             return false;
                         }
-                        chunkReader.Advance(1); // Advance to skip LF ('\n')
+
+                        _parsingState = _contentLength == 0 
+                            ? ParsingState.Finished 
+                            : ParsingState.BodyParsing;
+                        
+                        _httpContextBuilder.WithHeaders(_headerCollection);
                         examined += line.Length;
                         break;
                     }
-                    examined += line.Length;   
+                    examined += line.Length;
+                    chunkReader.Advance(1);
                 }
 
                 if (_parsingState == ParsingState.BodyParsing)
-                {
                     goto case ParsingState.BodyParsing;
-                }
             }
                 break;
             
@@ -176,7 +178,8 @@ internal sealed class Parser
     /// </summary>
     /// <param name="line">Request line of the entire request</param>
     /// <returns>Error if operation was not success, otherwise null</returns>
-    private Result ParseRequestLine(ReadOnlySequence<byte> line)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Result ParseRequestLine(in ReadOnlySequence<byte> line)
     {
         var reader = new SequenceReader<byte>(line);
 
@@ -204,7 +207,8 @@ internal sealed class Parser
     /// <param name="line">The sequence of bytes representing a single HTTP header line to parse.</param>
     /// <returns>A Result indicating the outcome of the header parsing operation. Returns Result.Successful if the header is
     /// parsed successfully or if a state update is performed; otherwise, returns a Result containing error information.</returns>
-    private Result ParseHeader(ReadOnlySequence<byte> line)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Result ParseHeader(in ReadOnlySequence<byte> line)
     {
         var result = _headerParser.ParseHeader(line, _headerCollection);
 
@@ -222,9 +226,8 @@ internal sealed class Parser
         if (_headerCollection.Headers.TryGetValue(HeadersAsBytes.ContentLength, out var contentLengthValue))
         {
             if (!long.TryParse(contentLengthValue.Span, out var result))
-            {
                 return InvalidHeaderValueTypeError;
-            }
+
             _contentLength = result;
         }
         return Result.Successful;

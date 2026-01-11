@@ -10,5 +10,5 @@ public interface IHeaderParser
     /// <param name="headerCollection">Collection of headers for storing parsed headers. Cannot be null.</param>
     /// <returns>A result indicating the outcome of the header parsing operation. Must return <see cref="HeaderParsingErrors.StateUpdateRequested"/> 
     /// for proper header parsing, otherwise parsing must not work with body. Other <see cref="HeaderParsingErrors"/> can be returned.</returns>
-    public HeaderParsingResult ParseHeader(ReadOnlySequence<byte> line, [DisallowNull] HeaderCollection headerCollection);
+    public HeaderParsingResult ParseHeader(in ReadOnlySequence<byte> line, [DisallowNull] HeaderCollection headerCollection);
 }

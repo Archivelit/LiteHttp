@@ -3,15 +3,13 @@
 internal sealed class DefaultHeaderParser : IHeaderParser
 {
     /// <inheritdoc />
-    public HeaderParsingResult ParseHeader(ReadOnlySequence<byte> line, HeaderCollection headerCollection)
+    public HeaderParsingResult ParseHeader(in ReadOnlySequence<byte> line, HeaderCollection headerCollection)
     {
         // Line integrity is already validated during input reading
 
         // Request separator line ("\r\n") encountered
         if (line.Length < 3)
-        {
             return HeaderParsingResult.StateUpdateRequested;
-        }
 
         var reader = new SequenceReader<byte>(line);
 
@@ -24,12 +22,12 @@ internal sealed class DefaultHeaderParser : IHeaderParser
 
         var headerTitleMemory = headerTitleSequence.GetReadOnlyMemoryFromSequence();
         var headerValueMemory = headerValueSequence.GetReadOnlyMemoryFromSequence();
-        var trimmedValue = Trim(headerValueMemory);
+        Trim(ref headerValueMemory);
 
-        if (trimmedValue.IsEmpty)
+        if (headerValueMemory.IsEmpty)
             return HeaderParsingResult.HeaderSyntaxError;
 
-        var addingResult = headerCollection.TryAdd(headerTitleMemory, trimmedValue);
+        var addingResult = headerCollection.TryAdd(headerTitleMemory, headerValueMemory);
 
         if (!addingResult.Success)
             return addingResult.Error;
@@ -38,7 +36,7 @@ internal sealed class DefaultHeaderParser : IHeaderParser
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static ReadOnlyMemory<byte> Trim(ReadOnlyMemory<byte> memory)
+    private static void Trim(ref ReadOnlyMemory<byte> memory)
     {
         int current = 0;
         while (current < memory.Length && memory.Span[current] == ' ')
@@ -55,6 +53,6 @@ internal sealed class DefaultHeaderParser : IHeaderParser
         }
 
         //return memory[..current];
-        return current >= 0 ? memory[..(current + 1)] : ReadOnlyMemory<byte>.Empty;
+        memory = current >= 0 ? memory[..(current + 1)] : ReadOnlyMemory<byte>.Empty;
     }
 }

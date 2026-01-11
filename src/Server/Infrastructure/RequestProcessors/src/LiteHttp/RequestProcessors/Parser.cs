@@ -5,8 +5,8 @@ namespace LiteHttp.RequestProcessors;
 #nullable disable
 public sealed class Parser
 {
-    private static Error InvalidHeaderSyntaxErorr = new(ParserErrors.InvalidRequestSyntax, "Headers have wrong format");
-    private static Error InvalidRequestSyntaxError = new(ParserErrors.InvalidRequestSyntax, "Request has wrong format");
+    private static readonly Error InvalidHeaderSyntaxErorr = new(ParserErrors.InvalidRequestSyntax, "Headers have wrong format");
+    private static readonly Error InvalidRequestSyntaxError = new(ParserErrors.InvalidRequestSyntax, "Request has wrong format");
 
     public static readonly Parser Instance = new();
 

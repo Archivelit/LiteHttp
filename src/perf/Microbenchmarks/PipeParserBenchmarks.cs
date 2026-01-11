@@ -1,7 +1,7 @@
 ﻿namespace LiteHttp.Microbenchmarks;
 
 [CPUUsageDiagnoser, MemoryDiagnoser, DotNetObjectAllocJobConfiguration, DotNetObjectAllocDiagnoser, CategoriesColumn, Orderer(BenchmarkDotNet.Order.SummaryOrderPolicy.FastestToSlowest)]
-public class ParserBenchmarks
+public class PipeParserBenchmarks
 {
     private readonly byte[] _request = Encoding.ASCII.GetBytes("GET / HTTP/1.1\r\nHost: localhost\r\n\r\n");
     private RequestProcessors.PipeContext.Parser.Parser _parser;
@@ -13,7 +13,7 @@ public class ParserBenchmarks
         _parser = new();
     }
 
-    [Params(1_000, 10_000, 1_000_000)]
+    [Params(10_000, 50_000, 1_000_000)]
     public int N;
 
     [IterationSetup]
