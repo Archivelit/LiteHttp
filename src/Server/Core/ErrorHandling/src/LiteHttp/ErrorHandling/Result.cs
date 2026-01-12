@@ -31,7 +31,7 @@ public readonly record struct Result<TResult>
     /// Initializes a new instance of the Result class that represents a failed operation with the specified error.
     /// </summary>
     /// <param name="error">The error information describing the reason for the failure. Cannot be null.</param>
-    public Result(Error error)
+    public Result(in Error error)
     {
         Error = error;
         Success = false;
@@ -41,7 +41,7 @@ public readonly record struct Result<TResult>
     /// Initializes a new instance of the Result class that represents a failed operation with the specified error.
     /// </summary>
     /// <param name="error">The error information describing the reason for the failure. Cannot be null.</param>
-    public Result(Error? error)
+    public Result(in Error? error)
     {
         Error = error;
         Success = false;
@@ -58,8 +58,8 @@ public readonly record struct Result<TResult>
     }
 
     public static implicit operator Result<TResult>(TResult result) => new(result);
-    public static implicit operator Result<TResult>(Error error) => new(error);
-    public static implicit operator Result<TResult>(Error? error) => new(error);
+    public static implicit operator Result<TResult>(in Error error) => new(error);
+    public static implicit operator Result<TResult>(in Error? error) => new(error);
 }
 
 /// <summary>
@@ -91,7 +91,7 @@ public readonly struct Result
     /// Initializes a new instance of the Result class that represents a failed operation with the specified error.
     /// </summary>
     /// <param name="error">The error information describing the reason for the failure. Cannot be null.</param>
-    public Result(Error error)
+    public Result(in Error error)
     {
         Error = error;
         Success = false;
@@ -101,7 +101,7 @@ public readonly struct Result
     /// Initializes a new instance of the Result class that represents a failed operation with the specified error.
     /// </summary>
     /// <param name="error">The error information describing the reason for the failure. Cannot be null.</param>
-    public Result(Error? error)
+    public Result(in Error? error)
     {
         Error = error;
         Success = false;
@@ -113,6 +113,6 @@ public readonly struct Result
     /// <param name="result">The value to assign to the result. This value will be accessible through the <see cref="Value"/> property.</param>
     public Result() => Success = true;
 
-    public static implicit operator Result(Error error) => new(error);
-    public static implicit operator Result(Error? error) => new(error);
+    public static implicit operator Result(in Error error) => new(error);
+    public static implicit operator Result(in Error? error) => new(error);
 }

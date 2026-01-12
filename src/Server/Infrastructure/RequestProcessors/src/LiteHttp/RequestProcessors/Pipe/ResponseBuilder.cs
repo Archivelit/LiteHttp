@@ -52,10 +52,9 @@ internal sealed class ResponseBuilder
             Write(requestPipe.Writer, context.Body.Value);
         
         await requestPipe.Writer.FlushAsync();
-        await requestPipe.Writer.CompleteAsync();
     }
 
-    private void BuildHeaders(Pipe requestPipe, HttpContext context)
+    private void BuildHeaders(Pipe requestPipe, in HttpContext context)
     {
         Write(requestPipe.Writer, HeadersAsBytes.Host);
 
@@ -76,7 +75,7 @@ internal sealed class ResponseBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void Write(PipeWriter writer, ReadOnlyMemory<byte> bytes)
+    private static void Write(PipeWriter writer, in ReadOnlyMemory<byte> bytes)
     {
         var buffer = writer.GetMemory(bytes.Length);
         bytes.CopyTo(buffer);
@@ -84,11 +83,12 @@ internal sealed class ResponseBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void Write(PipeWriter writer, ReadOnlySequence<byte> sequence)
+    private static void Write(PipeWriter writer, in ReadOnlySequence<byte> sequence)
     {
         foreach (var segment in sequence)
             Write(writer, segment);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void UpdateHost() => _host = Encoding.UTF8.GetBytes($"{Address}:{Port}");
 }
