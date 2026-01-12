@@ -15,8 +15,7 @@ internal sealed class DefaultHeaderParser : IHeaderParser
 
         if (!reader.TryReadTo(out ReadOnlySequence<byte> headerTitleSequence, RequestSymbolsAsBytes.Colon, true))
             return HeaderParsingResult.HeaderSyntaxError;
-
-
+        
         if (!reader.TryReadExact((int)reader.UnreadSequence.Length, out var headerValueSequence))
             return HeaderParsingResult.HeaderSyntaxError;
 
@@ -38,16 +37,18 @@ internal sealed class DefaultHeaderParser : IHeaderParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void Trim(ref ReadOnlyMemory<byte> memory)
     {
+        var span = memory.Span;
         int current = 0;
-        while (current < memory.Length && memory.Span[current] == ' ')
+        while (current < memory.Length && span[current] == ' ')
             current += 1;
 
         memory = memory[current..];
+        span = memory.Span;
 
         current = memory.Length - 1; // - 1 to point to the last character
-        while (current >= 0 && (memory.Span[current] == RequestSymbolsAsBytes.Space 
-                                || memory.Span[current] == RequestSymbolsAsBytes.CarriageReturnSymbol 
-                                || memory.Span[current] == RequestSymbolsAsBytes.LineFeed))
+        while (current >= 0 && (span[current] == RequestSymbolsAsBytes.Space 
+                                || span[current] == RequestSymbolsAsBytes.CarriageReturnSymbol 
+                                || span[current] == RequestSymbolsAsBytes.LineFeed))
             current -= 1;
         
         memory = current >= 0 ? memory[..(current + 1)] : ReadOnlyMemory<byte>.Empty;

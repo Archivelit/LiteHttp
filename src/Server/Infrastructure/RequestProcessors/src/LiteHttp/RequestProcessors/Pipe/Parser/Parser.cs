@@ -22,7 +22,7 @@ internal sealed class Parser
     /// Parses the entire request bytes into <see cref="HttpContext"/> model.
     /// </summary>
     /// <param name="requestPipe">Pipe contains bytes of entire request.</param>
-    /// <returns><see cref="Result{TResult}"/> wrappee with result or exception wrapped</returns>
+    /// <returns><see cref="Result{TResult}"/> wrappee with result or exception wrapped.</returns>
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public async ValueTask<Result<HttpContext>> Parse(Pipe requestPipe)
     {
@@ -109,19 +109,17 @@ internal sealed class Parser
                             return false;
                         }
 
+                        _httpContextBuilder.WithHeaders(_headerCollection);
+                        examined += line.Length;
+
+                        // If no content-length found - the request does not contain body; finish parsing
                         if (_contentLength == 0 )
                         {
                             _parsingState = ParsingState.Finished;
-                            examined += line.Length;
-                            _httpContextBuilder.WithHeaders(_headerCollection);
-                            
                             return true;
                         }
                         
                         _parsingState = ParsingState.BodyParsing;
-                        _httpContextBuilder.WithHeaders(_headerCollection);
-                        examined += line.Length;
-                        
                         chunkReader.Advance(1);
                         goto case ParsingState.BodyParsing;
                     }
@@ -262,13 +260,13 @@ internal sealed class Parser
             }
         }
     }
-
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryReadLine(ref SequenceReader<byte> sequenceReader, out ReadOnlySequence<byte> line) =>
         sequenceReader.TryReadTo(out line, RequestSymbolsAsBytes.LineFeed, false);
 
     /// <summary>
-    /// Represents parsing states of parser. Here is no request line parsing state because it's only 1 time operation
+    /// Represents parsing states of parser. Here is no request line parsing state because it's only 1 time operation.
     /// </summary>
     private enum ParsingState
     {
