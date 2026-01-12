@@ -40,19 +40,16 @@ internal sealed class DefaultHeaderParser : IHeaderParser
     {
         int current = 0;
         while (current < memory.Length && memory.Span[current] == ' ')
-        {
             current += 1;
-        }
 
         memory = memory[current..];
 
         current = memory.Length - 1; // - 1 to point to the last character
-        while (current >= 0 && (memory.Span[current] == RequestSymbolsAsBytes.Space || memory.Span[current] == RequestSymbolsAsBytes.CarriageReturnSymbol || memory.Span[current] == RequestSymbolsAsBytes.NewLine))
-        {
+        while (current >= 0 && (memory.Span[current] == RequestSymbolsAsBytes.Space 
+                                || memory.Span[current] == RequestSymbolsAsBytes.CarriageReturnSymbol 
+                                || memory.Span[current] == RequestSymbolsAsBytes.LineFeed))
             current -= 1;
-        }
-
-        //return memory[..current];
+        
         memory = current >= 0 ? memory[..(current + 1)] : ReadOnlyMemory<byte>.Empty;
     }
 }

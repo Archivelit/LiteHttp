@@ -84,6 +84,7 @@ internal sealed class Parser
     private bool TryParseChunk(ref SequenceReader<byte> chunkReader, out long examined, out Error? error)
     {
         examined = 0;
+        error = null;
         
         switch (_parsingState)
         {
@@ -108,20 +109,25 @@ internal sealed class Parser
                             return false;
                         }
 
-                        _parsingState = _contentLength == 0 
-                            ? ParsingState.Finished 
-                            : ParsingState.BodyParsing;
+                        if (_contentLength == 0 )
+                        {
+                            _parsingState = ParsingState.Finished;
+                            examined += line.Length;
+                            _httpContextBuilder.WithHeaders(_headerCollection);
+                            
+                            return true;
+                        }
                         
+                        _parsingState = ParsingState.BodyParsing;
                         _httpContextBuilder.WithHeaders(_headerCollection);
                         examined += line.Length;
-                        break;
+                        
+                        chunkReader.Advance(1);
+                        goto case ParsingState.BodyParsing;
                     }
                     examined += line.Length;
                     chunkReader.Advance(1);
                 }
-
-                if (_parsingState == ParsingState.BodyParsing)
-                    goto case ParsingState.BodyParsing;
             }
                 break;
             
@@ -143,7 +149,6 @@ internal sealed class Parser
                 break;
         }
 
-        error = null;
         return true;
     }
 
@@ -159,7 +164,7 @@ internal sealed class Parser
     private async ValueTask<Result<ReadOnlySequence<byte>>> ParseRequestLine(PipeReader pipeReader)
     {
         var readResult = await pipeReader.ReadAsync();
-            
+        
         var sequenceReader = new SequenceReader<byte>(readResult.Buffer);
 
         if (!TryReadLine(ref sequenceReader, out var requestLine))
@@ -184,10 +189,19 @@ internal sealed class Parser
         var reader = new SequenceReader<byte>(line);
 
         if (reader.TryReadTo(out ReadOnlySequence<byte> methodSequence, RequestSymbolsAsBytes.Space, true)
-            && reader.TryReadTo(out ReadOnlySequence<byte> routeSequence, RequestSymbolsAsBytes.Space, true)
-            && reader.TryReadTo(out ReadOnlySequence<byte> protocolVersionSequence, RequestSymbolsAsBytes.CarriageReturnSymbol,
-                true))
+            && reader.TryReadTo(out ReadOnlySequence<byte> routeSequence, RequestSymbolsAsBytes.Space, true))
         {
+            var protocolVersionSequence = reader.UnreadSequence;
+            if (protocolVersionSequence.IsSingleSegment)
+            {
+                var memory = protocolVersionSequence.First;
+                TrimEnd(ref memory);
+            }
+            else
+            {
+                // TODO: Implement trim logic for case where sequence is not single segment
+            }
+            
             _httpContextBuilder.WithMethod(methodSequence.GetReadOnlyMemoryFromSequence());
             _httpContextBuilder.WithRoute(routeSequence.GetReadOnlyMemoryFromSequence());
             _httpContextBuilder.WithProtocolVersion(protocolVersionSequence.GetReadOnlyMemoryFromSequence());
@@ -221,9 +235,9 @@ internal sealed class Parser
     /// Updates the content length based on the parsed headers.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result UpdateContentLength()
+    private Result UpdateContentLength()
     {
-        if (_headerCollection.Headers.TryGetValue(HeadersAsBytes.ContentLength, out var contentLengthValue))
+        if (_headerCollection.Headers.TryGetValue(HeadersAsBytes.ContentLength[..^2] , out var contentLengthValue))
         {
             if (!long.TryParse(contentLengthValue.Span, out var result))
                 return InvalidHeaderValueTypeError;
@@ -251,7 +265,7 @@ internal sealed class Parser
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryReadLine(ref SequenceReader<byte> sequenceReader, out ReadOnlySequence<byte> line) =>
-        sequenceReader.TryReadTo(out line, RequestSymbolsAsBytes.NewLine, false);
+        sequenceReader.TryReadTo(out line, RequestSymbolsAsBytes.LineFeed, false);
 
     /// <summary>
     /// Represents parsing states of parser. Here is no request line parsing state because it's only 1 time operation
@@ -261,5 +275,17 @@ internal sealed class Parser
         HeadersParsing,
         BodyParsing,
         Finished
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void TrimEnd(ref ReadOnlyMemory<byte> memory)
+    {
+        var current = memory.Length - 1;
+        while (current >= 0 && (memory.Span[current] == RequestSymbolsAsBytes.Space 
+                                || memory.Span[current] == RequestSymbolsAsBytes.CarriageReturnSymbol 
+                                || memory.Span[current] == RequestSymbolsAsBytes.LineFeed))
+            current -= 1;
+
+        memory = current >= 0 ? memory[..(current + 1)] : ReadOnlyMemory<byte>.Empty;
     }
 }

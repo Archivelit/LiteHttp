@@ -84,7 +84,14 @@ public class ParserTests
     public async Task Parse_ValidRequest_WithSimpleBody_ShouldReturn_HttpContext()
     {
         // Arrange
-        var request = "PUT / HTTP/1.1\r\nHost: test.com\r\nContent-Type: text/plain\r\nContent-Length: 13\r\n\r\nHello, World!";
+        var request = """
+                      PUT / HTTP/1.1
+                      Host: test.com
+                      Content-Type: text/plain
+                      Content-Length: 13
+                      
+                      Hello, World!
+                      """;
 
         var expectedHeaders = new Dictionary<string, string>(3)
         {

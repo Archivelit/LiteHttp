@@ -75,7 +75,7 @@ public sealed class Parser
 
         if (lineEnd == -1)
         {
-            lineEnd = request.Span.IndexOf(RequestSymbolsAsBytes.NewLine);
+            lineEnd = request.Span.IndexOf(RequestSymbolsAsBytes.LineFeed);
             
             Debug.Assert(lineEnd != -1);
 
@@ -133,7 +133,7 @@ public sealed class Parser
 
         while (headers.Length > 2)
         {
-            var eol = headers.Span.IndexOf(RequestSymbolsAsBytes.NewLine);
+            var eol = headers.Span.IndexOf(RequestSymbolsAsBytes.LineFeed);
 
             if (eol == -1)
             {

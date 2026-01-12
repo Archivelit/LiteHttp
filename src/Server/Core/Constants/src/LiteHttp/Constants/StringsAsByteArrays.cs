@@ -4,7 +4,7 @@ public static class RequestSymbolsAsBytes
 {
     public static readonly byte CarriageReturnSymbol = (byte)'\r';
     public static readonly byte Space = (byte)' ';
-    public static readonly byte NewLine = (byte)'\n';
+    public static readonly byte LineFeed = (byte)'\n';
     public static readonly byte Colon = (byte)':';
 
     public static readonly byte[] NewRequestLine =
