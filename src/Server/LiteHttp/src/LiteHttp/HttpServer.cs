@@ -22,16 +22,6 @@ public sealed class HttpServer : IServer
         _internalServer.Start(cancellationToken);
 
     /// <inheritdoc/>
-    [Obsolete("Use builder instead")]
-    public void SetPort(int port) =>
-        _internalServer.SetPort(port);
-
-    /// <inheritdoc/>
-    [Obsolete("Use builder instead")]
-    public void SetAddress(string address) =>
-        _internalServer.SetAddress(address);
-
-    /// <inheritdoc/>
     public void MapGet(string route, Func<IActionResult> action) =>
         _internalServer.MapGet(route, action);
 

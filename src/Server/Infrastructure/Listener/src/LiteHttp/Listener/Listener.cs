@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 using LiteHttp.Constants;
 using LiteHttp.Logging;
 using LiteHttp.Logging.Abstractions;
-using LiteHttp.Models.Events;
 
 namespace LiteHttp.Listener;
 
@@ -16,20 +15,7 @@ public sealed class Listener : IDisposable
     { 
         get; 
         
-        set
-        {
-            if (_isListening)
-                throw new InvalidOperationException("Ip address cannot be changed while server listening");
-
-            field = value;
-            UpdateListenerEndPoint();
-        }
-    }
-    public IPAddress ListenerAddress 
-    { 
-        get; 
-        
-        set
+        private set
         {
             if (_isListening)
                 throw new InvalidOperationException("Port cannot be changed while server listening");
@@ -38,14 +24,27 @@ public sealed class Listener : IDisposable
             UpdateListenerEndPoint();
         }
     }
+    public IPAddress ListenerAddress
+    {
+        get;
+
+        private set
+        {
+            if (_isListening)
+                throw new InvalidOperationException("Ip address cannot be changed while server listening");
+
+            field = value;
+            UpdateListenerEndPoint();
+        }
+    }
 
     private readonly ILogger<Listener> _logger;
-    
-    private Socket Socket { get; } = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
+    private Socket Socket { get; }
     private IPEndPoint _endPoint;
-    private bool _isListening = false;
-
+    private bool _isListening;
+    private CancellationToken _cancellationToken;
+    
     public Listener(ILogger<Listener>? logger = null)
         : this(AddressConstants.IPV4_LOOPBACK, AddressConstants.DEFAULT_SERVER_PORT, logger) { }
 
@@ -57,6 +56,7 @@ public sealed class Listener : IDisposable
         logger ??= NullLogger<Listener>.Instance;
         _logger = logger;
 
+        _isListening = false;
         ListenerAddress = address;
         ListenerPort = port;
         Socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -64,8 +64,16 @@ public sealed class Listener : IDisposable
         UpdateListenerEndPoint();
     }
 
-    public async ValueTask StartListen(CancellationToken stoppingToken)
+    public void Dispose()
     {
+        Socket.Dispose();
+        _isListening = false;
+    }
+
+    public bool StartListen(CancellationToken cancellationToken)
+    {
+        _cancellationToken = cancellationToken;
+
         if (_endPoint is null)
             throw new InvalidOperationException("Listener endpoint cannot be null");
 
@@ -76,19 +84,15 @@ public sealed class Listener : IDisposable
         }
 
         Socket.Listen();
-
         _isListening = true;
-
         _logger.LogInformation($"Listening at {_endPoint.ToString()}");
 
         try
         {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                var connection = await Socket.AcceptAsync(stoppingToken).ConfigureAwait(false);
-
-                OnRequestReceived(new RequestReceivedEvent(connection), stoppingToken);
-            }
+            var acceptEventArg = new SocketAsyncEventArgs();
+            acceptEventArg.Completed += AcceptEventArg_Completed;
+            
+            return ThreadPool.UnsafeQueueUserWorkItem(StartAccept, acceptEventArg, false);
         }
         catch (Exception ex)
         {
@@ -101,21 +105,42 @@ public sealed class Listener : IDisposable
         }
     }
 
-    public void Dispose() =>
-        Socket.Dispose();
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void AcceptEventArg_Completed(object? sender, SocketAsyncEventArgs saea)
+    {
+        ProcessAccept(saea);
+
+        StartAccept(saea);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void StartAccept(SocketAsyncEventArgs acceptEventArg)
+    {
+        bool willRaiseEvent = false;
+        while (!willRaiseEvent)
+        {
+            acceptEventArg.AcceptSocket = null;
+            willRaiseEvent = Socket.AcceptAsync(acceptEventArg);
+
+            if (!willRaiseEvent)
+                ProcessAccept(acceptEventArg);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void ProcessAccept(SocketAsyncEventArgs acceptEventArg) => OnRequestReceived(acceptEventArg);
+
     private void UpdateListenerEndPoint() =>
         _endPoint = new(ListenerAddress, ListenerPort);
 
-    public event Func<RequestReceivedEvent, CancellationToken, ValueTask>? RequestReceived;
+    private event Action<SocketAsyncEventArgs> RequestReceived;
 
-    public void OnRequestReceived(RequestReceivedEvent connection, CancellationToken ct) =>
-        RequestReceived?.Invoke(connection, ct);
+    private void OnRequestReceived(SocketAsyncEventArgs saea) =>
+        RequestReceived?.Invoke(saea);
 
-    public void SubscribeToRequestReceived(Func<RequestReceivedEvent, CancellationToken, ValueTask> handler) =>
+    public void SubscribeToRequestReceived(Action<SocketAsyncEventArgs> handler) =>
         RequestReceived += handler;
 
-    public void UnsubscribeFromRequestReceived(Func<RequestReceivedEvent, CancellationToken, ValueTask> handler) =>
+    public void UnsubscribeFromRequestReceived(Action<SocketAsyncEventArgs> handler) =>
         RequestReceived -= handler;
 }

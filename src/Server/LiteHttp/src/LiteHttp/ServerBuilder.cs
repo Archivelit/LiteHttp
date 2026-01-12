@@ -1,6 +1,4 @@
-﻿using EventDrivenInternalServer = LiteHttp.Server.EventDriven.InternalServer;
-
-namespace LiteHttp;
+﻿namespace LiteHttp;
 
 /// <summary>
 /// Provides a builder with fluent api for configuring and creating instances of <see cref="HttpServer"/> 
@@ -13,7 +11,6 @@ namespace LiteHttp;
 public class ServerBuilder
 {
     private ILogger _logger = NullLogger.Instance;
-    private int _workersCount = Environment.ProcessorCount / 2;
     private int _port = AddressConstants.DEFAULT_SERVER_PORT;
     private IPAddress _address = AddressConstants.IPV4_LOOPBACK;
 
@@ -27,11 +24,7 @@ public class ServerBuilder
     /// start the server; you must explicitly start the returned.
     /// <see cref="HttpServer"/> instance.</remarks>
     /// <returns>A configured <see cref="HttpServer"/> instance.</returns>
-    public HttpServer Build() => new(new InternalServer(workersCount: _workersCount, port: _port, 
-        address: _address, logger: _logger));
-
-    public HttpServer BuildEventDrivenServer() => new(new EventDrivenInternalServer(
-        logger: _logger, address: _address, port: _port));
+    public HttpServer Build() => new(new InternalServer(logger: _logger, address: _address, port: _port));
 
     /// <summary>
     /// Configures the server builder to use the specified logger for diagnostic and operational messages.
@@ -49,21 +42,6 @@ public class ServerBuilder
     {
         _logger = logger
             ?? throw new ArgumentNullException(nameof(logger), $"Logger cannot be null");
-
-        return this;
-    }
-
-    /// <summary>
-    /// Configures the number of worker threads to be used by the server.
-    /// </summary>
-    /// <param name="workersCount">The number of worker threads to allocate. Must be greater than or equal to 1.</param>
-    /// <returns>The current <see cref="ServerBuilder"/> instance with the updated worker count.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="workersCount"/> is less than 1.</exception>
-    public ServerBuilder WithWorkersCount(int workersCount)
-    {
-        if (workersCount < 1)
-            throw new ArgumentException("Workers count cannot be under 1 worker");
-        _workersCount = workersCount;
 
         return this;
     }

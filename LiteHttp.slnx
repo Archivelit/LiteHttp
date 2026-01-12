@@ -25,10 +25,6 @@
   <Folder Name="/src/Server/Core/ErrorHandling/src/">
     <Project Path="src/Server/Core/ErrorHandling/src/LiteHttp.ErrorHandling.csproj" />
   </Folder>
-  <Folder Name="/src/Server/Core/Events/" />
-  <Folder Name="/src/Server/Core/Events/src/">
-    <Project Path="src/Server/Core/Events/src/LiteHttp.Events.csproj" />
-  </Folder>
   <Folder Name="/src/Server/Core/Extensions/" />
   <Folder Name="/src/Server/Core/Extensions/src/">
     <Project Path="src/Server/Core/Extensions/src/LiteHttp.Extensions.csproj" />
@@ -49,13 +45,6 @@
   <Folder Name="/src/Server/Infrastructure/ConnectionManager/" />
   <Folder Name="/src/Server/Infrastructure/ConnectionManager/src/">
     <Project Path="src/Server/Infrastructure/ConnectionManager/src/LiteHttp.ConnectionManager/LiteHttp.ConnectionManager.csproj" />
-  </Folder>
-  <Folder Name="/src/Server/Infrastructure/Events/" />
-  <Folder Name="/src/Server/Infrastructure/Events/src/">
-    <Project Path="src/Server/Infrastructure/Events/src/LiteHttp.Infrastructure.Events.csproj" />
-  </Folder>
-  <Folder Name="/src/Server/Infrastructure/Events/tests/">
-    <Project Path="src/Server/Infrastructure/Events/tests/LiteHttp.Infrastructure.Events.Tests.csproj" />
   </Folder>
   <Folder Name="/src/Server/Infrastructure/Heartbeat/" />
   <Folder Name="/src/Server/Infrastructure/Heartbeat/src/">
@@ -101,10 +90,6 @@
   <Folder Name="/src/Server/Infrastructure/Server/" />
   <Folder Name="/src/Server/Infrastructure/Server/src/">
     <Project Path="src/Server/Infrastructure/Server/src/LiteHttp.Server.csproj" />
-  </Folder>
-  <Folder Name="/src/Server/Infrastructure/WorkerServices/" />
-  <Folder Name="/src/Server/Infrastructure/WorkerServices/src/">
-    <Project Path="src/Server/Infrastructure/WorkerServices/src/LiteHttp.WorkerServices.csproj" />
   </Folder>
   <Folder Name="/src/Server/LiteHttp/" />
   <Folder Name="/src/Server/LiteHttp/src/">

@@ -5,7 +5,7 @@ public sealed class PipelineFactory
 {
     public Func<IRouter> RouterFactory { get; set; }
     public Func<Parser> ParserFactory { get; set; }
-    public Func<SaeaResponseBuilder> ResponseBuilderFactory { get; set; }
+    public Func<ResponseBuilder> ResponseBuilderFactory { get; set; }
     public Func<Executor> ExecutorFactory { get; set; }
 
     public PipelineFactory(Action<PipelineFactory> factoryDelegate)

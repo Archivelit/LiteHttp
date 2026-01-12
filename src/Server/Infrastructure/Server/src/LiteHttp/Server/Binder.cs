@@ -1,4 +1,4 @@
-﻿namespace LiteHttp.Server.EventDriven;
+﻿namespace LiteHttp.Server;
 
 internal static class Binder
 {

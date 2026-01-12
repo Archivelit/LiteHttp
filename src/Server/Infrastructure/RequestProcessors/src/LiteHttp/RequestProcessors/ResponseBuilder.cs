@@ -1,9 +1,8 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-public sealed class ResponseBuilder : IDisposable
+public sealed class ResponseBuilder
 {
-    private readonly IMemoryOwner<byte> _owner = MemoryPool<byte>.Shared.Rent(4096);
-    private int _length;
+    private int _responseLength;
 
     public int Port
     {
@@ -38,81 +37,66 @@ public sealed class ResponseBuilder : IDisposable
         Port = AddressConstants.DEFAULT_SERVER_PORT;
     }
 
-    public void Dispose() =>
-        _owner.Dispose();
-
-    public ReadOnlyMemory<byte> Build(IActionResult actionResult, ReadOnlyMemory<byte>? responseBody = null)
+    // Body not supported temporarily
+    public int Build(IActionResult actionResult, Memory<byte> buffer/*ReadOnlyMemory<byte>? responseBody = null*/)
     {
         ResetMessage();
 
-        var memory = _owner.Memory;
+        Append(buffer, HttpVersionsAsBytes.Http11);
+        Append(buffer, actionResult.ResponseCode.AsByteString());
 
-        Append(HttpVersionsAsBytes.Http11);
-        Append(actionResult.ResponseCode.AsByteString());
+        BuildHeaders(buffer);
 
-        BuildHeaders(responseBody);
+        Append(buffer, RequestSymbolsAsBytes.RequestSplitter);
 
-        Append(RequestSymbolsAsBytes.RequestSplitter);
+        //if (responseBody is not null)
+        //    Append(responseBody.Value);
 
-        if (responseBody is not null)
-            Append(responseBody.Value);
-
-        return memory[.._length];
+        return _responseLength;
     }
 
-    private void BuildHeaders(ReadOnlyMemory<byte>? body)
+    private void BuildHeaders(Memory<byte> buffer /*ReadOnlyMemory<byte>? body*/)
     {
-        var memory = _owner.Memory;
+        Append(buffer, HeadersAsBytes.Host);
 
-        Append(HeadersAsBytes.Host);
+        Append(buffer, _host);
 
-        Append(_host);
+        //if (body is not null)
+        //{
+        //    Append(RequestSymbolsAsBytes.NewRequestLine);
 
-        if (body is not null)
-        {
-            Append(RequestSymbolsAsBytes.NewRequestLine);
+        //    Append(HeadersAsBytes.ContentType);
 
-            Append(HeadersAsBytes.ContentType);
+        //    Append(HeaderValuesAsBytes.ContentTextPlain);
 
-            Append(HeaderValuesAsBytes.ContentTextPlain);
+        //    Append(HeadersAsBytes.ContentLength);
 
-            Append(HeadersAsBytes.ContentLength);
-
-            if (body.Value.Length.TryFormat(memory.Span[_length..], out var written))
-                _length += written;
-        }
+        //    if (body.Value.Length.TryFormat(buffer.Span[_responseLength..], out var written))
+        //        _responseLength += written;
+        //}
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void Append(byte[] bytes)
+    private void Append(Memory<byte> buffer, byte[] bytes)
     {
-        Debug.Assert(bytes.Length <= _owner.Memory.Length - _length);
+        Debug.Assert(bytes.Length <= buffer.Length - _responseLength);
 
-        bytes.CopyTo(_owner.Memory[_length..]);
-        _length += bytes.Length;
+        bytes.CopyTo(buffer[_responseLength..]);
+        _responseLength += bytes.Length;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void Append(ReadOnlySpan<byte> bytes)
+    private void Append(Memory<byte> buffer, ReadOnlyMemory<byte> bytes)
     {
-        Debug.Assert(bytes.Length <= _owner.Memory.Length - _length);
+        Debug.Assert(bytes.Length <= buffer.Length - _responseLength);
 
-        bytes.CopyTo(_owner.Memory.Span[_length..]);
-        _length += bytes.Length;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void Append(ReadOnlyMemory<byte> bytes)
-    {
-        Debug.Assert(bytes.Length <= _owner.Memory.Length - _length);
-
-        bytes.CopyTo(_owner.Memory[_length..]);
-        _length += bytes.Length;
+        bytes.CopyTo(buffer[_responseLength..]);
+        _responseLength += bytes.Length;
     }
 
     [SkipLocalsInit]
     private void UpdateHost() => _host = Encoding.UTF8.GetBytes($"{Address}:{Port}");
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void ResetMessage() => _length = 0;
+    private void ResetMessage() => _responseLength = 0;
 }

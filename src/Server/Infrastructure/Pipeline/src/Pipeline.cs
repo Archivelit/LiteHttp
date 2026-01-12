@@ -1,12 +1,11 @@
-﻿using System.Runtime.CompilerServices;
+﻿namespace LiteHttp.Pipeline;
 
-namespace LiteHttp.Pipeline;
-
+#nullable disable
 public sealed class Pipeline
 {
     private readonly IRouter _router;
     private readonly Parser _parser;
-    private readonly SaeaResponseBuilder _responseBuilder;
+    private readonly ResponseBuilder _responseBuilder;
     private readonly Executor _executor;
     
     internal Pipeline(PipelineFactory factory)

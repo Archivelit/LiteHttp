@@ -18,9 +18,9 @@ public sealed class Parser
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public Result<HttpContext> Parse(in Memory<byte> request)
     {
-        var requestParts = SplitRequest(request);
+        var (headPart, body) = SplitRequest(request);
 
-        var firstLineExtractingResult = GetFirstLine(requestParts.Headers);
+        var firstLineExtractingResult = GetFirstLine(headPart);
 
         if (!firstLineExtractingResult.Success)
             return firstLineExtractingResult.Error;
@@ -36,14 +36,14 @@ public sealed class Parser
             return route.Error;
 
         // First line of request does not contain any header
-        var headerSection = requestParts.Headers[(firstLineExtractingResult.Value.Length 
+        var headerSection = headPart[(firstLineExtractingResult.Value.Length 
             + RequestSymbolsAsBytes.NewRequestLine.Length)..]; 
 
         var headers = MapHeaders(headerSection);
 
         return !headers.Success
             ? headers.Error.Value
-            : new HttpContext(method.Value, route.Value, requestParts.Body, headers.Value);
+            : new HttpContext(method.Value, route.Value, body, headers.Value);
     }
 
     /// <summary>

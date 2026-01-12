@@ -2,8 +2,5 @@
 
 public sealed class Executor
 {
-    public IActionResult Execute(Func<IActionResult> action)
-    {
-        return action();
-    }
+    public IActionResult Execute(Func<IActionResult> action) => action();
 }

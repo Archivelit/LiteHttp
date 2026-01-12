@@ -13,24 +13,6 @@ public interface IServer : IDisposable
     public Task Start(CancellationToken cancellationToken);
 
     /// <summary>
-    /// Sets the port number for the internal server. This method is obsolete; use <see cref="ServerBuilder.WithPort"/> instead
-    /// </summary>
-    /// <remarks>Calling this method is deprecated. For new code, use the recommended builder approach to
-    /// configure the server address</remarks>
-    /// <param name="port">The port number to assign to the internal server. Must be within the valid range for TCP/UDP ports (0–65535).</param>
-    [Obsolete("Use builder instead")]
-    public void SetPort(int port);
-
-    /// <summary>
-    /// Sets the server address for the current instance. This method is obsolete; use <see cref="ServerBuilder.WithAddress"/> instead
-    /// </summary>
-    /// <remarks>This method is marked as obsolete. For new code, use the recommended builder approach to
-    /// configure the server address.</remarks>
-    /// <param name="address">The address to assign to the server. Cannot be null or empty.</param>
-    [Obsolete("Use builder instead")]
-    public void SetAddress(string address);
-
-    /// <summary>
     /// Maps an HTTP GET request to the specified route and associates it with the provided action to handle incoming
     /// requests.
     /// </summary>
