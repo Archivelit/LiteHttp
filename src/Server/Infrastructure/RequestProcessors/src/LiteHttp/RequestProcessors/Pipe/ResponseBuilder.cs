@@ -86,14 +86,8 @@ internal sealed class ResponseBuilder
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Write(PipeWriter writer, ReadOnlySequence<byte> sequence)
     {
-        var sequenceReader = new SequenceReader<byte>(sequence);
-
-        while (sequenceReader.TryRead(out var @byte))
-        {
-            var span = writer.GetSpan(1);
-            span[0] = @byte;
-            writer.Advance(1);
-        }
+        foreach (var segment in sequence)
+            Write(writer, segment);
     }
 
     private void UpdateHost() => _host = Encoding.UTF8.GetBytes($"{Address}:{Port}");
