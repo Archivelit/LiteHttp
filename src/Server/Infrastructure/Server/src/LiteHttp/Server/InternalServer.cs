@@ -2,7 +2,6 @@
 
 using LiteHttp.Constants;
 using LiteHttp.Heartbeat;
-using LiteHttp.Listener;
 using LiteHttp.Logging;
 using LiteHttp.Logging.Abstractions;
 using LiteHttp.Models;
@@ -73,7 +72,7 @@ public sealed class InternalServer : IServer
         {
             if (!Listener.StartListen(cancellationToken))
                 throw new InvalidOperationException(); // TODO: Add exception string
-            
+
             await Task.Delay(Timeout.Infinite, cancellationToken);
         }
         catch (Exception ex)

@@ -99,10 +99,6 @@ public sealed class Listener : IDisposable
             _logger.LogError(ex, $"An error occurred while listening for incoming connections");
             throw;
         }
-        finally
-        {
-            _isListening = false;
-        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

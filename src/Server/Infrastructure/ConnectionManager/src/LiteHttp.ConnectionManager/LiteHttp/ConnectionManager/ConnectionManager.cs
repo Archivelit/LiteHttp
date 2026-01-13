@@ -6,8 +6,6 @@
 // The rest of the code is written without any inspiration, any similarities are purely coincidental.
 
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 using LiteHttp.Heartbeat;
 using LiteHttp.Helpers;
@@ -72,8 +70,8 @@ public sealed class ConnectionManager : IHeartbeatHandler, IDisposable
     private void InitializeConnection(SocketAsyncEventArgs saea)
     {
         var connectionContext = _connectionContextFactory.Create(saea);
-        
-        saea.UserToken = connectionContext.Id;
+
+        saea.UserToken = connectionContext;
         
         // REVIEW: not thread safe. Should be refactored to support multiple accept loops
         if (!_connections.TryAdd(connectionContext.Id, connectionContext))
@@ -85,7 +83,7 @@ public sealed class ConnectionManager : IHeartbeatHandler, IDisposable
     private void Receive(SocketAsyncEventArgs saea)
     {
         var socket = saea.AcceptSocket;
-        bool willRaiseEvent = socket!.ReceiveAsync(saea);
+        bool willRaiseEvent = socket.ReceiveAsync(saea);
 
         if (!willRaiseEvent)
             ProcessReceive(saea);
@@ -125,8 +123,7 @@ public sealed class ConnectionManager : IHeartbeatHandler, IDisposable
 
     private void CloseConnection(SocketAsyncEventArgs saea)
     {
-        var connectionContextId = (long)saea.UserToken;
-        _connections.TryGetValue(connectionContextId, out var connectionContext);
+        var connectionContext = (ConnectionContext)saea.UserToken;
         
         if (!_connections.TryRemove(connectionContext.Id, out _))
             throw new InvalidOperationException($"Cannot remove connection {connectionContext.Id}");
@@ -137,11 +134,8 @@ public sealed class ConnectionManager : IHeartbeatHandler, IDisposable
 
     private void ProcessReceive(SocketAsyncEventArgs saea)
     {
-        var connectionContextId = (long)saea.UserToken;
-
-        if (!_connections.TryGetValue(connectionContextId, out var connectionContext))
-            throw new InvalidOperationException($"Cannot get connection {connectionContextId}");
-        
+        var connectionContext = (ConnectionContext)saea.UserToken;
+    
         connectionContext.IncrementBytesReceived(saea.BytesTransferred);
         
         saea.SetBuffer(saea.Offset, saea.Offset + saea.BytesTransferred);
