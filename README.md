@@ -7,11 +7,10 @@
 - ActionResultFactory for clean and zero alloc response handling
 - Simply configurable host and port
 
-## Cannot be installed using Nuget (temporarily)
-
 # Getting Started
 
-### Note
+## Note
+
 By default, LiteHttp listens on **localhost:30000**
 
 ## Quickstart
@@ -35,10 +34,11 @@ You can also find it in `src/SampleApp/Program.cs` (It may differ from snippet a
 ## Features
 
 ### Routing
+
 LiteHttp provides AspNet Core minimal-api based routing.
 
+Supported methods:
 
-Currently supported methods:
 - Get
 - Put
 - Patch
@@ -46,8 +46,9 @@ Currently supported methods:
 - Delete
 
 ### Response building
+
 Current version provides quite effecient response building.
-The biggest current version problem is **logic customization**.
+The biggest problem is **logic customization**.
 It is **minimal** or **completely absent**.
 
 ### Logging
@@ -57,16 +58,17 @@ If you want to implement own logger, you have to work with `LiteHttp.Logging.Abs
 
 ### Logging libraries compatibility
 
-If you want to use a logging library, you can check whether an **adapter** for your library is available in NuGet via `LiteHttp.Logging.Adapters.[libraryname]` or implement your **own adapter** if one does not exist
+If you want to use a logging library, you can check whether an **adapter** for your library is available `LiteHttp.Logging.Adapters.[libraryname]` or implement your **own adapter** if one does not exist
 
 ### Current Supported Libraries (via Adapter)
+
 - Serilog
 
 ### Implementing own adapter
 
 You can look at any adapter library to inspire or understand how it should be implemented
 
-### You can find out more about logging [here](./src/Logging)
+### You can find out more about [logging](./src/Logging)
 
 ### Listening address change
 
@@ -92,26 +94,28 @@ The `WithAddress` method also has overload `ServerBuilder WithAddress(string add
 <!-- Update this section -->
 # Benchmarks
 
-**Note:** you can find out more about single component performance [**here**](./tests/Benchmarks)
+**Note:** you can find out more about single component performance **[here](./tests/Benchmarks)**
 
-### Average response time: **444 microseconds**
+### Average response time : **300 microseconds**
 
-### Maximum reached short-term rps: **23800**
+### Maximum reached short-term rps: **28500**
 
 **Note:** the tests was provided with single worker thread, using multiple working thread on current version can decrease rps by 3-5%
 
 *Test was provided via **k6** on Machine with next configuration:*
+
 > - CPU: Ryzen r7 5800X
 > - RAM: 32GB 3200 MHz
 > - OS: Windows 11
 
-#### K6 file:
+#### K6 file
+
 ```javascript
 import http from 'k6/http';
 
 export const options = {
   vus: 15,
-  duration: '10s',
+  duration: '1m',
 };
 
 
@@ -128,7 +132,8 @@ LiteHttp is still under development.
 Please, be aware that many certain features are missing or incomplete.
 If you encounter an issue or have feature request, **feel free to open an issue**.
 
-## Not supported:
+## Not supported
+
 - Async endpoint delegates
 - Endpoint delegates with parameters
 - Automatic serialization of endpoint return values
@@ -137,13 +142,6 @@ If you encounter an issue or have feature request, **feel free to open an issue*
 - Middlewares or other analogs for server flow configuration
 - Synchronous server start
 - Integration with `Microsoft.Extensions.Hosting` or `Microsoft.Extensions.DependencyInjection`
-
-## Shortcommings:
-- No XML documentation
-- No analyzers
-
-# Goals
-The main goal of LiteHttp is build **independent mini-framework for high-throughput scenarios**.
 
 Main goals:
 
