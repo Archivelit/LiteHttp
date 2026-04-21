@@ -3,7 +3,6 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 
 using LiteHttp.Constants;
-using LiteHttp.Logging;
 using LiteHttp.Logging.Abstractions;
 
 namespace LiteHttp.Listener;
@@ -44,16 +43,9 @@ public sealed class Listener : IDisposable
     private IPEndPoint _endPoint;
     private bool _isListening;
     private CancellationToken _cancellationToken;
-    
-    public Listener(ILogger<Listener>? logger = null)
-        : this(AddressConstants.IPV4_LOOPBACK, AddressConstants.DEFAULT_SERVER_PORT, logger) { }
 
-    public Listener(IPAddress address)
-        : this(address, AddressConstants.DEFAULT_SERVER_PORT) { }
-
-    public Listener(IPAddress address, int port = AddressConstants.DEFAULT_SERVER_PORT, ILogger<Listener>? logger = null)
+    public Listener(IPAddress address, ILogger<Listener> logger, int port = AddressConstants.DEFAULT_SERVER_PORT)
     {
-        logger ??= NullLogger<Listener>.Instance;
         _logger = logger;
 
         _isListening = false;
