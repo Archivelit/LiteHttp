@@ -22,8 +22,6 @@ public sealed class Heartbeat : IDisposable
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     public Heartbeat(IHeartbeatHandler[] heartbeatHandlers, ILogger<Heartbeat> logger)
     {
-        Debug.Assert(heartbeatHandlers.Length > 0, NoHandlersString);
-
         if (heartbeatHandlers.Length == 0)
         {
             logger.LogWarning($"{NoHandlersString}");

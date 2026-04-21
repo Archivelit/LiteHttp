@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices;
-
-using LiteHttp.Constants;
+﻿using LiteHttp.Constants;
 using LiteHttp.Heartbeat;
 using LiteHttp.Logging;
 using LiteHttp.Logging.Abstractions;
@@ -8,7 +6,6 @@ using LiteHttp.Models;
 using LiteHttp.Pipeline;
 using LiteHttp.RequestProcessors;
 using LiteHttp.Routing;
-using LiteHttp.Server.LiteHttp.Server;
 
 namespace LiteHttp.Server;
 
@@ -30,8 +27,6 @@ public sealed class InternalServer : IServer
 
         Listener = new(address, logger.ForContext<Listener.Listener>(), port);
         ConnectionManager = new();
-
-        heartbeatHandlers.Add(new HeartbeatHandlerPlaceholder());
         
         _endpointProviderConfiguration = new EndpointProviderConfiguration();
         
@@ -43,8 +38,7 @@ public sealed class InternalServer : IServer
             factory.ActionInvokerFactory = () => new();
         });
 
-        Heartbeat = new (CollectionsMarshal.AsSpan(heartbeatHandlers), 
-            _logger.ForContext<Heartbeat.Heartbeat>());
+        Heartbeat = new (heartbeatHandlers.ToArray(), _logger.ForContext<Heartbeat.Heartbeat>());
         
         Binder.Bind(this);
     }
