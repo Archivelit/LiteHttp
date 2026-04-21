@@ -7,7 +7,7 @@ public sealed class Pipeline
     private readonly Parser _parser;
     private readonly ResponseBuilder _responseBuilder;
     private readonly ActionInvoker _actionInvoker;
-    
+
     internal Pipeline(PipelineFactory factory)
     {
         _router = factory.RouterFactory();
@@ -15,19 +15,16 @@ public sealed class Pipeline
         _responseBuilder = factory.ResponseBuilderFactory();
         _actionInvoker = factory.ActionInvokerFactory();
     }
-    
+
     [SkipLocalsInit]
     public void ProcessRequest(ConnectionContext connectionContext)
     {
         Memory<byte> buffer = connectionContext.SocketEventArgs.Buffer;
         var parsingResult = _parser.Parse(buffer);
-        int responseLength;
-        
+
         if (!parsingResult.Success)
         {
-            responseLength = _responseBuilder.Build(InternalActionResults.BadRequest(), buffer);
-            connectionContext.SocketEventArgs.SetBuffer(0, responseLength);
-            ThreadPool.UnsafeQueueUserWorkItem(OnExecuted, connectionContext, false);
+            SendResponse(connectionContext, buffer, InternalActionResults.BadRequest());
             return;
         }
 
@@ -35,19 +32,23 @@ public sealed class Pipeline
 
         if (action is null)
         {
-            responseLength = _responseBuilder.Build(InternalActionResults.NotFound(), buffer);
-            connectionContext.SocketEventArgs.SetBuffer(0, responseLength);
-            ThreadPool.UnsafeQueueUserWorkItem(OnExecuted, connectionContext, false);
+            SendResponse(connectionContext, buffer, InternalActionResults.NotFound());
             return;
         }
 
         var executionResult = _actionInvoker.Execute(action);
 
-        responseLength = _responseBuilder.Build(executionResult, buffer);
+        SendResponse(connectionContext, buffer, executionResult);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void SendResponse(ConnectionContext connectionContext, Memory<byte> buffer, IActionResult actionResult)
+    {
+        int responseLength = _responseBuilder.Build(actionResult, buffer);
         connectionContext.SocketEventArgs.SetBuffer(0, responseLength);
         ThreadPool.UnsafeQueueUserWorkItem(OnExecuted, connectionContext, false);
     }
-    
+
     private Action<ConnectionContext> _executed;
     private void OnExecuted(ConnectionContext response) => _executed?.Invoke(response);
 
