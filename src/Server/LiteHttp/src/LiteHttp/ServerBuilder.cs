@@ -69,6 +69,9 @@ public class ServerBuilder
     /// <returns>The current <see cref="ServerBuilder"/> instance with the updated address.</returns>
     public ServerBuilder WithAddress(IPAddress address)
     {
+        if (address.AddressFamily != AddressFamily.InterNetwork) 
+            throw new NotSupportedException("IPv4 only supported");
+
         _address = address;
 
         return this;
@@ -83,34 +86,15 @@ public class ServerBuilder
     /// <param name="address">The host name or IPv4 address to use for the server. An <see cref="ArgumentNullException"/> is thrown if null.</param>
     /// <returns>The current <see cref="ServerBuilder"/> instance with the updated address.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="address"/> is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">The <paramref name="address"/> is invalid IPv4 address.</exception>
-    /// <exception cref="ArgumentException">The <paramref name="address"/> is invalid IPv4 address.</exception>
+    /// <exception cref="FormatException">The <paramref name="address"/> is invalid IPv4 address.</exception>
     public ServerBuilder WithAddress(string address)
     {
-        ArgumentNullException.ThrowIfNullOrWhiteSpace(address);
-        
-        if (address.Any(c => !char.IsDigit(c) || c.Equals('.')))
-            throw new ArgumentException("Got invalid IP address");
+        var parsed = IPAddress.Parse(address);
 
-        var parts = address.Split('.');
-        
-        ArgumentOutOfRangeException.ThrowIfNotEqual(parts.Length, 4, "Got invalid address");
-        
-        var byteParts = new byte[4];
-
-        for (var i = 0; i < parts.Length; i++)
-        {
-            var part = parts[i];
-
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(part.Length, 3);
-
-            if (!byte.TryParse(part, out var bytePart))
-                throw new ArgumentException("Got invalid IP Adress");
-
-            byteParts[i] = bytePart;
-        }
-
-        _address = new IPAddress(byteParts);
+        if (parsed.AddressFamily != AddressFamily.InterNetwork) 
+            throw new NotSupportedException("IPv4 only supported");
+            
+        _address = parsed; 
 
         return this;
     }
