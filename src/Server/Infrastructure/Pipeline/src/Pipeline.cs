@@ -1,6 +1,5 @@
 ﻿namespace LiteHttp.Pipeline;
 
-#nullable disable
 public sealed class Pipeline
 {
     private readonly IRouter _router;
@@ -8,6 +7,7 @@ public sealed class Pipeline
     private readonly ResponseBuilder _responseBuilder;
     private readonly ActionInvoker _actionInvoker;
 
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     internal Pipeline(PipelineFactory factory)
     {
         _router = factory.RouterFactory();
@@ -15,6 +15,7 @@ public sealed class Pipeline
         _responseBuilder = factory.ResponseBuilderFactory();
         _actionInvoker = factory.ActionInvokerFactory();
     }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
     [SkipLocalsInit]
     public void ProcessRequest(ConnectionContext connectionContext)
