@@ -75,25 +75,42 @@ public class ServerBuilder
     }
 
     /// <summary>
-    /// Sets the server's network address using the specified host name or IP address.
+    /// Sets the server's network address using provided address.
     /// </summary>
     /// <remarks>
-    /// Only IPv4 addresses are considered. If the host cannot be resolved or contains no IPv4 entries,
-    /// an exception will be thrown.
-    /// <para>
-    /// If multiple addresses are resolved for the specified host, the first IPv4 address is used.
-    /// </para>
+    /// Only IPv4 addresses are considered.
     /// </remarks>
     /// <param name="address">The host name or IPv4 address to use for the server. An <see cref="ArgumentNullException"/> is thrown if null.</param>
     /// <returns>The current <see cref="ServerBuilder"/> instance with the updated address.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="address"/> is null</exception>
-    /// <exception cref="ArgumentOutOfRangeException">The <paramref name="address"/> length is greater than 255 characters.</exception>
-    /// <exception cref="SocketException">An error is encountered when resolving.<paramref name="address"/></exception>
-    /// <exception cref="ArgumentException"><paramref name="address"/> is invalid IP address.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="address"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">The <paramref name="address"/> is invalid IPv4 address.</exception>
+    /// <exception cref="ArgumentException">The <paramref name="address"/> is invalid IPv4 address.</exception>
     public ServerBuilder WithAddress(string address)
     {
-        _address = Dns.GetHostAddresses(address)
-            .First(a => a.AddressFamily == AddressFamily.InterNetwork);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(address);
+        
+        if (address.Any(c => !char.IsDigit(c) || c.Equals('.')))
+            throw new ArgumentException("Got invalid IP address");
+
+        var parts = address.Split('.');
+        
+        ArgumentOutOfRangeException.ThrowIfNotEqual(parts.Length, 4, "Got invalid address");
+        
+        var byteParts = new byte[4];
+
+        for (var i = 0; i < parts.Length; i++)
+        {
+            var part = parts[i];
+
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(part.Length, 3);
+
+            if (!byte.TryParse(part, out var bytePart))
+                throw new ArgumentException("Got invalid IP Adress");
+
+            byteParts[i] = bytePart;
+        }
+
+        _address = new IPAddress(byteParts);
 
         return this;
     }
