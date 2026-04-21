@@ -3,6 +3,10 @@
     <Project Path="src/SampleApp/SampleApp.csproj" />
   </Folder>
   <Folder Name="/src/Logging/" />
+  <Folder Name="/src/Logging/Abstractions/" />
+  <Folder Name="/src/Logging/Abstractions/src/">
+    <Project Path="src/Logging/Abstractions/src/LiteHttp.Logging.Abstractions.csproj" />
+  </Folder>
   <Folder Name="/src/Logging/Adapters/" />
   <Folder Name="/src/Logging/Adapters/Serilog/" />
   <Folder Name="/src/Logging/Adapters/Serilog/src/">

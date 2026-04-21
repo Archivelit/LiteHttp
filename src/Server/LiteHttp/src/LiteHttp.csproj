@@ -13,6 +13,7 @@
     <ProjectReference Include="..\..\Infrastructure\Helpers\src\LiteHttp.Helpers.csproj" />
     <ProjectReference Include="..\..\Infrastructure\Logging\src\LiteHttp.Logging.csproj" />
     <ProjectReference Include="..\..\Infrastructure\Server\src\LiteHttp.Server.csproj" />
+    <ProjectReference Include="..\..\..\..\Logging\Abstractions\src\LiteHttp.Logging.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

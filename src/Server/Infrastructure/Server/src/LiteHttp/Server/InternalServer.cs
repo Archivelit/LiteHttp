@@ -27,7 +27,7 @@ public sealed class InternalServer : IServer
 
         var heartbeatHandlers = new List<IHeartbeatHandler>();
 
-        Listener = new(address, port, logger.ForContext<Listener.Listener>());
+        Listener = new(address, logger.ForContext<Listener.Listener>(), port);
         ConnectionManager = new();
 
         heartbeatHandlers.Add(ConnectionManager);
