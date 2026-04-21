@@ -1,32 +1,6 @@
 <!-- ![version](https://img.shields.io/badge/version-10.0.0-blue.svg) -->
 # LiteHttp ![license](https://img.shields.io/badge/license-MIT-green.svg)
 
-## Project Status: Archived ⚠️
-
-This project is no longer in active development. It was built as a learning exercise to understand low-level networking, async I/O, and high-performance server architecture in C#.
-
-**What was achieved:**
-
-- Custom HTTP/1.1 server implementation without using `System.Net.Http`
-- 28,000+ requests per second on commodity hardware
-- Building concurrent lock-free systems using `ThreadPool`, concurrent collections and `Interlocked`
-- Efficient parsing and response building using `Span<T>` and `Memory<T>` to minimize allocations
-- Applying YAGNI principle: writing only code I needed, when I needed it
-- Open-source development practices: MIT license, contribution guidelines, XML code documentation
-
-**Why archived:**
-I'm shifting focus to production-ready backend development (SQL, EF Core, REST APIs, microservices). This project taught me invaluable lessons about systems programming, but it's time to apply those skills to real-world backend work.
-
-The code remains here as a reference and portfolio piece. I may return to add System.IO.Pipelines and HTTP keep-alive support in the future, but for now, it's feature-complete for its original learning goals.
-
-**Key learnings:**
-- How HTTP servers actually work under the hood
-- Performance optimization and profiling techniques
-- Lock-free concurrent data structures
-- The value of knowing when NOT to over-optimize
-
-Feel free to explore the code or reach out if you have questions!
-
 # Getting Started
 
 ## Note
@@ -163,7 +137,6 @@ If you encounter an issue or have feature request, **feel free to open an issue*
 
 Main goals:
 
-- High optimization
 - Aim for zero allocation
 - Avoid using non-system libraries
 - High configurationability
