@@ -1,6 +1,6 @@
 ﻿namespace LiteHttp.RequestProcessors;
 
-public sealed class Executor
+public sealed class ActionInvoker
 {
     public IActionResult Execute(Func<IActionResult> action) => action();
 }

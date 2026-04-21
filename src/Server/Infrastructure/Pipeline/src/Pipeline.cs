@@ -6,14 +6,14 @@ public sealed class Pipeline
     private readonly IRouter _router;
     private readonly Parser _parser;
     private readonly ResponseBuilder _responseBuilder;
-    private readonly Executor _executor;
+    private readonly ActionInvoker _actionInvoker;
     
     internal Pipeline(PipelineFactory factory)
     {
         _router = factory.RouterFactory();
         _parser = factory.ParserFactory();
         _responseBuilder = factory.ResponseBuilderFactory();
-        _executor = factory.ExecutorFactory();
+        _actionInvoker = factory.ActionInvokerFactory();
     }
     
     [SkipLocalsInit]
@@ -41,7 +41,7 @@ public sealed class Pipeline
             return;
         }
 
-        var executionResult = _executor.Execute(action);
+        var executionResult = _actionInvoker.Execute(action);
 
         responseLength = _responseBuilder.Build(executionResult, buffer);
         connectionContext.SocketEventArgs.SetBuffer(0, responseLength);

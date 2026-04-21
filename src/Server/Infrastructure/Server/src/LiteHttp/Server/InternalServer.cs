@@ -40,7 +40,7 @@ public sealed class InternalServer : IServer
             factory.ParserFactory = () => Parser.Instance;
             factory.RouterFactory = () => RouterFactory.Build(_endpointProviderConfiguration.EndpointContext);
             factory.ResponseBuilderFactory = () => new();
-            factory.ExecutorFactory = () => new();
+            factory.ActionInvokerFactory = () => new();
         });
 
         Heartbeat = new (CollectionsMarshal.AsSpan(heartbeatHandlers), 
