@@ -62,12 +62,9 @@ public sealed class Listener : IDisposable
         _isListening = false;
     }
 
-    public bool StartListen(CancellationToken cancellationToken)
+    public bool StartListen(CancellationToken cancellationToken = default)
     {
         _cancellationToken = cancellationToken;
-
-        if (_endPoint is null)
-            throw new InvalidOperationException("Listener endpoint cannot be null");
 
         if (!Socket.IsBound)
         {
@@ -84,7 +81,7 @@ public sealed class Listener : IDisposable
             var acceptEventArg = new SocketAsyncEventArgs();
             acceptEventArg.Completed += AcceptEventArg_Completed;
             
-            return ThreadPool.UnsafeQueueUserWorkItem(StartAccept, acceptEventArg, false);
+            return ThreadPool.QueueUserWorkItem(StartAccept, acceptEventArg, false);
         }
         catch (Exception ex)
         {
@@ -93,7 +90,6 @@ public sealed class Listener : IDisposable
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void AcceptEventArg_Completed(object? sender, SocketAsyncEventArgs saea)
     {
         ProcessAccept(saea);
