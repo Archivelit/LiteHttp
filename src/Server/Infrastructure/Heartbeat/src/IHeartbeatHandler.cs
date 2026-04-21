@@ -2,5 +2,5 @@
 
 public interface IHeartbeatHandler
 {
-    void OnHeartbeat();
+    public void OnHeartbeat();
 }

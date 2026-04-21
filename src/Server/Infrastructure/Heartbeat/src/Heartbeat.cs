@@ -12,18 +12,24 @@ namespace LiteHttp.Heartbeat;
 public sealed class Heartbeat : IDisposable
 {
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(1);
-    private const string NoHandlersExceptionString = "Heartbeat not needed to be initialized if here is no handlers in app"; 
+    private const string NoHandlersString = "Heartbeat handlers were not initialized"; 
     
     private readonly Action[] _callbacks;
     private readonly ManualResetEventSlim _timer = new ManualResetEventSlim(false, 0);
     private readonly Thread _heartbeatThread;
     private readonly ILogger<Heartbeat> _logger;
-    
-    public Heartbeat(Span<IHeartbeatHandler> heartbeatHandlers, ILogger<Heartbeat> logger)
-    {
-        Debug.Assert(heartbeatHandlers.Length > 0, NoHandlersExceptionString);
 
-        ArgumentException.ThrowIfNullOrEmpty(NoHandlersExceptionString);
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+    public Heartbeat(IHeartbeatHandler[] heartbeatHandlers, ILogger<Heartbeat> logger)
+    {
+        Debug.Assert(heartbeatHandlers.Length > 0, NoHandlersString);
+
+        if (heartbeatHandlers.Length == 0)
+        {
+            logger.LogWarning($"{NoHandlersString}");
+            _logger = logger;
+            return; // we don't have any handlers, so we won't start the heartbeat thread
+        }
         
         _logger = logger;
         
@@ -40,6 +46,7 @@ public sealed class Heartbeat : IDisposable
 
         _heartbeatThread.Start();
     }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     
     private void OnHeartbeat()
     {
@@ -52,7 +59,7 @@ public sealed class Heartbeat : IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogTrace($"Exception thrown in heartbeat handler");
+                _logger.LogError(ex, $"Exception thrown in heartbeat handler");
             }
         }
     }
