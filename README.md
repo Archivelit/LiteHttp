@@ -71,7 +71,7 @@ The default address and port can easily be changed using `builder.WithAddress()`
 ```csharp
 var builder = new ServerBuilder();
 
-builder.WithAddress(new IPAddress([192, 168, 1, 1]));
+builder.WithAddress("192.168.1.1");
 builder.WithPort(8000);
 
 var server = builder.Build();
