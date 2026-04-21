@@ -8,6 +8,7 @@ using LiteHttp.Models;
 using LiteHttp.Pipeline;
 using LiteHttp.RequestProcessors;
 using LiteHttp.Routing;
+using LiteHttp.Server.LiteHttp.Server;
 
 namespace LiteHttp.Server;
 
@@ -30,7 +31,7 @@ public sealed class InternalServer : IServer
         Listener = new(address, logger.ForContext<Listener.Listener>(), port);
         ConnectionManager = new();
 
-        heartbeatHandlers.Add(ConnectionManager);
+        heartbeatHandlers.Add(new HeartbeatHandlerPlaceholder());
         
         _endpointProviderConfiguration = new EndpointProviderConfiguration();
         

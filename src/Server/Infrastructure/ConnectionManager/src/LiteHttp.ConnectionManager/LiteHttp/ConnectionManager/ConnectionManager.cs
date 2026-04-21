@@ -70,7 +70,7 @@ public sealed class ConnectionManager : IDisposable
 
     private void InitializeConnection(SocketAsyncEventArgs saea)
     {
-        var connectionContext = _connectionStore.InitConnection(saea);
+        var connectionContext = _connectionStore.InitializeConnection(saea);
 
         saea.UserToken = connectionContext;
 
