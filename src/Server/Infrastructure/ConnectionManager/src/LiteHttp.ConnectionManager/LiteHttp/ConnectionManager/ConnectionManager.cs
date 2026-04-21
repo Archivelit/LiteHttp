@@ -5,29 +5,22 @@
 //
 // The rest of the code is written without any inspiration, any similarities are purely coincidental.
 
-using System.Collections.Concurrent;
-
-using LiteHttp.Heartbeat;
-using LiteHttp.Helpers;
+using LiteHttp.ConnectionManager.Abstractions;
 
 namespace LiteHttp.ConnectionManager;
 
 #nullable disable
 #pragma warning disable CS8632
-public sealed class ConnectionManager : IHeartbeatHandler, IDisposable
+public sealed class ConnectionManager : IDisposable
 {
-    private const int MinimalReceiveSpeed = 1024; // 1 KB/s 
-    private static readonly TimeSpan Second = TimeSpan.FromSeconds(1);
-
     private readonly DefaultObjectPool<SocketAsyncEventArgs> _saeaPool = new();
-    private readonly ConcurrentDictionary<long, ConnectionContext> _connections;
-    private readonly ConnectionContextFactory _connectionContextFactory = new();
+    private readonly IConnectionStore _connectionStore;
 
     public ConnectionManager()
     {
         const int initObjectsCount = 50000;
 
-        _connections = new ConcurrentDictionary<long, ConnectionContext>(-1, initObjectsCount);
+        _connectionStore = new ConnectionStore();
 
         ObjectPoolInitializationHelper<SocketAsyncEventArgs>.Initialize(initObjectsCount, _saeaPool, () =>
         {
@@ -48,22 +41,23 @@ public sealed class ConnectionManager : IHeartbeatHandler, IDisposable
         return saea;
     }
 
-    public void OnHeartbeat()
-    {
-        var now = DateTime.UtcNow;
+    // TODO: implement "walker" service with similar logic.
+    //public void OnHeartbeat()
+    //{
+    //    var now = DateTime.UtcNow;
 
-        foreach (var kvp in _connections)
-        {
-            var connection = kvp.Value;
+    //    foreach (var kvp in _connections)
+    //    {
+    //        var connection = kvp.Value;
 
-            var lifetime = now - connection.CreatedAtUtc;
-            if (lifetime < Second) continue;
+    //        var lifetime = now - connection.CreatedAtUtc;
+    //        if (lifetime < Second) continue;
 
-            var speed = connection.BytesReceived / lifetime.TotalSeconds;
-            if (speed < MinimalReceiveSpeed)
-                CloseConnection(connection.SocketEventArgs);
-        }
-    }
+    //        var speed = connection.BytesReceived / lifetime.TotalSeconds;
+    //        if (speed < MinimalReceiveSpeed)
+    //            CloseConnection(connection.SocketEventArgs);
+    //    }
+    //}
 
     public void HandleAccept(SocketAsyncEventArgs acceptEventArg)
     {
@@ -76,13 +70,9 @@ public sealed class ConnectionManager : IHeartbeatHandler, IDisposable
 
     private void InitializeConnection(SocketAsyncEventArgs saea)
     {
-        var connectionContext = _connectionContextFactory.Create(saea);
+        var connectionContext = _connectionStore.InitConnection(saea);
 
         saea.UserToken = connectionContext;
-
-        // REVIEW: not thread safe. Should be refactored to support multiple accept loops
-        if (!_connections.TryAdd(connectionContext.Id, connectionContext))
-            throw new InvalidOperationException($"Cannot add task {connectionContext.Id}");
 
         Receive(saea);
     }
@@ -132,7 +122,7 @@ public sealed class ConnectionManager : IHeartbeatHandler, IDisposable
     {
         var connectionContext = (ConnectionContext)saea.UserToken;
 
-        if (!_connections.TryRemove(connectionContext.Id, out _))
+        if (!_connectionStore.TryCloseConnection(connectionContext))
             throw new InvalidOperationException($"Cannot remove connection {connectionContext.Id}");
 
         saea.AcceptSocket.Shutdown(SocketShutdown.Both);
